@@ -1,0 +1,15 @@
+{
+  "safety-gate-scripts": {
+    "PreToolUse": [
+      {
+        "matcher": "write_to_file",
+        "hooks": [
+          {
+            "command": "node scripts/prevent-root-scripts.js",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

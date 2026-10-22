@@ -1,0 +1,5 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "secrets-expert",
+  "description": "Enterprise secrets management plugin integrating the official Infisical MCP server, behavioral constraints, and secret taxonomy rules."
+}

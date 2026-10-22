@@ -1,0 +1,106 @@
+# Responses
+
+Send requests through agentgateway using the OpenAI Responses API.
+
+The OpenAI Responses API (`/v1/responses`) is OpenAI’s interface for stateful, multi-step model
+interactions.
+
+## About
+
+The [OpenAI Responses API](https://platform.openai.com/docs/api-reference/responses) is a unified
+interface that supports text and multimodal generation, built-in tools, and multi-turn conversation
+state. Agentgateway proxies these requests to your configured providers while providing token usage
+tracking, observability metrics, and policy enforcement.
+
+## Route type configuration
+
+In the simplified `llm` configuration, agentgateway automatically maps `/v1/responses` requests to
+the `responses` route type, so no explicit route configuration is required.
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+llm:
+  models:
+  - name: "*"
+    provider: openAI
+    params:
+      apiKey: "$OPENAI_API_KEY"
+```
+
+To configure the route type explicitly, use the `gateways` and `routes` format and set the
+`responses` route type in the `policies.ai.routes` map.
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+gateways:
+  default:
+    port: 4000
+routes:
+- backends:
+  - ai:
+      name: openai
+      provider:
+        openAI: {}
+  policies:
+    ai:
+      routes:
+        "/v1/responses": "responses"
+    backendAuth:
+      key: "$OPENAI_API_KEY"
+```
+
+> [!NOTE] Note For detailed information about model routing and configuration modes, see Model routing and aliases .
+
+## Using the API
+
+Using the Responses API works exactly the same as consuming OpenAI directly, with only a change to
+the base URL. This allows you to continue using existing code and SDKs.
+
+```
+curl 'http://localhost:4000/v1/responses' \
+--header 'Content-Type: application/json' \
+--data '{
+  "model": "gpt-4o-mini",
+  "input": "Tell me a story"
+}'
+```
+
+> [!NOTE] Note The api_key parameter is required in the OpenAI library. Depending on your agentgateway configuration, it may or may not be required, and can be set to a mock value.
+
+```
+import openai
+
+client = openai.OpenAI(
+    api_key="anything",
+    base_url="http://localhost:4000/v1"
+)
+
+response = client.responses.create(
+    model="gpt-4o-mini",
+    input="this is a test request, write a short poem"
+)
+
+print(response)
+```
+
+```
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: "anything",
+  baseURL: "http://localhost:4000/v1",
+});
+
+const response = await openai.responses.create({
+  model: "gpt-4o-mini",
+  input: "this is a test request, write a short poem"
+});
+
+console.log(response);
+```
+
+[View other LLM client integrations](/docs/standalone/main/integrations/llm-clients/).
+
+[Chat completions](/docs/standalone/latest/llm/api-types/completions/ 'Chat completions')[Messages](/docs/standalone/latest/llm/api-types/messages/ 'Messages')
+
+Was this page helpful?

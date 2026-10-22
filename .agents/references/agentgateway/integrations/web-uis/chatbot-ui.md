@@ -1,0 +1,94 @@
+# Chatbot UI
+
+Front Chatbot UI with agentgateway to keep API keys server-side and audit every chat.
+
+[Chatbot UI](https://github.com/mckaywrigley/chatbot-ui) is an open-source ChatGPT-style interface
+by Mckay Wrigley. Because it speaks the OpenAI Chat Completions API, you can point it at
+agentgateway instead of directly at OpenAI to centralize credentials, apply policies, and capture
+audit logs.
+
+## What you get
+
+- Browser users no longer hold the OpenAI API key — agentgateway does.
+- A consistent place to apply [rate limits](../../llm/cost-controls/virtual-keys.md) and capture [observability data](../../llm/observability.md).
+- The same gateway can later front additional providers without changing Chatbot UI.
+
+## Architecture
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Chatbot UI    │────▶│   agentgateway  │────▶│     OpenAI      │
+│   (port 3000)   │     │   (port 3001)   │     │                 │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+## Before you begin
+
+1. [Install the agentgateway binary](../../deployment/binary.md).
+2. Get an API key for your LLM provider (e.g. [OpenAI](https://platform.openai.com/api-keys)).
+3. Clone or run [Chatbot UI](https://github.com/mckaywrigley/chatbot-ui). Note that recent versions of Chatbot UI require a Supabase backend; see the upstream README for the full setup.
+
+## Steps
+
+### Step 1: Configure agentgateway
+
+Create a `config.yaml`. Agentgateway listens on port `3001` so it does not conflict with Chatbot
+UI’s default port `3000`:
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+
+llm:
+  port: 3001
+  models:
+  - name: "*"
+    provider: openAI
+    params:
+      apiKey: "$OPENAI_API_KEY"
+```
+
+### Step 2: Start agentgateway
+
+```
+export OPENAI_API_KEY='<your-api-key>'
+agentgateway -f config.yaml
+```
+
+### Step 3: Point Chatbot UI at agentgateway
+
+Set Chatbot UI’s environment variables in its `.env.local` so that requests target the gateway
+instead of OpenAI directly.
+
+```
+OPENAI_API_HOST=http://localhost:3001
+OPENAI_API_KEY=placeholder
+```
+
+The following table describes each environment variable:
+
+| Variable          | Description                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| `OPENAI_API_HOST` | The base URL of the agentgateway proxy.                                                                         |
+| `OPENAI_API_KEY`  | Must be non-empty for Chatbot UI to start, but it is not used to call OpenAI — agentgateway holds the real key. |
+
+> [!NOTE] Note If you run Chatbot UI via Docker, replace localhost with host.docker.internal so the container can reach agentgateway on your host machine: docker run --rm -p 3000:3000 \ --add-host = host.docker.internal:host-gateway \ -e OPENAI_API_KEY = placeholder \ -e OPENAI_API_HOST = http://host.docker.internal:3001 \ ghcr.io/mckaywrigley/chatbot-ui:main The --add-host flag ensures host.docker.internal resolves correctly on Linux.
+
+If you are running a Supabase-backed build of Chatbot UI, the equivalent variable is the OpenAI base
+URL field in the user **Settings** screen; set it to `http://localhost:3001/v1`.
+
+### Step 4: Send a message
+
+Open `http://localhost:3000` in your browser. Send a chat. Confirm in the agentgateway logs that the
+request was proxied to your LLM provider. You should see a log entry similar to:
+
+```
+info  request gateway=default/default listener=llm route=internal/model:* endpoint=api.openai.com:443 http.method=POST http.path=/v1/chat/completions http.status=200 protocol=llm gen_ai.operation.name=chat gen_ai.provider.name=openai gen_ai.request.model=gpt-4o gen_ai.usage.input_tokens=4419 gen_ai.usage.output_tokens=10 duration=2195ms
+```
+
+## Next steps
+
+[Virtual key managementApply rate limits and token budgets to LLM traffic.](../../llm/cost-controls/virtual-keys.md) [LLM observabilityMetrics, traces, and access logs for every LLM call.](../../llm/observability.md) [Add authenticationRequire JWTs from your IdP before calls reach the LLM.](../auth/index.md)
+
+[Goose](/docs/standalone/latest/integrations/web-uis/goose/ 'Goose')
+
+Was this page helpful?

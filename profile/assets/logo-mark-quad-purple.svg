@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Camada_2" data-name="Camada 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #4c4d9a;
+      }
+
+      .cls-2 {
+        fill: #fff;
+      }
+
+      .cls-3 {
+        fill: #e61f68;
+      }
+    </style>
+  </defs>
+  <g id="Logo_Mark" data-name="Logo Mark">
+    <g id="logo-mark-quad">
+      <rect class="cls-1" width="250" height="250"/>
+      <g>
+        <g>
+          <g>
+            <polygon class="cls-2" points="171.58 124.86 145.64 150.8 157.92 163.08 196.15 124.86 158.2 86.92 145.92 99.2 171.58 124.86"/>
+            <rect class="cls-3" x="191.42" y="99.96" width="17.27" height="17.27" transform="translate(264.73 326.85) rotate(-135)"/>
+          </g>
+          <g>
+            <polygon class="cls-2" points="78.42 125.14 104.36 99.2 92.08 86.92 53.85 125.14 91.8 163.08 104.08 150.8 78.42 125.14"/>
+            <rect class="cls-3" x="41.31" y="132.76" width="17.27" height="17.27" transform="translate(114.61 6.1) rotate(45)"/>
+          </g>
+        </g>
+        <rect class="cls-2" x="120.69" y="73.41" width="8.62" height="103.17" transform="translate(42.87 -31.54) rotate(17.32)"/>
+      </g>
+    </g>
+  </g>
+</svg>
