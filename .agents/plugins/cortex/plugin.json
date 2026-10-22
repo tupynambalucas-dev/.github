@@ -1,0 +1,4 @@
+{
+  "name": "cortex",
+  "description": "Primary plugin providing the AgentGateway MCP server and core Cortex rules."
+}

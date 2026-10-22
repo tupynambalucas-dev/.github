@@ -1,0 +1,71 @@
+# ---------------------------------------------------------------- #
+#  GLOBAL MONOREPO GITIGNORE
+# ---------------------------------------------------------------- #
+
+# --- Dependências & Gerenciadores de Pacote ---
+node_modules/
+.pnpm-store/
+.vscode-test/
+
+# --- GitHub ---
+.github/workflows/disabled/
+# Nota: Em ambientes profissionais, o package-lock.json DEVE ser comitado
+# para garantir builds reprodutíveis. Removi a linha que o ignorava.
+
+# --- Builds e Compilação (Frontend, Backend & Shared) ---
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+.eslintcache
+# --- Arquivos (Frontend) ---
+
+# --- Ambiente e Segredos (CRÍTICO) ---
+# Ignores all env files (any name/suffix variation)
+.env
+*.env.*
+.env.*
+# Exceptions: Keep example/template files tracked
+!*.env.example*
+!.env.example
+!.env.*.example
+
+# Chaves e Certificados
+mongo-keyfile
+*.p12
+*.pem
+*.key
+REGULATIONS_AND_GUIDELINES_STRATEGY.md
+# --- Logs e Diagnósticos ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# --- IDEs e Editores ---
+.idea/
+*.swp
+*.swo
+*.swn
+
+# --- Sistema Operacional ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+gha-creds-*.json
+
+# Turborepo
+.turbo
+
+# --- Persistent runtime ---
+data/
+logs/
+
+
+
+*-backup/
+tupynambalucas-backup/

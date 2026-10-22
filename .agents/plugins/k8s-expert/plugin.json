@@ -1,0 +1,5 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "k8s-expert",
+  "description": "Provides skills and domain knowledge for managing the Kubernetes GitOps architecture, ensuring separation of deployers (Helm and Kustomize)."
+}

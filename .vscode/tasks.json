@@ -1,0 +1,104 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Antigravity CLI (Ubuntu Terminal)",
+      "type": "process",
+      "command": "pwsh.exe",
+      "windows": {
+        "command": "pwsh.exe",
+        "args": [
+          "-WindowStyle",
+          "Hidden",
+          "-Command",
+          "Start-Process cmd.exe -ArgumentList '/c start wt.exe --window -1 -d \"${workspaceFolder}\" -- pwsh.exe -NoExit -ExecutionPolicy Bypass -File \"${workspaceFolder}\\.vscode\\scripts\\launch-agy-wsl.ps1\"'"
+        ]
+      },
+      "linux": {
+        "command": "bash",
+        "args": [
+          "-c",
+          "nohup wt.exe --window -1 wsl.exe -d tupynambalucasdev-ubuntu --cd ~/projects/tupynambalucas bash --login -c 'if command -v agy >/dev/null 2>&1; then agy; elif [ -f package.json ]; then pnpm agy; else echo \"Antigravity CLI not installed yet. Run: pnpm add -g @google/antigravity-cli\"; exec bash; fi; exec bash' >/dev/null 2>&1 &"
+        ],
+        "presentation": {
+          "echo": false,
+          "reveal": "never",
+          "focus": false,
+          "panel": "shared",
+          "close": true
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "close": true
+      }
+    },
+    {
+      "label": "Antigravity CLI",
+      "type": "process",
+      "command": "pwsh.exe",
+      "windows": {
+        "command": "pwsh.exe",
+        "args": [
+          "-WindowStyle",
+          "Hidden",
+          "-Command",
+          "Start-Process cmd.exe -ArgumentList '/c start wt.exe --window -1 --profile \"Antigravity\" -d \"${workspaceFolder}\" -- pwsh.exe -NoExit -ExecutionPolicy Bypass -File \"${workspaceFolder}\\.vscode\\scripts\\launch-agy.ps1\"'"
+        ]
+      },
+      "linux": {
+        "command": "bash",
+        "args": ["-c", "if command -v agy >/dev/null 2>&1; then agy; else pnpm agy; fi"],
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "close": true
+      }
+    },
+    {
+      "label": "Admin CLI",
+      "type": "process",
+      "command": "pwsh.exe",
+      "windows": {
+        "command": "pwsh.exe",
+        "args": [
+          "-WindowStyle",
+          "Hidden",
+          "-Command",
+          "Start-Process cmd.exe -Verb RunAs -ArgumentList '/c start wt.exe --window -1 --profile \"Admin\" -d \"${workspaceFolder}\" -- pwsh.exe -NoExit -ExecutionPolicy Bypass -File \"${workspaceFolder}\\.vscode\\scripts\\launch-mage.ps1\"'"
+        ]
+      },
+      "linux": {
+        "command": "bash",
+        "args": ["-c", "clear; echo 'Admin shell ready.'; exec bash"],
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "close": true
+      }
+    }
+  ]
+}

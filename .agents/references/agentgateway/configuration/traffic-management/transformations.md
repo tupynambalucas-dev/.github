@@ -1,0 +1,242 @@
+# Transformations
+
+Verified Code examples on this page have been automatically tested and verified.
+
+Modify header and body information for requests and responses.
+
+Attaches to: [Listener](/docs/standalone/latest/configuration/listeners/ 'Listener')[Route](/docs/standalone/latest/configuration/routes/ 'Route')
+
+> [!NOTE] Note Agentgateway supports more than one configuration style. Where a feature can also be configured in the simplified llm or mcp modes, the examples on this page show each option in tabs. For more information, see Routing-based configuration .
+
+Agentgateway uses transformation**Transformation**The process of modifying HTTP requests or
+responses as they pass through agentgateway. Transformations can change headers, body content, and
+other request/response attributes. templates that are written in Common Expression Language
+(CEL)**CEL (Common Expression Language)**A simple expression language used throughout agentgateway
+to enable flexible configuration. CEL expressions can access request context, JWT claims, and other
+variables to make dynamic decisions.. CEL is a fast, portable, and safely executable language that
+goes beyond declarative configurations. CEL lets you develop more complex expressions in a readable,
+developer-friendly syntax.
+
+To learn more about how to use CEL, refer to the following resources:
+
+- [cel.dev tutorial](https://cel.dev/tutorials/cel-get-started-tutorial)
+- [Agentgateway reference docs](../../reference/cel/index.md)
+
+> [!NOTE] Note Try out CEL expressions in the built-in CEL playground in the agentgateway admin UI before using them in your configuration.
+
+### Header transformation
+
+You can add, set, or remove request and response headers with agentgateway’s transformation
+policies.
+
+> [!NOTE] Note To provide a specific string value, add your string in single quotes ' followed by double quotes " . This way, the string is interpreted as a string value. If you provide the value without quotes or with double quotes only, it is interpreted as a CEL expression.
+
+#### Route-level header transformation
+
+Transform headers after route selection:
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+llm:
+  policies:
+    transformations:
+      request:
+        add:
+          x-request-path: request.path
+          x-client-ip: source.address
+      response:
+        add:
+          x-response-code: 'string(response.code)'
+        remove:
+        - server
+        - x-content-type-options
+  models:
+  - name: "*"
+    provider: openAI
+    params:
+      apiKey: "$OPEN_AI_APIKEY"
+```
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+mcp:
+  port: 3000
+  policies:
+    transformations:
+      request:
+        add:
+          x-request-path: request.path
+          x-client-ip: source.address
+      response:
+        add:
+          x-response-code: 'string(response.code)'
+        remove:
+        - server
+        - x-content-type-options
+  targets:
+  - name: everything
+    stdio:
+      cmd: npx
+      args: ["@modelcontextprotocol/server-everything"]
+```
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+gateways:
+  default:
+    port: 3000
+routes:
+- backends:
+  - ai:
+     name: openai
+     provider:
+       openAI:
+         # Optional; overrides the model in requests
+         model: gpt-3.5-turbo
+  policies:
+    backendAuth:
+      key: "$OPEN_AI_APIKEY"
+    cors:
+      allowOrigins:
+        - "*"
+      allowHeaders:
+        - "*"
+    transformations:
+      request:
+        add:
+          x-request-path: request.path
+          x-client-ip: source.address
+      response:
+        add:
+          x-response-code: 'string(response.code)'
+        remove:
+        - server
+        - x-content-type-options
+```
+
+#### Listener-level header transformation
+
+Transform headers before route selection by attaching the policy at the listener level:
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+llm:
+  policies:
+    transformations:
+      request:
+        add:
+          x-gateway: '"agentgateway"'
+  models:
+  - name: "*"
+    provider: openAI
+    params:
+      apiKey: "$OPEN_AI_APIKEY"
+```
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+mcp:
+  port: 3000
+  policies:
+    transformations:
+      request:
+        add:
+          x-gateway: '"agentgateway"'
+  targets:
+  - name: everything
+    stdio:
+      cmd: npx
+      args: ["@modelcontextprotocol/server-everything"]
+```
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+gateways:
+  default:
+    port: 3000
+    transformations:
+      request:
+        add:
+          x-gateway: '"agentgateway"'
+routes:
+- policies:
+    backendAuth:
+      key: "$OPEN_AI_APIKEY"
+  backends:
+  - ai:
+     name: openai
+     provider:
+       openAI:
+         model: gpt-3.5-turbo
+```
+
+### Body transformation
+
+You can provide a custom body for a request or response.
+
+> [!NOTE] Note To provide a specific string value, add your string in single quotes ' followed by double quotes " . This way, the string is interpreted as a string value. If you provide the value without quotes or with double quotes only, it is interpreted as a CEL expression.
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+llm:
+  policies:
+    transformations:
+      request:
+        body: |
+          "Hello " + default(request.headers["x-user-name"], "guest")
+      response:
+        body: |
+          "Response code: " + string(response.code)
+  models:
+  - name: "*"
+    provider: openAI
+    params:
+      apiKey: "$OPEN_AI_APIKEY"
+```
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+mcp:
+  port: 3000
+  policies:
+    transformations:
+      request:
+        body: |
+          "Hello " + default(request.headers["x-user-name"], "guest")
+      response:
+        body: |
+          "Response code: " + string(response.code)
+  targets:
+  - name: everything
+    stdio:
+      cmd: npx
+      args: ["@modelcontextprotocol/server-everything"]
+```
+
+```
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+gateways:
+  default:
+    port: 3000
+routes:
+- policies:
+    transformations:
+      request:
+        body: |
+          "Hello " + default(request.headers["x-user-name"], "guest")
+      response:
+        body: |
+          "Response code: " + string(response.code)
+  backends:
+  - host: localhost:8080
+```
+
+## Conditional execution
+
+To run a transformation only when a CEL expression matches, use the `conditional` field. For
+example, you can transform internal traffic only and leave external traffic untouched. For details,
+see [Conditional policies](../policies/conditional-policies.md).
+
+[Redirects](/docs/standalone/latest/configuration/traffic-management/redirects/ 'Redirects')[Rewrites](/docs/standalone/latest/configuration/traffic-management/rewrites/ 'Rewrites')
+
+Was this page helpful?

@@ -1,0 +1,489 @@
+# authentik
+
+Verified Code examples on this page have been automatically tested and verified.
+
+Integrate agentgateway with authentik for identity management
+
+[authentik](https://goauthentik.io/) is an open-source identity provider. Agentgateway includes a
+native `authentik` MCP authentication provider so that you can use authentik as the authorization
+server for your MCP servers.
+
+In this guide, you run authentik locally, create an OAuth provider and application for MCP clients,
+protect a sample MCP server with the `authentik` provider, and verify that agentgateway rejects
+unauthenticated requests and admits tokens that authentik issues.
+
+## Why the authentik provider is needed
+
+MCP clients follow the [MCP authorization
+specification](https://modelcontextprotocol.io/specification/draft/basic/authorization), which
+relies on OAuth features that authentik handles differently. When you set `provider.authentik`,
+agentgateway bridges these gaps as follows:
+
+- **Non-standard JWKS path.** authentik serves signing keys at `{issuer}/jwks/` instead of `{issuer}/.well-known/jwks.json`. Agentgateway derives the correct URL from your issuer.
+- **Metadata discovery.** Agentgateway fetches authentik’s OpenID Connect discovery document at `{issuer}/.well-known/openid-configuration` and serves it to MCP clients as authorization server metadata.
+- **No Dynamic Client Registration in open source authentik.** authentik does not implement [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) in its open source builds, so its discovery document reports `registration_endpoint: null`. Agentgateway injects one that points back at the gateway and answers registration requests with the client that you pre-register in `clientId`. authentik 2026.8.0 adds a registration endpoint ([authentik#8751](https://github.com/goauthentik/authentik/issues/8751)), but only as an enterprise feature, so `clientId` remains the path for open source deployments.
+
+> [!NOTE] Important Setting clientId is required for open source authentik. Because those builds do not support Dynamic Client Registration, the pre-registered client in clientId is the only way for MCP clients to complete registration. If you omit it, registration requests fail.
+
+For the underlying `mcpAuthentication` fields, see [MCP
+authentication](../../configuration/security/mcp-authn.md).
+
+## Before you begin
+
+1. [Install the agentgateway binary](../../deployment/binary.md).
+2. Install [Docker](https://docs.docker.com/get-started/get-docker/) to run authentik locally.
+3. Install [Node.js](https://nodejs.org/) so that `npx` can run the sample MCP server.
+4. Install [jq](https://jqlang.github.io/jq/) to read values out of authentik’s API responses.
+
+The steps use a local authentik instance so that you can complete the guide end to end. To use an
+existing authentik instance instead, skip to [Step 2](#register) and replace `http://localhost:9000`
+with your authentik URL throughout.
+
+## Step 1: Run authentik
+
+authentik needs PostgreSQL and Redis alongside its server and worker, so run the stack with Docker
+Compose.
+
+1. Create a `docker-compose.yaml`. The `AUTHENTIK_BOOTSTRAP_*` values create the admin account and an
+   API token on first start, which lets you configure authentik entirely from the API.
+
+   ```
+   services:
+     postgresql:
+       image: docker.io/library/postgres:16-alpine
+       container_name: authentik-postgresql
+       environment:
+         POSTGRES_USER: authentik
+         POSTGRES_DB: authentik
+         POSTGRES_PASSWORD: authentik-docs-pg
+       healthcheck:
+         test: ["CMD-SHELL", "pg_isready -d authentik -U authentik"]
+         interval: 5s
+         timeout: 5s
+         retries: 10
+
+     redis:
+       image: docker.io/library/redis:alpine
+       container_name: authentik-redis
+
+     server:
+       image: ghcr.io/goauthentik/server:2026.5.6
+       container_name: authentik-server
+       command: server
+       environment: &ak-env
+         AUTHENTIK_POSTGRESQL__HOST: postgresql
+         AUTHENTIK_POSTGRESQL__USER: authentik
+         AUTHENTIK_POSTGRESQL__NAME: authentik
+         AUTHENTIK_POSTGRESQL__PASSWORD: authentik-docs-pg
+         AUTHENTIK_REDIS__HOST: redis
+         AUTHENTIK_SECRET_KEY: docs-only-secret-key-not-for-production
+         AUTHENTIK_BOOTSTRAP_PASSWORD: Admin123!docs
+         AUTHENTIK_BOOTSTRAP_TOKEN: docs-bootstrap-token-0123456789
+         AUTHENTIK_BOOTSTRAP_EMAIL: [email protected]
+         AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+       ports:
+         - "9000:9000"
+       depends_on:
+         postgresql:
+           condition: service_healthy
+         redis:
+           condition: service_started
+
+     worker:
+       image: ghcr.io/goauthentik/server:2026.5.6
+       container_name: authentik-worker
+       command: worker
+       environment: *ak-env
+       depends_on:
+         postgresql:
+           condition: service_healthy
+         redis:
+           condition: service_started
+   ```
+
+   > [!WARNING] Warning These credentials are fixed so that the guide is reproducible. Generate strong values and store them in a secret manager for anything other than local testing.
+
+2. Start the stack.
+
+   ```
+   docker compose up -d
+   ```
+
+3. Wait for authentik to answer API requests. The server migrates its database on first start, so this
+   takes longer than the containers take to come up.
+
+   ```
+   for i in $(seq 1 90); do
+     if [ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:9000/-/health/ready/)" = "200" ]; then
+       echo "authentik is ready"
+       break
+     fi
+     sleep 4
+   done
+   ```
+
+## Step 2: Create an OAuth provider and application
+
+Create an OAuth2 provider and an application in authentik, and capture the client ID that
+agentgateway uses. The following steps use the API so that every value you need lands in a shell
+variable.
+
+1. Set the API base URL and the bootstrap token as an authorization header.
+
+   ```
+   export AUTHENTIK_API=http://localhost:9000/api/v3
+   export AK_AUTH_HEADER="Authorization: Bearer docs-bootstrap-token-0123456789"
+   ```
+
+2. Look up the flow, signing key, and scope IDs that the provider requires. authentik references these
+   objects by primary key rather than by name, and its worker creates them shortly after the server
+   starts answering requests, so retry until all four lookups return a value.
+
+   ```
+   for i in $(seq 1 90); do
+     export AK_FLOW=$(curl -s -H "${AK_AUTH_HEADER}" \
+       "${AUTHENTIK_API}/flows/instances/?slug=default-provider-authorization-implicit-consent" \
+       | jq -r '.results[0].pk // empty')
+
+     export AK_INVALIDATION_FLOW=$(curl -s -H "${AK_AUTH_HEADER}" \
+       "${AUTHENTIK_API}/flows/instances/?slug=default-invalidation-flow" \
+       | jq -r '.results[0].pk // empty')
+
+     export AK_SIGNING_KEY=$(curl -s -H "${AK_AUTH_HEADER}" \
+       "${AUTHENTIK_API}/crypto/certificatekeypairs/?has_key=true" \
+       | jq -r '.results[0].pk // empty')
+
+     export AK_SCOPES=$(curl -s -H "${AK_AUTH_HEADER}" \
+       "${AUTHENTIK_API}/propertymappings/provider/scope/" \
+       | jq -c '[.results[] | select(.scope_name=="openid" or .scope_name=="profile" or .scope_name=="email") | .pk]')
+
+     if [ -n "${AK_FLOW}" ] && [ -n "${AK_INVALIDATION_FLOW}" ] \
+       && [ -n "${AK_SIGNING_KEY}" ] && [ "$(echo "${AK_SCOPES}" | jq 'length')" -eq 3 ]; then
+       echo "authentik finished bootstrapping"
+       break
+     fi
+     sleep 2
+   done
+   ```
+
+   > [!NOTE] Important Do not replace this loop with a single pass. /-/health/ready/ starts returning 200 several seconds before the worker finishes creating the default flows and scope mappings. If the lookups run too early, one of them comes back empty, the provider in the next step fails validation, and Client ID prints as null .
+
+3. Create a public OAuth2 provider. MCP clients are public clients that use PKCE, because they cannot
+   keep a client secret.
+
+   ```
+   export AUTHENTIK_CLIENT_ID=$(curl -s -X POST -H "${AK_AUTH_HEADER}" \
+     -H "Content-Type: application/json" "${AUTHENTIK_API}/providers/oauth2/" -d "{
+       \"name\": \"agentgateway-mcp\",
+       \"authorization_flow\": \"${AK_FLOW}\",
+       \"invalidation_flow\": \"${AK_INVALIDATION_FLOW}\",
+       \"client_type\": \"public\",
+       \"signing_key\": \"${AK_SIGNING_KEY}\",
+       \"property_mappings\": ${AK_SCOPES},
+       \"grant_types\": [\"authorization_code\", \"refresh_token\", \"client_credentials\"],
+       \"redirect_uris\": [{\"matching_mode\": \"regex\", \"url\": \".*\"}],
+       \"sub_mode\": \"user_username\",
+       \"include_claims_in_id_token\": true
+     }" | jq -r '.client_id')
+
+   echo "Client ID: ${AUTHENTIK_CLIENT_ID}"
+   ```
+
+   If the client ID prints as `null`, the provider was not created. Re-run the request without the `|
+jq -r '.client_id'` filter to see the validation error that authentik returned.
+
+   The following table describes the settings that matter for MCP.
+
+   | Setting             | Description                                                                                                                                                                                                                        |
+   | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+   | `client_type`       | Must be `public`. MCP clients cannot keep a client secret, so they authenticate with PKCE instead.                                                                                                                                 |
+   | `grant_types`       | authentik rejects any grant that is not listed here with `invalid_grant`. `client_credentials` is what lets you mint a token from the command line in [Step 3](#service-account); MCP clients themselves use `authorization_code`. |
+   | `property_mappings` | The scopes the provider can issue. The `profile` scope is what puts the `groups` claim in the token, which the rule in [Step 7](#authorization) reads.                                                                             |
+   | `sub_mode`          | Sets the `sub` claim to the username, which makes tokens easier to read while testing.                                                                                                                                             |
+
+   > [!WARNING] Warning The .\* redirect URI matcher accepts any callback URL, so that you can connect different MCP clients while you test. Do not use it outside a test environment. An authorization server that accepts any redirect URI lets an attacker intercept authorization codes by sending a victim through a crafted callback. In production, list only the callback URLs of the MCP clients that you allow.
+
+4. Create an application that uses the provider. The application slug appears in the issuer URL.
+
+   ```
+   export AK_PROVIDER_PK=$(curl -s -H "${AK_AUTH_HEADER}" \
+     "${AUTHENTIK_API}/providers/oauth2/?name=agentgateway-mcp" | jq -r '.results[0].pk')
+
+   curl -s -X POST -H "${AK_AUTH_HEADER}" -H "Content-Type: application/json" \
+     "${AUTHENTIK_API}/core/applications/" -d "{
+       \"name\": \"agentgateway MCP\",
+       \"slug\": \"agentgateway-mcp\",
+       \"provider\": ${AK_PROVIDER_PK}
+     }" | jq -r '.slug'
+   ```
+
+5. Confirm the issuer that authentik now serves. Note the trailing slash, which the `iss` claim also
+   carries.
+
+   ```
+   curl -s http://localhost:9000/application/o/agentgateway-mcp/.well-known/openid-configuration \
+     | jq '{issuer, jwks_uri, registration_endpoint}'
+   ```
+
+   Example output. `registration_endpoint` is `null` because authentik publishes no Dynamic Client
+   Registration endpoint; agentgateway injects one in [Step 5](#verify).
+
+   ```
+   {
+     "issuer": "http://localhost:9000/application/o/agentgateway-mcp/",
+     "jwks_uri": "http://localhost:9000/application/o/agentgateway-mcp/jwks/",
+     "registration_endpoint": null
+   }
+   ```
+
+## Step 3: Create a service account for testing
+
+Real MCP clients get a token by sending the user through a browser login. To keep the verification
+steps in this guide scriptable, create a service account and use the `client_credentials` grant
+instead.
+
+1. Create the service account. Setting `create_group` puts it in a group of the same name, which [Step
+   7](#authorization) uses for authorization.
+
+   ```
+   export AK_SERVICE_ACCOUNT=$(curl -s -X POST -H "${AK_AUTH_HEADER}" \
+     -H "Content-Type: application/json" "${AUTHENTIK_API}/core/users/service_account/" \
+     -d '{"name": "mcp-agent", "create_group": true, "expiring": false}')
+
+   export AK_SA_USERNAME=$(echo "${AK_SERVICE_ACCOUNT}" | jq -r '.username')
+   export AK_SA_PASSWORD=$(echo "${AK_SERVICE_ACCOUNT}" | jq -r '.token')
+
+   echo "Service account: ${AK_SA_USERNAME}"
+   ```
+
+   > [!NOTE] Note authentik returns the service account token only in this response. If you lose it, issue a new app password from Directory > Tokens rather than reading the old one back.
+
+## Step 4: Configure and start agentgateway
+
+1. Create a `config.yaml` that exposes a sample MCP server on port 3000 and protects it with the
+   `authentik` provider. Substitute the client ID from [Step 2](#register) for `<YOUR_CLIENT_ID>`.
+
+   ```
+   # yaml-language-server: $schema=https://agentgateway.dev/schema/config
+   mcp:
+     port: 3000
+     policies:
+       cors:
+         allowOrigins: ["*"]
+         allowHeaders: ["*"]
+         exposeHeaders: ["Mcp-Session-Id"]
+       mcpAuthentication:
+         mode: strict
+         issuer: http://localhost:9000/application/o/agentgateway-mcp/
+         audiences:
+         - <YOUR_CLIENT_ID>
+         provider:
+           authentik: {}
+         clientId: <YOUR_CLIENT_ID>
+         resourceMetadata:
+           resource: http://localhost:3000/mcp
+           scopesSupported:
+           - openid
+           - profile
+           bearerMethodsSupported:
+           - header
+     targets:
+     - name: everything
+       stdio:
+         cmd: npx
+         args: ["@modelcontextprotocol/server-everything"]
+   ```
+
+   Review the following table to understand this configuration.
+
+   | Setting     | Description                                                                                                                                                                                                                                                                                                                  |
+   | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+   | `issuer`    | The authentik issuer URL, including the trailing slash. Keep the trailing slash, because this value must match the `iss` claim in the token, and authentik mints that claim with one. Agentgateway derives the JWKS URL as `{issuer}/jwks/` and normalizes any trailing slash first, so you do not need to configure `jwks`. |
+   | `audiences` | The OAuth client ID. authentik sets the `aud` claim of its tokens to the client ID rather than to a separate API identifier, so this value must match `clientId`.                                                                                                                                                            |
+   | `clientId`  | The client ID of the public client that you created in authentik. Agentgateway returns this client to MCP clients that attempt Dynamic Client Registration.                                                                                                                                                                  |
+
+   > [!NOTE] Note authentik does not support RFC 8707 resource indicators, and unlike Auth0 and Okta, it has no audience query parameter workaround. This is why audiences must be set to the client ID that authentik puts in the aud claim.
+
+2. Start agentgateway.
+
+   ```
+   agentgateway -f config.yaml
+   ```
+
+## Step 5: Verify that unauthenticated requests are rejected
+
+Agentgateway runs in the foreground, so run the following commands in another terminal.
+
+1. Send an MCP `initialize` request without a token.
+
+   ```
+   curl -i -X POST http://localhost:3000/mcp \
+     -H 'content-type: application/json' \
+     -H 'accept: application/json, text/event-stream' \
+     -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"curl","version":"1.0"}},"id":1}'
+   ```
+
+   Agentgateway returns `401` with a `WWW-Authenticate` header that points MCP clients at the protected
+   resource metadata.
+
+   ```
+   HTTP/1.1 401 Unauthorized
+   www-authenticate: Bearer resource_metadata="http://localhost:3000/.well-known/oauth-protected-resource/mcp"
+   ```
+
+2. Inspect the authorization server metadata that the gateway serves.
+
+   ```
+   curl -s http://localhost:3000/.well-known/oauth-authorization-server \
+     | jq '{issuer, jwks_uri, registration_endpoint}'
+   ```
+
+   Two of the three adaptations from [Why the authentik provider is needed](#why) are visible here.
+   `jwks_uri` is the derived `{issuer}/jwks/` path, and `registration_endpoint` now points at the
+   gateway even though authentik reported `null` for it in [Step 2](#register).
+
+   ```
+   {
+     "issuer": "http://localhost:9000/application/o/agentgateway-mcp/",
+     "jwks_uri": "http://localhost:9000/application/o/agentgateway-mcp/jwks/",
+     "registration_endpoint": "http://localhost:3000/.well-known/oauth-authorization-server/client-registration"
+   }
+   ```
+
+3. Register a client against that injected endpoint.
+
+   ```
+   curl -s -X POST http://localhost:3000/.well-known/oauth-authorization-server/client-registration \
+     -H 'content-type: application/json' \
+     -d '{"client_name":"mcp-inspector","redirect_uris":["http://localhost:6274/oauth/callback"],"grant_types":["authorization_code"],"response_types":["code"],"token_endpoint_auth_method":"none"}' \
+     | jq '{client_id, token_endpoint_auth_method}'
+   ```
+
+   The gateway answers with the client you configured in `clientId` rather than creating a new one in
+   authentik. This is what lets MCP clients that insist on registering themselves complete the flow.
+
+## Step 6: Call the MCP server with a token
+
+1. Request a token for the service account. Include the `profile` scope so that authentik adds the
+   `groups` claim, which [Step 7](#authorization) needs.
+
+   ```
+   export TOKEN="$(curl -s -X POST http://localhost:9000/application/o/token/ \
+     -d grant_type=client_credentials \
+     -d "client_id=${AUTHENTIK_CLIENT_ID}" \
+     -d "username=${AK_SA_USERNAME}" \
+     -d "password=${AK_SA_PASSWORD}" \
+     --data-urlencode 'scope=openid profile' | jq -r .access_token)"
+   ```
+
+2. Send the token as a bearer token.
+
+   ```
+   curl -i -X POST http://localhost:3000/mcp \
+     -H "authorization: Bearer ${TOKEN}" \
+     -H 'content-type: application/json' \
+     -H 'accept: application/json, text/event-stream' \
+     -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"curl","version":"1.0"}},"id":1}'
+   ```
+
+   Agentgateway fetches authentik’s keys from the derived `{issuer}/jwks/` URL, validates the token,
+   and returns the MCP server’s response.
+
+   ```
+   HTTP/1.1 200 OK
+   content-type: text/event-stream
+   mcp-session-id: 05f98776-8671-4f74-a848-fadef397477c
+
+   event: message
+   data: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05", ... ,"serverInfo":{"name":"mcp-servers/everything","title":"Everything Reference Server","version":"2.0.0"}}}
+   ```
+
+   > [!TIP] Tip The client_credentials grant is a convenience for this guide. Real MCP clients use the authorization code flow with PKCE, which the gateway advertises through the metadata that you inspected in Step 5 .
+
+## Step 7: Restrict access by group
+
+authentik includes the user’s groups in the token when the request asks for the `profile` scope.
+Combine those claims with agentgateway
+[authorization](../../configuration/security/mcp-authz.md) rules.
+
+1. Add an `authorization` policy alongside `mcpAuthentication` in your `config.yaml` that requires the
+   `mcp-agent` group.
+
+   ```
+     policies:
+       mcpAuthentication:
+         mode: strict
+         issuer: http://localhost:9000/application/o/agentgateway-mcp/
+         audiences:
+         - <YOUR_CLIENT_ID>
+         provider:
+           authentik: {}
+         clientId: <YOUR_CLIENT_ID>
+         resourceMetadata:
+           resource: http://localhost:3000/mcp
+           scopesSupported:
+           - openid
+           - profile
+           bearerMethodsSupported:
+           - header
+       authorization:
+         rules:
+         # Check for authentik group membership
+         - '"mcp-agent" in jwt.groups'
+   ```
+
+2. Restart agentgateway to apply the policy. Because the service account is in the `mcp-agent` group,
+   the request from [Step 6](#token) still succeeds.
+
+   ```
+   agentgateway -f config.yaml
+   ```
+
+3. To confirm that the rule is enforced, create a second service account in a different group and
+   repeat the request with its token.
+
+   ```
+   export AK_GUEST=$(curl -s -X POST -H "${AK_AUTH_HEADER}" \
+     -H "Content-Type: application/json" "${AUTHENTIK_API}/core/users/service_account/" \
+     -d '{"name": "mcp-guest", "create_group": true, "expiring": false}')
+
+   export GUEST_TOKEN="$(curl -s -X POST http://localhost:9000/application/o/token/ \
+     -d grant_type=client_credentials \
+     -d "client_id=${AUTHENTIK_CLIENT_ID}" \
+     -d "username=$(echo "${AK_GUEST}" | jq -r '.username')" \
+     -d "password=$(echo "${AK_GUEST}" | jq -r '.token')" \
+     --data-urlencode 'scope=openid profile' | jq -r .access_token)"
+
+   curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:3000/mcp \
+     -H "authorization: Bearer ${GUEST_TOKEN}" \
+     -H 'content-type: application/json' \
+     -H 'accept: application/json, text/event-stream' \
+     -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"curl","version":"1.0"}},"id":1}'
+   ```
+
+   The token is valid, so authentication succeeds, but the authorization rule denies the request with
+   `403`.
+
+## Connect an MCP client
+
+Point your MCP client at the gateway’s MCP endpoint, `http://localhost:3000/mcp`. The client
+discovers the authorization server through the gateway, registers against the injected endpoint that
+you verified in [Step 5](#verify), and redirects the user to authentik to log in and consent.
+
+## Clean up
+
+Remove the authentik stack and stop agentgateway.
+
+```
+docker compose down -v
+```
+
+## Learn more
+
+- [authentik documentation](https://docs.goauthentik.io/)
+- [MCP authentication](../../configuration/security/mcp-authn.md)
+- [MCP authorization](../../configuration/security/mcp-authz.md)
+
+[Okta](/docs/standalone/latest/integrations/auth/okta/ 'Okta')[Microsoft Entra ID](/docs/standalone/latest/integrations/auth/entra/ 'Microsoft Entra ID')
+
+Was this page helpful?

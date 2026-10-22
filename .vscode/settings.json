@@ -1,0 +1,151 @@
+{
+  "files.exclude": {
+    "**/.git": true,
+    "**/.eslintcache": false,
+    "**/node_modules": false,
+    "**/dist": true
+  },
+  "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/.eslintcache": true,
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/.turbo/**": true
+  },
+
+  /* --- Schemas --- */
+
+  /* --- Eslint Config --- */
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "eslint.options": {
+    "cache": true,
+    "cacheLocation": ".eslintcache"
+  },
+  "eslint.codeActionsOnSave.mode": "problems",
+  "eslint.lintTask.enable": true,
+
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "never"
+  },
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+
+  "[mdx]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+    "editor.wordWrap": "on"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "on"
+  },
+  "[markdown_latex_combined]": {
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "on"
+  },
+
+  /* --- Prettier Formatting --- */
+  "prettier.requireConfig": true,
+  "prettier.useEditorConfig": true,
+  "prettier.configPath": "shared/config/prettierrc.json",
+  "prettier.ignorePath": "shared/config/.prettierignore",
+
+  /* --- Tailwind CSS IntelliSense --- */
+  "tailwindCSS.showPixelEquivalents": true,
+  "tailwindCSS.classAttributes": ["class", "className", "classNames", "tw"],
+  "tailwindCSS.lint.cssConflict": "warning",
+  "tailwindCSS.lint.invalidApply": "error",
+  "tailwindCSS.lint.invalidConfigPath": "error",
+  "tailwindCSS.lint.invalidScreen": "error",
+  "tailwindCSS.lint.invalidTailwindDirective": "error",
+  "tailwindCSS.lint.invalidVariant": "error",
+  "tailwindCSS.lint.recommendedVariantOrder": "warning",
+
+  /* --- ESLint Probe Languages --- */
+  "eslint.probe": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "html",
+    "mdx",
+    "markdown"
+  ],
+
+  /* --- Material Icon Theme --- */
+  "material-icon-theme.activeIconPack": "react",
+  "material-icon-theme.folders.theme": "specific",
+
+  /* --- YAML formatting --- */
+  "yaml.format.enable": true,
+  "yaml.format.singleQuote": false,
+  "yaml.format.bracketSpacing": true,
+  "yaml.format.proseWrap": "preserve",
+  "yaml.schemas": {
+    "https://json.schemastore.org/kustomization.json": [
+      "**/kustomization.yaml",
+      "**/kustomization.yml"
+    ],
+    "kubernetes": [
+      "**/kubernetes/*.yaml",
+      "**/kubernetes/*.yml",
+      "**/kubernetes/**/*.yaml",
+      "**/kubernetes/**/*.yml"
+    ],
+    "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0-standalone-strict/all.json": [
+      "**/platform/infrastructure/kubernetes/prometheus.yaml",
+      "**/platform/infrastructure/kubernetes/loki.yaml"
+    ]
+  },
+
+  /* --- Markdown Preview Enhanced --- */
+  "markdown-preview-enhanced.codeBlockTheme": "github-light.css",
+  "markdown-preview-enhanced.previewTheme": "github-light.css",
+  "markdown-preview-enhanced.enableWikiLinkSyntax": true,
+
+  /* --- TypeScript Core --- */
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "js/ts.tsserver.maxMemory": 4096,
+  "js/ts.tsserver.log": "off",
+  "js/ts.tsserver.automaticTypeAcquisition.enabled": false,
+
+  /* --- IntelliSense & Auto Imports --- */
+  "js/ts.suggest.autoImports": true,
+  "js/ts.preferences.includePackageJsonAutoImports": "auto",
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+
+  /* --- Performance vs Diagnostics --- */
+  "js/ts.tsserver.experimental.enableProjectDiagnostics": false,
+
+  /* --- Styles (TailwindCSS v4 compatibility) --- */
+  "css.validate": false,
+  "scss.validate": false,
+  "less.validate": false,
+
+  /* --- Misc --- */
+  "json.schemaDownload.enable": true,
+  "yaml.schemaStore.enable": true,
+  "yaml.kubernetesCRDStore.enable": true,
+
+  /* --- Color Highlight --- */
+  "color-highlight.languages": ["*", "!json", "!yaml", "!markdown", "!mdx"],
+  "yaml.disableSchemaDetection": [
+    "**/.github/workflows/*.yml",
+    "**/.github/workflows/*.yaml",
+    "**/.gitea/workflows/*.yml",
+    "**/.gitea/workflows/*.yaml",
+    "**/.forgejo/workflows/*.yml",
+    "**/.forgejo/workflows/*.yaml"
+  ]
+
+  /* --- GitHub Copilot Chat Configuration --- */
+}
