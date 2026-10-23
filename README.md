@@ -78,5 +78,5 @@ and native WSL2 Ubuntu environments.
 - **Enterprise Website**: [https://tupynambalucas.dev](https://tupynambalucas.dev)
 - **Documentation Portal**: [https://docs.tupynambalucas.dev](https://docs.tupynambalucas.dev)
 - **Primary Monorepo**:
-  [tupynambalucas-dev/tupynambalucas](https://github.com/tupynambalucas-dev/tupynambalucas)
+  [tupynambalucas-dev/platform](https://github.com/tupynambalucas-dev/platform)
 - **Direct Contact**: [contato@tupynambalucas.dev](mailto:contato@tupynambalucas.dev)

@@ -1,183 +1,225 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assets/logo-horizontal-negative.svg" />
-    <source media="(prefers-color-scheme: light)" srcset="./assets/logo-horizontal-positive.svg" />
-    <img alt="Tupynambá Lucas" src="./assets/logo-horizontal-positive.svg" width="460px" />
-  </picture>
-</p>
+# Tupynambá Lucas
 
-<p align="center">
-  <strong>Enterprise Software Engineering, Autonomous Agentic AI, and Cloud-Native Platforms</strong>
-</p>
+Enterprise software engineering firm delivering mission-critical cloud platforms,
+resilient distributed systems, and autonomous agentic AI infrastructure.
 
-<p align="center">
-  <a href="https://tupynambalucas.dev">Website</a> &bull;
-  <a href="https://docs.tupynambalucas.dev">Documentation</a> &bull;
-  <a href="mailto:contato@tupynambalucas.dev">Inquiries</a>
-</p>
+[Website](https://tupynambalucas.dev) &bull;
+[Documentation](https://docs.tupynambalucas.dev) &bull;
+[Inquiries](mailto:contato@tupynambalucas.dev) &bull;
+[Security](mailto:security@tupynambalucas.dev)
 
 ---
 
 ## Executive Overview
 
-Tupynambá Lucas is a specialized software engineering firm delivering mission-critical
-cloud platforms, enterprise Kubernetes architectures, autonomous AI toolchains, and
-high-performance full-stack systems.
+Tupynambá Lucas is a specialized software engineering and technology consulting organization
+providing enterprise architecture, autonomous agentic AI infrastructure, cloud-native platforms,
+and high-performance distributed systems.
 
-We operate on strict Domain-Driven Design (DDD) principles, resilient distributed topologies,
-and rigorous cryptographic security standards. Our platforms are designed for deterministic
-performance, operational isolation, and horizontal scalability.
+We partner with organizations to solve mission-critical operational and computational challenges.
+Our engineering methodologies are guided by Domain-Driven Design (DDD), Feature-Sliced Design
+(FSD), cryptographic verification, and strict operational security. Every solution is engineered
+for deterministic performance, horizontal scalability, fault tolerance, and measurable business
+impact.
 
 ---
 
-## Core Capabilities and Services
+## Core Capabilities and Engineering Solutions
 
-### 1. Cloud-Native Architecture and Kubernetes Orchestration
+### 1. Cloud-Native Architecture and Distributed Systems
 
-We design and operate cloud-native environments characterized by architectural parity across
-development, staging, and production:
+We design, deploy, and manage production-grade cloud environments characterized by resilience,
+zero-trust security, and architectural parity across development, staging, and production:
 
-- **Isolated Dual-Cluster Topologies**: Separation between internal platform management (`hub`)
-  and customer-facing products (`corporate`) across both local k3d clusters and cloud Kubernetes.
-- **GitOps Continuous Delivery**: Fully automated manifest delivery powered by ArgoCD,
-  declarative Kustomize overlays, and Helm charts.
-- **Zero Trust Edge Ingress**: Unified ingress routing via Cloudflare Zero Trust tunnels,
-  terminating TLS at the edge with WAF and DDoS protection, eliminating public IPs and cloud
-  load balancers.
-- **Fast Local Feedback Loop**: Instant code-to-cluster synchronization using Skaffold v4,
-  in-cluster container builds, and native Linux ext4 storage engines.
+- **Enterprise Kubernetes Orchestration**: Production-ready container platforms deployed across
+  hybrid and multi-cloud environments, enforcing high availability and horizontal scaling.
+- **Zero-Trust Edge and Ingress Security**: Edge routing via Cloudflare Zero Trust tunnels and
+  Traefik ingress controllers, terminating TLS at the edge with DDoS mitigation, Web Application
+  Firewall (WAF) policies, and elimination of exposed public entry points.
+- **Declarative GitOps Delivery**: Automated continuous delivery pipelines managed declaratively
+  through ArgoCD, Helm charts, and Kustomize overlays, eliminating configuration drift.
+- **Fault-Tolerant Topologies**: Self-healing clusters, immutable container workloads, automated
+  failover protocols, and deterministic disaster recovery strategies.
 
-### 2. Autonomous Agentic AI Infrastructure (Cortex)
+### 2. Autonomous Agentic AI and Cognitive Infrastructure
 
-We develop scalable infrastructure for autonomous AI agents and Model Context Protocol (MCP)
-ecosystems:
+We build scalable, enterprise-grade infrastructure and orchestration runtimes for autonomous AI
+agents and Model Context Protocol (MCP) ecosystems:
 
-- **AgentGateway MCP Ingress**: Centralized reverse proxy aggregating multiple MCP servers under
-  a single secure interface with policy routing.
-- **Policy Enforcement and Guardrails**: Real-time traffic inspection and tool authorization
-  using Common Expression Language (CEL).
-- **Persistent Semantic Memory**: Vector RAG search, episodic conversational graphs, and document
-  embeddings backed by MongoDB vector search and high-throughput Fastify APIs.
-- **Custom Agent Customizations**: Reusable agent plugins, declarative rulesets, and specialized
-  agent skills built for Antigravity (AGY) runtimes.
+- **AgentGateway MCP Ingress and Routing**: Centralized, secure reverse proxy aggregating
+  distributed MCP servers under a unified access layer with dynamic tool routing.
+- **Policy Enforcement and Security Guardrails**: Real-time traffic inspection and tool invocation
+  authorization powered by Common Expression Language (CEL).
+- **Persistent Semantic Memory (Vector RAG)**: Multi-layer memory architecture incorporating
+  vector similarity search, episodic knowledge graphs, and hybrid semantic indexing for deep
+  contextual awareness.
+- **Autonomous Agent Workflows**: Deterministic multi-agent collaboration, progressive tool
+  disclosure, and specialized runtimes built on Google Antigravity (AGY) architectures.
+- **AI Safety and Auditability**: Strict tool execution sandboxing, prompt injection defenses,
+  immutable logging of model interactions, and zero-leakage enterprise credential handling.
 
 ### 3. High-Throughput Application Engineering
 
-We engineer high-traffic, real-time web applications and backend microservices:
+We engineer high-concurrency, low-latency web applications and backend microservices designed
+for mission-critical workloads:
 
-- **High-Performance APIs**: Built with Fastify 5, strict schema validation using Zod,
-  and asynchronous job queue processing with Redis and BullMQ.
-- **Modern User Interfaces**: Interactive frontends built with React 19, TypeScript, Vite,
-  Tailwind CSS, GSAP, and Three.js for immersive web experiences.
-- **Transactional Persistence**: Multi-document ACID transactions on MongoDB replica sets (rs0),
-  serverless relational data on Neon PostgreSQL, and low-latency caching on Redis and Valkey.
-- **Knowledge Bases**: Technical documentation portals powered by Docusaurus v3 following
-  the Diátaxis documentation framework.
+- **High-Velocity APIs**: High-throughput backends built with Node.js and Fastify, enforcing strict
+  runtime validation via Zod schemas and asynchronous job queuing with Redis and BullMQ.
+- **Modern Digital Interfaces**: High-performance enterprise portals and interactive applications
+  built with React 19, TypeScript, Vite, Tailwind CSS, GSAP, and Three.js data visualizations.
+- **Multi-Model Data Persistence**: Multi-document ACID transactions on distributed MongoDB replica
+  sets, high-integrity relational schemas on PostgreSQL, and sub-millisecond in-memory caching
+  with Redis and Valkey.
+- **Domain-Driven Design (DDD)**: Codebases structured around strictly isolated bounded contexts
+  and shared Single Source of Truth (SSOT) domain packages, preventing logic duplication.
 
-### 4. Enterprise Observability and Site Reliability
+### 4. Enterprise Observability and Site Reliability Engineering
 
-Our systems incorporate end-to-end telemetry and monitoring pipelines:
+We integrate end-to-end telemetry and monitoring pipelines to guarantee operational transparency
+and uptime SLAs:
 
 - **OpenTelemetry Instrumentation**: Distributed collection of application traces, metrics,
-  and container runtime statistics via OpenTelemetry Collector.
-- **Unified Observability Hub**: Centralized visualization with Grafana, long-term metric
+  and container runtime statistics across all service boundaries.
+- **Unified Observability Hub**: Centralized operational dashboards with Grafana, long-term metric
   storage with Prometheus, distributed log aggregation with Grafana Loki, and trace analysis
   with Grafana Tempo.
+- **Proactive SRE Protocols**: Service Level Objectives (SLOs), automated synthetic monitoring,
+  and threshold-based alerting to diagnose and mitigate anomalies before service impact.
 
-### 5. Design Systems and Studio Tooling
+### 5. Technical Knowledge Management and Systems Governance
 
-- **Collaborative Design**: Self-hosted Penpot design workspaces connected to AI-driven token
-  extraction tools (Penpot Aide MCP).
-- **Asset Compilation**: Dynamic vector SVG generation and markdown document compilation engines
-  producing live GitHub profile cards and architectural metrics.
+We establish rigorous documentation and architectural standards to ensure operational continuity
+and velocity:
+
+- **Diátaxis Documentation Framework**: Comprehensive knowledge bases structured into four distinct
+  quadrants (Tutorials, How-To Guides, Reference, and Explanation) using Docusaurus.
+- **Unified Design Systems**: Centralized visual identity, design token distribution, and reusable
+  component libraries ensuring visual consistency across all digital touchpoints.
+- **Deterministic Workflows**: Automated developer tooling, standardized workspace configurations,
+  and continuous verification checks across monorepo environments.
 
 ---
 
-## Platform Architecture
+## Enterprise Systems Architecture
 
 ```mermaid
 graph TD
   direction TD
 
-  subgraph Edge ["Cloudflare Zero Trust Edge"]
-    DNS["DNS & DDoS Shield"]
-    Tunnel["Cloudflare Tunnels"]
-    DNS --> Tunnel
+  subgraph EdgeLayer ["Edge & Security Layer"]
+    Cloudflare["Cloudflare Zero Trust & WAF"]
+    EdgeTLS["TLS 1.3 Termination & DDoS Shield"]
+    Tunnels["Cloudflare Encrypted Tunnels"]
+
+    Cloudflare --> EdgeTLS
+    EdgeTLS --> Tunnels
   end
 
-  subgraph HubCluster ["Platform Cluster (hub)"]
-    direction TB
-    TraefikHub["Traefik v3.1 Ingress"]
-    Cortex["Cortex AgentGateway & Memory"]
-    Obs["Observability (Grafana, Loki, Tempo, Prometheus)"]
-    Studio["Design Studio (Penpot, Memos)"]
-    DevTools["Tools (Headlamp, Turbocache)"]
+  subgraph IngressGateway ["Unified Ingress & Traffic Management"]
+    TraefikIngress["Traefik Enterprise Ingress Controller"]
+    AuthPolicy["Zero Trust Authentication & RBAC"]
 
-    TraefikHub --> Cortex
-    TraefikHub --> Obs
-    TraefikHub --> Studio
-    TraefikHub --> DevTools
+    TraefikIngress --> AuthPolicy
   end
 
-  subgraph CorporateCluster ["Corporate Cluster (corporate)"]
-    direction TB
-    TraefikCorp["Traefik v3.1 Ingress"]
-    Web["Website Client (React 19)"]
-    API["Core API (Fastify 5)"]
-    Portal["Documentation Portal (Docusaurus)"]
-    DB[("MongoDB rs0 & Redis")]
+  subgraph ApplicationTier ["Application & Services Tier"]
+    CorpWeb["Enterprise Client Portals (React 19)"]
+    CoreAPI["High-Throughput APIs (Fastify 5)"]
+    AsyncQueue["Asynchronous Job Queues (BullMQ)"]
+    DocsPortal["Knowledge Hub (Docusaurus Diátaxis)"]
 
-    TraefikCorp --> Web
-    TraefikCorp --> API
-    TraefikCorp --> Portal
-    API --> DB
+    CorpWeb --> CoreAPI
+    CoreAPI --> AsyncQueue
   end
 
-  Tunnel --> TraefikHub
-  Tunnel --> TraefikCorp
+  subgraph CognitiveAITier ["Autonomous Agentic AI Infrastructure"]
+    AgentGW["Cortex AgentGateway (MCP Router)"]
+    CELGuard["CEL Guardrails & Authorization"]
+    MemorySubsystem["Semantic Memory & Vector RAG"]
+    AgentRuntimes["Autonomous Agent Orchestration"]
+
+    AgentGW --> CELGuard
+    CELGuard --> MemorySubsystem
+    AgentGW --> AgentRuntimes
+  end
+
+  subgraph DataTier ["Persistence & Distributed State"]
+    MongoCluster[("MongoDB Replica Set (ACID)")]
+    PostgresDB[("Relational Persistence (PostgreSQL)")]
+    RedisCache[("Distributed Cache & Event Bus (Redis)")]
+
+    CoreAPI --> MongoCluster
+    CoreAPI --> RedisCache
+    AsyncQueue --> RedisCache
+    MemorySubsystem --> MongoCluster
+  end
+
+  subgraph TelemetryTier ["Enterprise Observability & SRE"]
+    Otel["OpenTelemetry Distributed Collector"]
+    Metrics["Prometheus Metrics"]
+    Logs["Grafana Loki Logs"]
+    Traces["Grafana Tempo Traces"]
+    Dashboards["Unified Grafana Dashboards"]
+
+    Otel --> Metrics
+    Otel --> Logs
+    Otel --> Traces
+    Dashboards --> Metrics
+    Dashboards --> Logs
+    Dashboards --> Traces
+  end
+
+  Tunnels --> TraefikIngress
+  AuthPolicy --> ApplicationTier
+  AuthPolicy --> CognitiveAITier
+  ApplicationTier -.-> Otel
+  CognitiveAITier -.-> Otel
+  DataTier -.-> Otel
 ```
 
 ---
 
 ## Technology Stack
 
-| Domain                  | Technologies                                                          |
-| :---------------------- | :-------------------------------------------------------------------- |
-| **Languages**           | TypeScript, JavaScript, Zig, Bash, PowerShell                         |
-| **Frontend**            | React 19, Vite, Tailwind CSS, GSAP, Three.js, Docusaurus v3           |
-| **Backend**             | Node.js 22+, Fastify 5, Zod, BullMQ, Nginx                            |
-| **Databases & Cache**   | MongoDB (Replica Set rs0), Redis, Valkey, Neon PostgreSQL             |
-| **Orchestration & K8s** | Kubernetes, k3d, Skaffold v4, Kustomize, Helm, ArgoCD GitOps         |
-| **Networking & Ingress**| Cloudflare Zero Trust Tunnels, Traefik v3.1                           |
-| **Observability**       | OpenTelemetry Collector, Prometheus, Grafana, Loki, Tempo, Pyroscope  |
-| **AI & Toolchains**     | Antigravity (AGY), AgentGateway (MCP), Vector RAG, CEL Guardrails     |
-| **Design & Workspaces** | Penpot, Memos, Turborepo, PNPM Workspaces, Biome, Prettier            |
+| Domain                           | Technologies                                                         |
+| :------------------------------- | :------------------------------------------------------------------- |
+| **Languages**                    | TypeScript, JavaScript, Zig, Bash, PowerShell                        |
+| **Frontend & Portals**           | React 19, TypeScript, Vite, Tailwind CSS, GSAP, Three.js, Docusaurus |
+| **Backend & Microservices**      | Node.js 22+, Fastify 5, Zod, BullMQ, Nginx                           |
+| **Data Persistence & Cache**     | MongoDB (Replica Set rs0, ACID), Redis, Valkey, Neon PostgreSQL      |
+| **Cloud & Orchestration**        | Kubernetes, Helm, Kustomize, ArgoCD GitOps, Cloudflare Zero Trust    |
+| **Autonomous AI Infrastructure** | AgentGateway (MCP), Vector RAG, CEL Guardrails, Antigravity (AGY)    |
+| **Observability & SRE**          | OpenTelemetry Collector, Prometheus, Grafana, Loki, Tempo, Pyroscope |
+| **Security & Governance**        | Cryptographic SSH Signing, Infisical Secret Management, Git Rulesets |
 
 ---
 
 ## Engineering Standards and Governance
 
-We enforce strict software engineering rigor across our entire organization:
+We enforce software engineering rigor across our entire organization:
 
 - **Cryptographic Verification**: 100% of commits are signed using SSH keys (`ed25519`), ensuring
   verified authorship across the Git graph.
-- **Conventional Commits**: Commit messages follow strict semantic formatting validated by automated
-  pre-receive and CI checks.
-- **Branch Protection Rulesets**: Linear Git history with required pull request reviews, passing
+- **Conventional Commits**: Commit messages adhere to strict semantic formatting validated by
+  automated pre-receive and CI checks.
+- **Branch Protection Rulesets**: Linear Git history with mandatory pull request reviews, passing
   unit tests, type-checks, and linter gates prior to merging into protected branches.
-- **Role-Based Access Control**: Permissions partitioned across specialized teams:
-  `@core-engineers`, `@infra-ops`, and `@creative-team`.
-- **Zero Secrets in Code**: Runtime secrets managed via Infisical and Bitnami Sealed Secrets for
-  GitOps; CI/CD credentials isolated to GitHub Secrets.
+- **Role-Based Access Control (RBAC)**: Administrative privileges partitioned across specialized
+  teams adhering to the principle of least privilege.
+- **Zero Secrets in Code**: Runtime secrets managed via Infisical and Sealed Secrets for GitOps;
+  CI/CD credentials strictly isolated to GitHub Secrets.
 
 ---
 
-## Repositories and Ecosystem
+## Organization Ecosystem
 
-- **[tupynambalucas-dev/tupynambalucas](https://github.com/tupynambalucas-dev/tupynambalucas)**:
-  Primary domain-driven monorepo containing corporate products, hub platform, Kubernetes manifests,
-  and dynamic asset renderers.
-- **[tupynambalucas-dev/.github](https://github.com/tupynambalucas-dev/.github)**:
+- **[platform](https://github.com/tupynambalucas-dev/platform)**:
+  Primary domain-driven monorepo containing corporate web products, high-throughput REST APIs,
+  autonomous AI services, and Kubernetes infrastructure manifests.
+- **[docs](https://github.com/tupynambalucas-dev/docs)**:
+  Central enterprise knowledge base, architectural reference archives, and Diátaxis documentation
+  hub.
+- **[.github](https://github.com/tupynambalucas-dev/.github)**:
   Central GitHub organization profile, community health standards, governance rulesets, and AI
   agent configurations.
 
@@ -187,5 +229,5 @@ We enforce strict software engineering rigor across our entire organization:
 
 - **Website**: [https://tupynambalucas.dev](https://tupynambalucas.dev)
 - **Documentation**: [https://docs.tupynambalucas.dev](https://docs.tupynambalucas.dev)
-- **General Inquiries**: [contato@tupynambalucas.dev](mailto:contato@tupynambalucas.dev)
+- **Corporate Inquiries**: [contato@tupynambalucas.dev](mailto:contato@tupynambalucas.dev)
 - **Security Disclosures**: [security@tupynambalucas.dev](mailto:security@tupynambalucas.dev)

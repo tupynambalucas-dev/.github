@@ -1,13 +1,14 @@
 {
   "recommendations": [
-    "naumovs.color-highlight",
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "shd101wyy.markdown-preview-enhanced",
-    "PKief.material-icon-theme",
     "bradlc.vscode-tailwindcss",
-    "actboy168.tasks",
-    "redhat.vscode-yaml"
+    "d-koppenhagen.file-tree-to-text-generator",
+    "dbaeumer.vscode-eslint",
+    "emanuelebartolesi.taskdeck",
+    "esbenp.prettier-vscode",
+    "github.vscode-github-actions",
+    "redhat.vscode-yaml",
+    "shd101wyy.markdown-preview-enhanced",
+    "unifiedjs.vscode-mdx"
   ],
   "unwantedRecommendations": []
 }
