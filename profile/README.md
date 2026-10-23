@@ -31,6 +31,9 @@ zero-trust security, and architectural parity across development, staging, and p
 
 - **Enterprise Kubernetes Orchestration**: Production-ready container platforms deployed across
   hybrid and multi-cloud environments, enforcing high availability and horizontal scaling.
+- **Continuous Kubernetes Development (Skaffold v4)**: Automated code-to-cluster inner dev loops
+  leveraging cutting-edge tooling like Skaffold v4, accelerating iteration speed through continuous
+  in-cluster builds, instant artifact synchronization, and live container debugging with zero drift.
 - **Zero-Trust Edge and Ingress Security**: Edge routing via Cloudflare Zero Trust tunnels and
   Traefik ingress controllers, terminating TLS at the edge with DDoS mitigation, Web Application
   Firewall (WAF) policies, and elimination of exposed public entry points.
@@ -186,7 +189,7 @@ graph TD
 | **Frontend & State Management**  | React 19, TypeScript, Vite, Tailwind CSS, Zustand, XState, GSAP, Three.js, Docusaurus |
 | **Backend & Microservices**      | Node.js 22+, Fastify 5, Zod, BullMQ, Nginx                                            |
 | **Data Persistence & Cache**     | MongoDB (Replica Set rs0, ACID), Redis, Valkey, PostgreSQL                            |
-| **Cloud & Orchestration**        | Kubernetes, Helm, Kustomize, ArgoCD GitOps, Cloudflare Zero Trust                     |
+| **Cloud & Orchestration**        | Kubernetes, Skaffold v4, Helm, Kustomize, ArgoCD GitOps, Cloudflare Zero Trust        |
 | **Autonomous AI Infrastructure** | AgentGateway (MCP), Vector RAG, CEL Guardrails, Antigravity (AGY)                     |
 | **Observability & SRE**          | OpenTelemetry Collector, Prometheus, Grafana, Loki, Tempo, Pyroscope                  |
 | **Security & Governance**        | Cryptographic SSH Signing, Infisical Secret Management, Git Rulesets                  |
