@@ -17,11 +17,53 @@ Tupynambá Lucas is a specialized software engineering and technology consulting
 providing enterprise architecture, autonomous agentic AI infrastructure, cloud-native platforms,
 and high-performance distributed systems.
 
-We partner with organizations to solve mission-critical operational and computational challenges.
-Our engineering methodologies are guided by Domain-Driven Design (DDD), Feature-Sliced Design
-(FSD), cryptographic verification, and strict operational security. Every solution is engineered
-for deterministic performance, horizontal scalability, fault tolerance, and measurable business
-impact.
+Our development and governance workflows are anchored in a **Context-Bounded, AI-Driven Monorepo
+Architecture**, enforcing strict domain isolation, deterministic dependency graphs, and autonomous
+multi-agent operations across all product boundaries. Guided by Domain-Driven Design (DDD),
+Feature-Sliced Design (FSD), cryptographic verification, and strict operational security, every
+solution is engineered for deterministic performance, horizontal scalability, fault tolerance,
+and measurable business impact.
+
+---
+
+## Software Engineering Fundamentals and Disciplines
+
+Our engineering practice adheres to rigorous, battle-tested pillars to guarantee that all systems
+remain robust, testable, maintainable, and horizontally scalable:
+
+- **[SOLID Principles](https://guide.lucasmattos.dev/#/code-development/solid-principles)**:
+  Five foundational object-oriented design principles (SRP, OCP, LSP, ISP, DIP) ensuring loose
+  coupling, high cohesion, and modular evolvability across domain boundaries.
+- **[Clean Code](https://guide.lucasmattos.dev/#/code-development/clean-code)**:
+  Expressive naming conventions, single-purpose functions, minimal cognitive complexity, and
+  self-documenting implementations understood immediately across cross-functional teams.
+- **[Clean Architecture](https://guide.lucasmattos.dev/#/code-development/clean-architecture)**:
+  Concentric layer decoupling where core business rules and domain entities remain entirely
+  independent of external frameworks, databases, user interfaces, and transport protocols.
+- **[Domain-Driven Design (DDD)](https://guide.lucasmattos.dev/#/code-development/ddd)**:
+  Strategic context mapping, bounded contexts, aggregates, and ubiquitous language directly
+  aligning technical software topology with real-world business domains.
+- **[Test-Driven Development (TDD)](https://guide.lucasmattos.dev/#/code-development/tdd)**:
+  Disciplined test-first authoring, comprehensive unit test suites, integration fixtures, and
+  contract verification driving confident continuous delivery with zero regressions.
+- **[Design Patterns](https://guide.lucasmattos.dev/#/code-development/design-patterns)**:
+  Proven architectural and GoF structural, creational, and behavioral patterns paired with modern
+  distributed systems patterns (Outbox, Circuit Breaker, Idempotency, and Event Sourcing).
+- **[Data Structures & Memory Efficiency](https://guide.lucasmattos.dev/#/code-development/data-structures)**:
+  Principled selection of in-memory data structures and algorithmic complexity to maximize
+  computational throughput, cache locality, and memory efficiency.
+- **[Parallelism and Concurrency](https://guide.lucasmattos.dev/#/code-development/parallelism-concurrency)**:
+  Non-blocking asynchronous event loops, concurrent worker thread pools, mutex synchronization, and
+  race-condition mitigation engineered for high-concurrency workloads.
+- **[Rigorous Code Review](https://guide.lucasmattos.dev/#/code-development/code-review)**:
+  Collaborative peer review workflows, mandatory automated branch rulesets, and CI quality gates
+  verifying security, architecture adherence, and test coverage before merge.
+- **[API Design & Contract Integrity](https://guide.lucasmattos.dev/#/code-development/api-design)**:
+  Consistent RESTful contract modeling, strict schema validation (Zod/JSON Schema), deterministic
+  error responses, and backwards-compatible semantic versioning.
+- **[Realtime Design & Streaming](https://guide.lucasmattos.dev/#/code-development/realtime-design)**:
+  Event-driven architectures utilizing bidirectional WebSockets, Server-Sent Events (SSE), and
+  pub/sub message brokers to deliver low-latency push communications.
 
 ---
 
@@ -66,8 +108,9 @@ for mission-critical workloads:
 
 - **High-Velocity APIs**: High-throughput backends built with Node.js and Fastify, enforcing strict
   runtime validation via Zod schemas and asynchronous job queuing with Redis and BullMQ.
-- **Modern Digital Interfaces**: High-performance enterprise portals and interactive applications
-  built with React 19, TypeScript, Vite, Tailwind CSS, GSAP, and Three.js data visualizations.
+- **Modern Digital Interfaces & State Machines**: High-performance enterprise portals and
+  interactive applications built with React 19, TypeScript, Vite, Tailwind CSS, GSAP, and Three.js,
+  utilizing Zustand for reactive client state and XState for deterministic finite-state workflows.
 - **Multi-Model Data Persistence**: Multi-document ACID transactions on distributed MongoDB replica
   sets, high-integrity relational schemas on PostgreSQL, and sub-millisecond in-memory caching
   with Redis and Valkey.
@@ -182,16 +225,16 @@ graph TD
 
 ## Technology Stack
 
-| Domain                           | Technologies                                                         |
-| :------------------------------- | :------------------------------------------------------------------- |
-| **Languages**                    | TypeScript, Go (Golang), JavaScript, Shell (.sh / Bash)              |
-| **Frontend & Portals**           | React 19, TypeScript, Vite, Tailwind CSS, GSAP, Three.js, Docusaurus |
-| **Backend & Microservices**      | Node.js 22+, Fastify 5, Zod, BullMQ, Nginx                           |
-| **Data Persistence & Cache**     | MongoDB (Replica Set rs0, ACID), Redis, Valkey, Neon PostgreSQL      |
-| **Cloud & Orchestration**        | Kubernetes, Helm, Kustomize, ArgoCD GitOps, Cloudflare Zero Trust    |
-| **Autonomous AI Infrastructure** | AgentGateway (MCP), Vector RAG, CEL Guardrails, Antigravity (AGY)    |
-| **Observability & SRE**          | OpenTelemetry Collector, Prometheus, Grafana, Loki, Tempo, Pyroscope |
-| **Security & Governance**        | Cryptographic SSH Signing, Infisical Secret Management, Git Rulesets |
+| Domain                           | Technologies                                                                          |
+| :------------------------------- | :------------------------------------------------------------------------------------ |
+| **Languages**                    | TypeScript, Go (Golang), Python, Java, JavaScript, Shell (.sh / Bash)                 |
+| **Frontend & State Management**  | React 19, TypeScript, Vite, Tailwind CSS, Zustand, XState, GSAP, Three.js, Docusaurus |
+| **Backend & Microservices**      | Node.js 22+, Fastify 5, Zod, BullMQ, Nginx                                            |
+| **Data Persistence & Cache**     | MongoDB (Replica Set rs0, ACID), Redis, Valkey, PostgreSQL                            |
+| **Cloud & Orchestration**        | Kubernetes, Helm, Kustomize, ArgoCD GitOps, Cloudflare Zero Trust                     |
+| **Autonomous AI Infrastructure** | AgentGateway (MCP), Vector RAG, CEL Guardrails, Antigravity (AGY)                     |
+| **Observability & SRE**          | OpenTelemetry Collector, Prometheus, Grafana, Loki, Tempo, Pyroscope                  |
+| **Security & Governance**        | Cryptographic SSH Signing, Infisical Secret Management, Git Rulesets                  |
 
 ---
 
