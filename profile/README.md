@@ -1,12 +1,13 @@
-# Tupynambá Lucas
+<p align="center">
+  <strong>Enterprise Software Engineering, Autonomous Agentic AI, and Cloud-Native Distributed Systems</strong>
+</p>
 
-Enterprise software engineering firm delivering mission-critical cloud platforms,
-resilient distributed systems, and autonomous agentic AI infrastructure.
-
-[Website](https://tupynambalucas.dev) &bull;
-[Documentation](https://docs.tupynambalucas.dev) &bull;
-[Inquiries](mailto:contato@tupynambalucas.dev) &bull;
-[Security](mailto:security@tupynambalucas.dev)
+<p align="center">
+  <a href="https://tupynambalucas.dev">Website</a> &bull;
+  <a href="https://docs.tupynambalucas.dev">Documentation</a> &bull;
+  <a href="mailto:contato@tupynambalucas.dev">Corporate Inquiries</a> &bull;
+  <a href="mailto:security@tupynambalucas.dev">Security</a>
+</p>
 
 ---
 
@@ -183,7 +184,7 @@ graph TD
 
 | Domain                           | Technologies                                                         |
 | :------------------------------- | :------------------------------------------------------------------- |
-| **Languages**                    | TypeScript, JavaScript, Zig, Bash, PowerShell                        |
+| **Languages**                    | TypeScript, Go (Golang), JavaScript, Shell (.sh / Bash)              |
 | **Frontend & Portals**           | React 19, TypeScript, Vite, Tailwind CSS, GSAP, Three.js, Docusaurus |
 | **Backend & Microservices**      | Node.js 22+, Fastify 5, Zod, BullMQ, Nginx                           |
 | **Data Persistence & Cache**     | MongoDB (Replica Set rs0, ACID), Redis, Valkey, Neon PostgreSQL      |
