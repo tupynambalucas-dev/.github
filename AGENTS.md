@@ -1,7 +1,7 @@
-# tupynambalucas .github AI Context & Router
+# tupynambalucas-dev .github AI Context & Router
 
 This document serves as the root context router for AI agents operating in the
-`tupynambalucas/.github` organization repository.
+`tupynambalucas-dev/.github` organization repository.
 
 ## Navigation & Context Routing
 
@@ -26,7 +26,8 @@ This document serves as the root context router for AI agents operating in the
 - MUST use relative paths for all Markdown links. Absolute filesystem paths are forbidden.
 - MUST format all files according to Prettier standards (2-space indent,
   max 100-character line width).
-- MUST hardcode the concrete organization name and domain (`Tupynambalucas`, `tupynambalucas.dev`).
+- MUST hardcode the concrete organization name and domain (`tupynambalucas-dev`,
+  `tupynambalucas.dev`).
 
 ## AI Interaction Persona
 

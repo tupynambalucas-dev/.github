@@ -60,7 +60,7 @@ flowchart TD
     GH_CLI["GitHub CLI Engine (gh api / gh secret / GCM)"]
   end
 
-  subgraph TARGET["GitHub Organization (@tupynambalucas)"]
+  subgraph TARGET["GitHub Organization (@tupynambalucas-dev)"]
     REPOS["Repositories & Rulesets"]
     TEAMS["Teams (@core-engineers, @infra-ops, @creative-team)"]
     SECRETS["GitHub Actions Org & Env Secrets"]
@@ -186,7 +186,7 @@ the fine-grained PAT requires the following explicit permissions:
 | **Custom Properties** | `Read & Write` | Read and apply governance metadata on repositories          |
 | **Security Events**   | `Read-only`    | Inspect Dependabot and CodeQL security alerts               |
 
-#### B. Organization Permissions (Target: Organization `@tupynambalucas`)
+#### B. Organization Permissions (Target: Organization `@tupynambalucas-dev`)
 
 | Permission Name    | Access Level   | Justification & Operational Scope                          |
 | :----------------- | :------------- | :--------------------------------------------------------- |
@@ -359,9 +359,9 @@ These rules govern all automated GitHub operations within the organization.
 
 - BASE PERMISSIONS: Organization repository base permissions must be set to `none` or `read`.
 - TEAM DELEGATION: All repository access must be granted strictly through functional teams:
-  - `@tupynambalucas/core-engineers`: Write access to monorepo application packages.
-  - `@tupynambalucas/infra-ops`: Maintain access to infrastructure, workflows, and deployment overlays.
-  - `@tupynambalucas/creative-team`: Write access scoped to `hub/studio/assets` and creative assets.
+  - `@tupynambalucas-dev/core-engineers`: Write access to monorepo application packages.
+  - `@tupynambalucas-dev/infra-ops`: Maintain access to infrastructure, workflows, and deployment overlays.
+  - `@tupynambalucas-dev/creative-team`: Write access scoped to `hub/studio/assets` and creative assets.
 ```
 
 ---

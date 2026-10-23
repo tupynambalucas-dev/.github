@@ -1,7 +1,7 @@
 # Tupynambá Lucas Organization Configuration (.github)
 
-This repository (`tupynambalucas/.github`) is the central governance, default community health,
-organization profile, and AI agent configuration hub for the `@tupynambalucas` GitHub organization.
+This repository (`tupynambalucas-dev/.github`) is the central governance, default community health,
+organization profile, and AI agent configuration hub for the `@tupynambalucas-dev` GitHub organization.
 
 ---
 
@@ -18,7 +18,7 @@ and workspace tooling across the entire ecosystem.
 ├── profile/           # Organization public landing profile and brand SVG assets
 │   ├── assets/        # Official vector logos, marks, and monochrome variants
 │   ├── AGENTS.md      # Bounded context router for profile maintainers
-│   └── README.md      # Public profile rendered on github.com/tupynambalucas
+│   └── README.md      # Public profile rendered on github.com/tupynambalucas-dev
 ├── AGENTS.md          # Root AI agent router and global guardrails
 ├── CODE_OF_CONDUCT.md # Organization-wide contributor code of conduct
 ├── CONTRIBUTING.md    # Development workflow, commit signing, and PR standards
@@ -35,15 +35,15 @@ and workspace tooling across the entire ecosystem.
 ### 1. Organization Profile (`profile/`)
 
 The [profile/](./profile/) directory contains the presentation layer for the
-`@tupynambalucas` organization. GitHub renders [profile/README.md](./profile/README.md) as
-the public landing page on `https://github.com/tupynambalucas`. It showcases our engineering
+`@tupynambalucas-dev` organization. GitHub renders [profile/README.md](./profile/README.md) as
+the public landing page on `https://github.com/tupynambalucas-dev`. It showcases our engineering
 philosophy, enterprise services, dual-cluster Kubernetes architecture, autonomous AI
 ecosystems, and technology stack.
 
 ### 2. Organization Community Health Defaults
 
 Files placed in the root of this repository act as organizational defaults. Any repository under
-the `@tupynambalucas` organization that does not define its own community files automatically
+the `@tupynambalucas-dev` organization that does not define its own community files automatically
 inherits these standards:
 
 - **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)**: Standards of professional conduct and enforcement.
@@ -78,5 +78,5 @@ and native WSL2 Ubuntu environments.
 - **Enterprise Website**: [https://tupynambalucas.dev](https://tupynambalucas.dev)
 - **Documentation Portal**: [https://docs.tupynambalucas.dev](https://docs.tupynambalucas.dev)
 - **Primary Monorepo**:
-  [tupynambalucas/tupynambalucas](https://github.com/tupynambalucas/tupynambalucas)
+  [tupynambalucas-dev/tupynambalucas](https://github.com/tupynambalucas-dev/tupynambalucas)
 - **Direct Contact**: [contato@tupynambalucas.dev](mailto:contato@tupynambalucas.dev)

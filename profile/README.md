@@ -174,10 +174,10 @@ We enforce strict software engineering rigor across our entire organization:
 
 ## Repositories and Ecosystem
 
-- **[tupynambalucas/tupynambalucas](https://github.com/tupynambalucas/tupynambalucas)**:
+- **[tupynambalucas-dev/tupynambalucas](https://github.com/tupynambalucas-dev/tupynambalucas)**:
   Primary domain-driven monorepo containing corporate products, hub platform, Kubernetes manifests,
   and dynamic asset renderers.
-- **[tupynambalucas/.github](https://github.com/tupynambalucas/.github)**:
+- **[tupynambalucas-dev/.github](https://github.com/tupynambalucas-dev/.github)**:
   Central GitHub organization profile, community health standards, governance rulesets, and AI
   agent configurations.
 

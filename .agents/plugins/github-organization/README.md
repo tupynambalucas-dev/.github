@@ -2,7 +2,7 @@
 
 This plugin establishes enterprise-grade GitHub organization governance, managing team-based
 Role-Based Access Control (RBAC), repository rulesets, SSH commit verification, and GitHub Actions
-secrets across the `@tupynambalucas` ecosystem.
+secrets across the `@tupynambalucas-dev` ecosystem.
 
 ---
 
