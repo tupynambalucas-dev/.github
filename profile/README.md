@@ -1,13 +1,9 @@
-<p align="center">
-  <strong>Enterprise Software Engineering, Autonomous Agentic AI, and Cloud-Native Distributed Systems</strong>
-</p>
+**Enterprise Software Engineering, Autonomous Agentic AI, and Cloud-Native Distributed Systems**
 
-<p align="center">
-  <a href="https://tupynambalucas.dev">Website</a> &bull;
-  <a href="https://docs.tupynambalucas.dev">Documentation</a> &bull;
-  <a href="mailto:contato@tupynambalucas.dev">Corporate Inquiries</a> &bull;
-  <a href="mailto:security@tupynambalucas.dev">Security</a>
-</p>
+[Website](https://tupynambalucas.dev) &bull;
+[Documentation](https://docs.tupynambalucas.dev) &bull;
+[Corporate Inquiries](mailto:contato@tupynambalucas.dev) &bull;
+[Security](mailto:security@tupynambalucas.dev)
 
 ---
 
