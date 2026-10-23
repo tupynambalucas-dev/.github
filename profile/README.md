@@ -22,47 +22,6 @@ and measurable business impact.
 
 ---
 
-## Software Engineering Fundamentals and Disciplines
-
-Our engineering practice adheres to rigorous, battle-tested pillars to guarantee that all systems
-remain robust, testable, maintainable, and horizontally scalable:
-
-- **[SOLID Principles](https://guide.lucasmattos.dev/#/code-development/solid-principles)**:
-  Five foundational object-oriented design principles (SRP, OCP, LSP, ISP, DIP) ensuring loose
-  coupling, high cohesion, and modular evolvability across domain boundaries.
-- **[Clean Code](https://guide.lucasmattos.dev/#/code-development/clean-code)**:
-  Expressive naming conventions, single-purpose functions, minimal cognitive complexity, and
-  self-documenting implementations understood immediately across cross-functional teams.
-- **[Clean Architecture](https://guide.lucasmattos.dev/#/code-development/clean-architecture)**:
-  Concentric layer decoupling where core business rules and domain entities remain entirely
-  independent of external frameworks, databases, user interfaces, and transport protocols.
-- **[Domain-Driven Design (DDD)](https://guide.lucasmattos.dev/#/code-development/ddd)**:
-  Strategic context mapping, bounded contexts, aggregates, and ubiquitous language directly
-  aligning technical software topology with real-world business domains.
-- **[Test-Driven Development (TDD)](https://guide.lucasmattos.dev/#/code-development/tdd)**:
-  Disciplined test-first authoring, comprehensive unit test suites, integration fixtures, and
-  contract verification driving confident continuous delivery with zero regressions.
-- **[Design Patterns](https://guide.lucasmattos.dev/#/code-development/design-patterns)**:
-  Proven architectural and GoF structural, creational, and behavioral patterns paired with modern
-  distributed systems patterns (Outbox, Circuit Breaker, Idempotency, and Event Sourcing).
-- **[Data Structures & Memory Efficiency](https://guide.lucasmattos.dev/#/code-development/data-structures)**:
-  Principled selection of in-memory data structures and algorithmic complexity to maximize
-  computational throughput, cache locality, and memory efficiency.
-- **[Parallelism and Concurrency](https://guide.lucasmattos.dev/#/code-development/parallelism-concurrency)**:
-  Non-blocking asynchronous event loops, concurrent worker thread pools, mutex synchronization, and
-  race-condition mitigation engineered for high-concurrency workloads.
-- **[Rigorous Code Review](https://guide.lucasmattos.dev/#/code-development/code-review)**:
-  Collaborative peer review workflows, mandatory automated branch rulesets, and CI quality gates
-  verifying security, architecture adherence, and test coverage before merge.
-- **[API Design & Contract Integrity](https://guide.lucasmattos.dev/#/code-development/api-design)**:
-  Consistent RESTful contract modeling, strict schema validation (Zod/JSON Schema), deterministic
-  error responses, and backwards-compatible semantic versioning.
-- **[Realtime Design & Streaming](https://guide.lucasmattos.dev/#/code-development/realtime-design)**:
-  Event-driven architectures utilizing bidirectional WebSockets, Server-Sent Events (SSE), and
-  pub/sub message brokers to deliver low-latency push communications.
-
----
-
 ## Core Capabilities and Engineering Solutions
 
 ### 1. Cloud-Native Architecture and Distributed Systems
@@ -248,6 +207,47 @@ We enforce software engineering rigor across our entire organization:
   teams adhering to the principle of least privilege.
 - **Zero Secrets in Code**: Runtime secrets managed via Infisical and Sealed Secrets for GitOps;
   CI/CD credentials strictly isolated to GitHub Secrets.
+
+---
+
+## Software Engineering Fundamentals and Disciplines
+
+Our engineering practice adheres to rigorous, battle-tested pillars to guarantee that all systems
+remain robust, testable, maintainable, and horizontally scalable:
+
+- **[SOLID Principles](https://guide.lucasmattos.dev/#/code-development/solid-principles)**:
+  Five foundational object-oriented design principles (SRP, OCP, LSP, ISP, DIP) ensuring loose
+  coupling, high cohesion, and modular evolvability across domain boundaries.
+- **[Clean Code](https://guide.lucasmattos.dev/#/code-development/clean-code)**:
+  Expressive naming conventions, single-purpose functions, minimal cognitive complexity, and
+  self-documenting implementations understood immediately across cross-functional teams.
+- **[Clean Architecture](https://guide.lucasmattos.dev/#/code-development/clean-architecture)**:
+  Concentric layer decoupling where core business rules and domain entities remain entirely
+  independent of external frameworks, databases, user interfaces, and transport protocols.
+- **[Domain-Driven Design (DDD)](https://guide.lucasmattos.dev/#/code-development/ddd)**:
+  Strategic context mapping, bounded contexts, aggregates, and ubiquitous language directly
+  aligning technical software topology with real-world business domains.
+- **[Test-Driven Development (TDD)](https://guide.lucasmattos.dev/#/code-development/tdd)**:
+  Disciplined test-first authoring, comprehensive unit test suites, integration fixtures, and
+  contract verification driving confident continuous delivery with zero regressions.
+- **[Design Patterns](https://guide.lucasmattos.dev/#/code-development/design-patterns)**:
+  Proven architectural and GoF structural, creational, and behavioral patterns paired with modern
+  distributed systems patterns (Outbox, Circuit Breaker, Idempotency, and Event Sourcing).
+- **[Data Structures & Memory Efficiency](https://guide.lucasmattos.dev/#/code-development/data-structures)**:
+  Principled selection of in-memory data structures and algorithmic complexity to maximize
+  computational throughput, cache locality, and memory efficiency.
+- **[Parallelism and Concurrency](https://guide.lucasmattos.dev/#/code-development/parallelism-concurrency)**:
+  Non-blocking asynchronous event loops, concurrent worker thread pools, mutex synchronization, and
+  race-condition mitigation engineered for high-concurrency workloads.
+- **[Rigorous Code Review](https://guide.lucasmattos.dev/#/code-development/code-review)**:
+  Collaborative peer review workflows, mandatory automated branch rulesets, and CI quality gates
+  verifying security, architecture adherence, and test coverage before merge.
+- **[API Design & Contract Integrity](https://guide.lucasmattos.dev/#/code-development/api-design)**:
+  Consistent RESTful contract modeling, strict schema validation (Zod/JSON Schema), deterministic
+  error responses, and backwards-compatible semantic versioning.
+- **[Realtime Design & Streaming](https://guide.lucasmattos.dev/#/code-development/realtime-design)**:
+  Event-driven architectures utilizing bidirectional WebSockets, Server-Sent Events (SSE), and
+  pub/sub message brokers to deliver low-latency push communications.
 
 ---
 
