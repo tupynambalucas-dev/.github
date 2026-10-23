@@ -5,6 +5,12 @@
     "**/node_modules": false,
     "**/dist": true
   },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.turbo": true
+  },
   "files.watcherExclude": {
     "**/.git/**": true,
     "**/.eslintcache": true,
