@@ -10,7 +10,7 @@
 
 This bounded context ([profile/](./)) manages the public GitHub Organization profile, brand
 presentation copy, and visual assets rendered on the organization's public landing page at
-`https://github.com/tupynambalucas`.
+`https://github.com/tupynambalucas-dev`.
 
 ---
 

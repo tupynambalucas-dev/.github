@@ -63,7 +63,7 @@ isolation of organizational secrets, and team-based role delegation.
 ```mermaid
 graph TD
   direction TD
-  subgraph "GitHub Organization: @tupynambalucas"
+  subgraph "GitHub Organization: @tupynambalucas-dev"
     OWNER["Org Owners<br/>(Full Admin)"]
     SEC["Security & CI/CD<br/>(Org Secrets)"]
 

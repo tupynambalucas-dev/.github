@@ -190,7 +190,7 @@ Setting up native Linux carries **zero risk of losing project files or uncommitt
 
    ```bash
    mkdir -p ~/projects && cd ~/projects
-   git clone https://github.com/tupynambalucas/tupynambalucas.git
+   git clone https://github.com/tupynambalucas-dev/tupynambalucas.git
    cd tupynambalucas
    git checkout chore/enterprise-architecture
    ```
