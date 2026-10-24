@@ -9,7 +9,7 @@
 
 ## Executive Overview
 
-Tupynambá Lucas is a specialized software engineering and technology consulting organization
+tupynambalucas.dev is a specialized software engineering and technology consulting organization
 providing enterprise architecture, autonomous agentic AI infrastructure, cloud-native platforms,
 and high-performance distributed systems.
 
