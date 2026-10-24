@@ -21,10 +21,9 @@ As modern software engineering organizations evolve toward AI-driven platform en
    - **Suffix `-dev` / `.dev` (`tupynambalucas-dev` / `tupynambalucas.dev`)** = Pessoa Jurídica (Corporate studio, enterprise platform, contractor access).
 
 ### 1.2 Purpose of this Master Plan
-This document establishes the **Single Source of Truth (SSOT)** for all branding, nomenclature, and infrastructure asset naming across the organization. It consolidates, formalizes, and harmonizes the guidelines previously defined in:
-- [`personal-github-profile-strategy.md`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github/.agents/plans/personal-github-profile-strategy.md)
-- [`company-nomenclature-and-branding-strategy.md`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github/.agents/plans/company-nomenclature-and-branding-strategy.md)
-- [`infisical-secret-governance-and-multi-layer-fallback.md`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github/.agents/plans/infisical-secret-governance-and-multi-layer-fallback.md)
+This document establishes the **Single Source of Truth (SSOT)** for all branding, nomenclature, identity governance, and infrastructure asset naming across the organization. It consolidates, formalizes, and harmonizes the guidelines previously defined across earlier strategy documents (including the consolidated `company-nomenclature-and-branding-strategy.md` and related drafts), working in tandem with:
+- [`personal-github-profile-strategy.md`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github/.agents/plans/personal-github-profile-strategy.md) (Individual career portfolio & identity)
+- [`infisical-secret-governance-and-multi-layer-fallback.md`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github/.agents/plans/infisical-secret-governance-and-multi-layer-fallback.md) (Infisical dual-tenant setup, token segregation, and agent fallback)
 
 ---
 

@@ -1,13 +1,15 @@
-# Infisical Secret Governance & Multi-Layer Fallback Architecture: Cascading Resolution, Token Segregation, and Plugin Topology
+# Infisical Secret Governance & Multi-Layer Fallback Architecture: Unified Tenant Configuration, Token Segregation, and Plugin Topology
 
 ## 1. Executive Summary and Problem Statement
 
-When operating an AI-driven, multi-repository ecosystem comprised of a meta-repository ([`org-core`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core)), specialized monorepos ([`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform), [`docs`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/docs)), and an autonomous tooling package ([`agent-toolkit`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-toolkit)), secret management must reconcile three fundamental operational realities:
-1. **Zero-Disk Security & Centralized Enterprise Auditing**: Enterprise secrets must never be committed in plaintext to version control or hardcoded in configuration files.
-2. **On-Demand Developer Autonomy & Bring-Your-Own-Token (BYOT)**: External contractors or temporary collaborators may not have access to corporate Infisical projects or may wish to supply their own personal API keys for scraping and search without administrative barriers.
-3. **Strict Blast Radius & Billing Domain Segregation**: Local developer agent sessions in fallback mode must NEVER share API keys or token quotas with the production/staging Kubernetes platform (`platform/hub/cortex`). A runaway loop during developer testing must not exhaust production quotas or compromise infrastructure credentials.
+When operating an AI-driven, multi-repository ecosystem comprised of a meta-repository ([`org-core`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core)), specialized monorepos ([`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform), [`docs`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/docs)), and an autonomous tooling package ([`agent-toolkit`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-toolkit)), secret management must reconcile four fundamental operational realities:
 
-This plan establishes the definitive **Cascading Multi-Layer Resolution Strategy**, defines the enterprise **Organization and Project Naming Conventions** across cloud platforms (Infisical, Cloudflare, GitHub), details the **Token Segregation Topology**, audits all historical `.agents` backups, and catalogs every token required for offline fallback operations.
+1. **Zero-Disk Security & Centralized Enterprise Auditing**: Corporate secrets must never be committed in plaintext to version control or hardcoded in configuration files.
+2. **On-Demand Developer Autonomy & Bring-Your-Own-Token (BYOT)**: External contractors or temporary collaborators may not have access to corporate Infisical projects or may wish to supply their own personal API keys for scraping and search without administrative barriers.
+3. **Strict Blast Radius & Quota Domain Segregation**: Local developer agent sessions in fallback mode must NEVER share API keys or token quotas with the production/staging Kubernetes platform (`platform/hub/cortex`). A runaway loop during developer testing must not exhaust production quotas or compromise infrastructure credentials.
+4. **Tenant Isolation (PF vs. PJ)**: Personal homelab and private hobby secrets must never reside in the same Infisical organization as corporate enterprise infrastructure, avoiding metadata exposure and RBAC privilege leaks to external contributors.
+
+This document serves as the **Single Source of Truth (SSOT)** for configuring Infisical Cloud, governing the 3-tier fallback resolution, managing the `agent-toolkit` plugin variables, and executing deterministic secret provisioning across all repositories.
 
 ---
 
@@ -32,191 +34,259 @@ flowchart TD
   CheckAgyConfig -- Yes --> InjectAgyConfig["Load variables from user config.json<br/>(Injected by Antigravity engine)"]
   InjectAgyConfig --> Ready
 
-  CheckAgyConfig -- No --> PromptUser["Interactive Setup Prompt (/plugin)<br/>Prompt user in terminal for missing tokens<br/>Save answers to ~/.gemini/config/config.json"]
+  CheckAgyConfig -- No --> PromptUser["Interactive Setup Prompt (/plugin agent-toolkit)<br/>Prompt user in terminal for missing tokens<br/>Save answers to ~/.gemini/config/config.json"]
   PromptUser --> InjectAgyConfig
 ```
 
 ### 2.1 Layer 1: Enterprise Infisical Cloud (Recommended / Zero-Disk)
-- **Mechanism**: The MCP server is executed through `pnpm dlx @infisical/cli run --env=dev -- <command>`.
-- **How it Works**: The developer runs `pnpm dlx @infisical/cli login` once. The session token is stored securely in the OS vault (**Windows Credential Manager** / Keychain). During MCP execution, the CLI fetches keys over TLS and injects them directly into the Node.js `process.env` in RAM.
-- **Disk Footprint**: Zero tokens stored on disk.
-- **Target Audience**: Core team members with corporate Infisical access.
+- **Execution Mechanism**: The MCP servers are invoked through the Infisical CLI:
+  ```bash
+  pnpm dlx @infisical/cli run --env=dev -- <command>
+  ```
+- **Authentication Lifecycle**:
+  1. The engineer executes `pnpm dlx @infisical/cli login` once.
+  2. The session token is securely stored in the OS credential vault (**Windows Credential Manager** / macOS Keychain / Linux Secret Service).
+  3. When an MCP subprocess starts, the CLI queries Infisical Cloud over TLS, pulls the scoped project secrets, and injects them directly into Node.js `process.env` in volatile RAM.
+- **Disk Footprint**: Exactly **0 bytes** stored on disk.
+- **Target Audience**: Core team members with authorized Infisical access.
 
 ### 2.2 Layer 2: Local Workspace `.env` Hierarchy (BYOT Supported)
-- **Mechanism**: The developer creates an uncommitted `.env` file at the root of their active workspace:
-  - When working in `org-core`: `org-core/.env` (protected by root `.gitignore`).
-  - When working standalone in `platform`: `platform/.env` or `platform/k8s/.env`.
-- **How it Works**: Antigravity automatically inherits process environment variables from the current working directory.
-- **BYOT Advantage**: Temporary contractors can place their own personal Firecrawl, Context7, or GitHub tokens in their local `.env` without requesting corporate credentials.
+- **Execution Mechanism**: The developer creates an uncommitted `.env` file at the root of their active workspace:
+  - Meta-repository root: `org-core/.env` (protected by root `.gitignore`).
+  - Monorepo standalone: `platform/.env` or `platform/k8s/.env`.
+- **Inheritance Behavior**: Antigravity, Node.js, and child subprocesses automatically inherit environment variables from the current working directory (`process.cwd()`).
+- **Bring-Your-Own-Token (BYOT) Advantage**: Temporary contractors without Infisical access copy `.env.example` to `.env` and supply their own personal Firecrawl, Context7, or GitHub keys. No corporate credentials are shared.
 
-### 2.3 Layer 3: Interactive Antigravity Setup (`/plugin` / Zero-Env BYOT)
-- **Mechanism**: Declared in [agent-toolkit/mcp_config.json](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-toolkit/mcp_config.json) via `variables`:
+### 2.3 Layer 3: Interactive Antigravity Setup (`/plugin agent-toolkit` / Zero-Env BYOT)
+- **Execution Mechanism**: Declared in [`agent-toolkit/mcp_config.json`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-toolkit/mcp_config.json) under `variables`:
   ```json
   "variables": [
+    { "name": "TUPYNAMBA_GATEWAY_TOKEN" },
     { "name": "FIRECRAWL_API_KEY" },
     { "name": "CONTEXT7_API_KEY" },
     { "name": "GITHUB_TOKEN" }
   ]
   ```
-- **How it Works**: If neither Layer 1 nor Layer 2 supplies the keys, the Antigravity engine marks the plugin as `needs setup`. When the developer runs `/plugin agent-toolkit` (or initializes the workspace), Antigravity interactively prompts for the values and saves them into `~/.gemini/config/config.json`.
-- **Scope**: Applied globally across all projects on that developer's workstation.
+- **Interactive Trigger**: If neither Layer 1 (Infisical) nor Layer 2 (local `.env`) provides the required environment variables, Antigravity flags the plugin as `needs setup`.
+- **Resolution**:
+  - The developer runs `/plugin agent-toolkit` in the Antigravity CLI or IDE.
+  - The runtime interactively prompts for the missing values.
+  - Answers are persisted locally in `~/.gemini/config/config.json`.
+- **Scope**: Applied globally across all workspaces on that workstation without needing `.env` files.
 
 ---
 
-## 3. Cloud Organization & Project Naming Conventions
+## 3. Dual-Tenant Infisical Architecture: Corporate vs. Personal
 
-Across all cloud infrastructure providers, naming conventions follow the strict separation between **Human-Facing Display Names** (which preserve the sovereign commercial brand `tupynambalucas.dev`) and **Machine-Facing Technical Slugs** (which enforce lowercase `kebab-case` without random hashes or dots).
-
-### 3.1 Organization-Level Naming Standard
-
-| Platform | Property | Recommended Value | Justification |
-| :--- | :--- | :--- | :--- |
-| **Infisical Cloud** | Organization Name | `tupynambalucas.dev` | Formal business entity branding across invoices, audit logs, and SSO. |
-| **Infisical Cloud** | Organization Slug | `tupynambalucas-dev` | Technical identifier used in CLI and API lookups. |
-| **Cloudflare** | Account Name | `tupynambalucas.dev` | Centralized enterprise account managing Zero Trust, Tunnels, and DNS. |
-| **GitHub** | Organization Name | `tupynambalucas.dev` | Display name on the public GitHub organization profile. |
-| **GitHub** | Organization Slug | `tupynambalucas-dev` | Technical URL namespace (`github.com/tupynambalucas-dev`), as GitHub disallows dots. |
-
----
-
-### 3.2 Infisical Project Naming Formula & Topology
-
-In Infisical, projects represent hard security, quota, and RBAC boundaries. The enterprise formula for project naming is:
-$$\text{\{organization-slug\}}-\text{\{domain-or-service\}}$$
-
-The legacy random suffix slug `tupynambalucas-core-ez7a` is deprecated and superseded by clean, deterministic projects:
+To maintain strict compliance and zero metadata leakage, Infisical Cloud is partitioned into two completely isolated tenant organizations:
 
 ```mermaid
 flowchart TD
-  subgraph InfisicalOrg ["Infisical Organization: tupynambalucas.dev (Slug: tupynambalucas-dev)"]
-    P1["Project: Platform Infrastructure<br/>Slug: tupynambalucas-platform<br/>Scope: Kubernetes, Databases, Tunnels, Cortex Ingress"]
-    P2["Project: Agent Toolkit<br/>Slug: tupynambalucas-agent-toolkit<br/>Scope: Developer Agents, MCP Fallbacks (Firecrawl, Context7)"]
-    P3["Project: Documentation Portal<br/>Slug: tupynambalucas-docs<br/>Scope: Docusaurus, Cloudflare Pages Deployments"]
-    P4["Project: Corporate Suite<br/>Slug: tupynambalucas-corporate<br/>Scope: Web Portal, Fastify API, Production JWTs"]
+  subgraph TenantCorp ["Corporate Tenant: tupynambalucas-dev"]
+    direction TB
+    C_Platform["tupynambalucas-platform<br/>(Display: Platform Infrastructure)<br/>Scope: Kubernetes Operator, Cluster DBs, Tunnels, In-Cluster Cortex"]
+    C_Toolkit["tupynambalucas-agent-toolkit<br/>(Display: Agent Toolkit)<br/>Scope: Developer Agent Fallback MCP Tokens (Firecrawl, Context7, GitHub)"]
+    C_Docs["tupynambalucas-docs<br/>(Display: Documentation Portal)<br/>Scope: Cloudflare Pages Deployments, Docs Analytics"]
+    C_Corp["tupynambalucas-corporate<br/>(Display: Corporate Applications)<br/>Scope: Fastify API Secrets, Production JWTs, Resend Keys"]
+  end
+
+  subgraph TenantPers ["Personal Tenant: tupynambalucas (No -dev)"]
+    direction TB
+    P_Home["homelab<br/>Scope: Home server, private NAS, IoT, Proxmox"]
+    P_Exp["experiments<br/>Scope: Personal AI prototype keys, scratch tokens"]
+    P_Site["personal-site<br/>Scope: Personal portfolio tokens, civil domain DNS"]
   end
 ```
 
-#### Detailed Infisical Project Directory:
+### 3.1 Corporate Infisical Organization (`tupynambalucas-dev`)
+- **Display Name**: `tupynambalucas.dev` (or `tupynambalucas-dev`)
+- **Organization Slug**: `tupynambalucas-dev`
+- **Root Admin Email**: `admin@tupynambalucas.dev` (via Cloudflare Email Routing or Google Workspace)
+- **Access Governance**: Strict RBAC. Contractors are invited strictly at the **Project Level** (Viewer/Contributor on `tupynambalucas-agent-toolkit`). Contractors **never** receive organization-level roles.
 
-1. **`tupynambalucas-platform` (Infrastructure & Cluster Services)**:
-   - **Display Name**: `Platform Infrastructure`
-   - **Slug**: `tupynambalucas-platform` *(Migrated from `tupynambalucas-core-ez7a`)*
-   - **Managed Secrets**: `CLOUDFLARE_TUNNEL_TOKEN_HUB`, `GRAFANA_ADMIN_PASSWORD`, `MONGO_INITDB_ROOT_PASSWORD`, `REDIS_PASSWORD`, `CORTEX_MCP_TOKEN`, `PLATFORM_FIRECRAWL_KEY`.
-   - **Consumer**: Kubernetes Operator (`InfisicalSecret` CRD in `platform-dev`, `staging`, `prod`).
-   - **Access**: Lead Architect / DevOps only.
+#### Corporate Project Directory & Security Matrix:
 
-2. **`tupynambalucas-agent-toolkit` (Developer Tooling & Fallback)**:
-   - **Display Name**: `Agent Toolkit`
-   - **Slug**: `tupynambalucas-agent-toolkit`
-   - **Managed Secrets**: `FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`.
-   - **Consumer**: Local developer sessions via `pnpm dlx @infisical/cli run --env=dev`.
-   - **Access**: All internal developers and verified contractors.
+| Infisical Project Slug | Display Name | Scope & Target Secrets | Target Consumers | RBAC Policy |
+| :--- | :--- | :--- | :--- | :--- |
+| **`tupynambalucas-platform`** | `Platform Infrastructure` | `CORTEX_MCP_TOKEN`, `CLOUDFLARE_TUNNEL_TOKEN_HUB`, `GRAFANA_ADMIN_PASSWORD`, `MONGO_INITDB_ROOT_PASSWORD`, `REDIS_PASSWORD`, `PLATFORM_FIRECRAWL_KEY`. | Kubernetes Operator (`InfisicalSecret` CRD in `platform-dev`, `staging`, `prod`). | Lead Architect / DevOps only. Zero contractor access. |
+| **`tupynambalucas-agent-toolkit`** | `Agent Toolkit` | `FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`. | Local developer agents via `infisical run` / fallback. | Internal engineers & authorized contractors. |
+| **`tupynambalucas-docs`** | `Documentation Portal` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DOCS_ANALYTICS_KEY`. | GitHub Actions CI/CD for Cloudflare Pages. | CI/CD Machine Identity & Technical Writers. |
+| **`tupynambalucas-corporate`** | `Corporate Applications`| `FASTIFY_JWT_SECRET`, `RESEND_API_KEY`, `CLOUDFLARE_TUNNEL_TOKEN_CORPORATE`. | Production Web and API microservices. | Core backend team. |
 
-3. **`tupynambalucas-docs` (Technical Documentation)**:
-   - **Display Name**: `Documentation Portal`
-   - **Slug**: `tupynambalucas-docs`
-   - **Managed Secrets**: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DOCS_ANALYTICS_KEY`.
-   - **Consumer**: GitHub Actions CI/CD deploying to Cloudflare Pages.
-
-4. **`tupynambalucas-corporate` (End-User Applications)**:
-   - **Display Name**: `Corporate Applications`
-   - **Slug**: `tupynambalucas-corporate`
-   - **Managed Secrets**: `CLOUDFLARE_TUNNEL_TOKEN_CORPORATE`, `FASTIFY_JWT_SECRET`, `RESEND_API_KEY`.
-   - **Consumer**: Corporate Web & API microservices.
+### 3.2 Personal Infisical Organization (`tupynambalucas`)
+- **Display Name**: `Tupynambá Lucas (Personal)`
+- **Organization Slug**: `tupynambalucas` (strictly without `-dev`)
+- **Root Owner Email**: `tupynambalucas@gmail.com`
+- **Access Governance**: Strict single-user boundary. Zero contractors, zero external associates.
+- **Project Slugs**: Clean and un-prefixed (`homelab`, `experiments`, `personal-site`).
 
 ---
 
-### 3.3 Cloudflare Naming Architecture
+## 4. Step-by-Step Infisical Provisioning Runbook
 
-All Cloudflare assets conform to standard prefixing and environment scoping:
+### 4.1 Step 1: Corporate Organization & Project Migration
+1. Log in to [Infisical Cloud](https://app.infisical.com).
+2. Switch to the corporate organization and verify the **Slug** is set to `tupynambalucas-dev`.
+3. **Purge the Legacy Random Hash**:
+   - Locate the existing project `tupynambalucas-core-ez7a`.
+   - Navigate to **Project Settings -> General**.
+   - Change **Project Name** to: `Platform Infrastructure`.
+   - Change **Project Slug** to: `tupynambalucas-platform`.
+4. **Provision the Agent Toolkit Project**:
+   - In the organization project switcher, click **Create New Project**.
+   - Project Name: `Agent Toolkit`.
+   - Project Slug: `tupynambalucas-agent-toolkit`.
+   - In the `dev` environment, add the fallback tokens:
+     - `FIRECRAWL_API_KEY`: Dedicated developer pool key from Firecrawl.
+     - `CONTEXT7_API_KEY`: Dedicated developer pool key from Upstash/Context7.
+     - `GITHUB_TOKEN`: Organization developer PAT (scopes: `repo`, `read:org`).
+     - `TUPYNAMBA_GATEWAY_TOKEN`: Bearer token for Cortex AgentGateway.
+5. **Provision Supporting Projects**:
+   - Create `tupynambalucas-docs` (Slug: `tupynambalucas-docs`).
+   - Create `tupynambalucas-corporate` (Slug: `tupynambalucas-corporate`).
 
-1. **Primary DNS Zone**:
-   - `tupynambalucas.dev`
-2. **Subdomain Hierarchy**:
-   - `docs.tupynambalucas.dev` (Cloudflare Pages Production)
-   - `web.tupynambalucas.dev` / `api.tupynambalucas.dev` (Corporate Services)
-   - `mcp.tupynambalucas.dev` (Production Cortex AgentGateway)
-   - `*-dev.tupynambalucas.dev` (Local development ingress tunnels via Traefik)
-3. **Cloudflare Zero Trust Tunnels**:
-   - `tupynambalucas-hub-dev`: Routes to local Traefik routing Grafana, Loki, Headlamp, and local Cortex.
-   - `tupynambalucas-corporate-dev`: Routes to local Traefik routing Corporate Web, API, and local Docs portal.
-4. **Cloudflare Pages Projects**:
-   - `tupynambalucas-docs`: Hosting the Docusaurus corporate portal.
+### 4.2 Step 2: Personal Organization Provisioning
+1. In the top-left organization dropdown, click **Create Organization**.
+2. Display Name: `Tupynambá Lucas (Personal)`.
+3. Organization Slug: `tupynambalucas`.
+4. Create initial isolated projects:
+   - `homelab`: For domestic IoT, NAS, local VPN tokens.
+   - `experiments`: For personal AI API keys.
+   - `personal-site`: For personal portfolio deployment keys.
+5. Leave members list with exactly **1 member** (yourself).
 
 ---
 
-## 4. Comprehensive Catalog of Fallback Tokens
+## 5. Token Segregation & Quota Isolation Matrix
 
-The following table catalogs all tokens required when operating in fallback mode (Cortex AgentGateway offline), segregated by context:
+Under no circumstances may developer fallback tokens share quotas or credentials with cluster infrastructure:
 
-| Variable Name | Context | Purpose | Fallback Source Layer |
-| :--- | :--- | :--- | :--- |
-| **`FIRECRAWL_API_KEY`** | `agent-toolkit` (Fallback) | Web scraping, crawl, and Google search via `firecrawl-mcp`. | `tupynambalucas-agent-toolkit` Infisical OR local `.env` OR `/plugin`. |
-| **`CONTEXT7_API_KEY`** | `agent-toolkit` (Fallback) | Up-to-date documentation retrieval for frameworks via `@upstash/context7-mcp`. | `tupynambalucas-agent-toolkit` Infisical OR local `.env` OR `/plugin`. |
-| **`GITHUB_TOKEN`** | `agent-toolkit` (Fallback) | Git repository analysis, PR inspections, issue querying via `github-mcp-server-js`. | Developer Personal Access Token (PAT) with `repo`, `read:org` scopes. |
-| **`TUPYNAMBA_GATEWAY_TOKEN`** | `agent-toolkit` (Gateway) | Bearer token for authenticating against Cortex AgentGateway when online. | `tupynambalucas-agent-toolkit` Infisical OR local `.env`. |
-| **`PLATFORM_FIRECRAWL_KEY`** | `platform` (Cluster) | Reserved exclusively for in-cluster Cortex vector search and automated scrapers. | `tupynambalucas-platform` Infisical (`k8s/.env`). |
-| **`PLATFORM_GITHUB_APP_TOKEN`**| `platform` (Cluster) | GitHub App / Bot credentials for automated CI/CD and deployment webhooks. | `tupynambalucas-platform` Infisical (`tools/github/services/gh`). |
+| Variable Name | Context | Scope & Purpose | Target Infisical Project | Fallback Source Tier |
+| :--- | :--- | :--- | :--- | :--- |
+| **`FIRECRAWL_API_KEY`** | `agent-toolkit` (Fallback) | Developer web scraping & search via `firecrawl-mcp`. | `tupynambalucas-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
+| **`CONTEXT7_API_KEY`** | `agent-toolkit` (Fallback) | Framework documentation retrieval via `@upstash/context7-mcp`. | `tupynambalucas-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
+| **`GITHUB_TOKEN`** | `agent-toolkit` (Fallback) | Repository and PR analysis via `github-mcp-server-js`. | `tupynambalucas-agent-toolkit` | Developer PAT OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
+| **`TUPYNAMBA_GATEWAY_TOKEN`** | `agent-toolkit` (Gateway) | Bearer authentication against Cortex AgentGateway Ingress (`https://mcp.tupynambalucas.dev/mcp`). | `tupynambalucas-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`). |
+| **`PLATFORM_FIRECRAWL_KEY`** | `platform` (Cluster) | In-cluster Cortex vector embeddings and scheduled scraper workers. | `tupynambalucas-platform` | Kubernetes Secret via Infisical Operator (`k8s/.env`). |
+| **`PLATFORM_GITHUB_APP_TOKEN`**| `platform` (Cluster) | GitHub App credentials for CI/CD automation and deployment webhooks. | `tupynambalucas-platform` | Kubernetes Secret via Infisical Operator. |
+| **`CORTEX_MCP_TOKEN`** | `platform` (Cluster) | Internal gateway inter-service authentication token. | `tupynambalucas-platform` | Kubernetes Secret (`k8s/hub/cortex`). |
 
 ---
 
-## 5. Audit of Historical `.agents` Backups and Component Segregation
+## 6. The `agent-toolkit` Universal Plugin Architecture
 
-A complete verification was conducted on the immutable backup directory:
+The dedicated submodule repository [`agent-toolkit`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-toolkit) serves as the sovereign agent governance package.
+
+### 6.1 Package Identity and Canonical Layout
+- **NPM Package**: `@tupynambalucas-dev/agent-toolkit`
+- **Submodule Location**: `org-core/agent-toolkit`
+- **Remote Origin**: `git@github.com:tupynambalucas-dev/agent-toolkit.git`
+- **Layout**:
+  ```text
+  agent-toolkit/
+  ├── package.json             # NPM package manifest (version 0.1.0)
+  ├── plugin.json              # Antigravity & Agent Plugins 1.0 manifest
+  ├── .claude-plugin/
+  │   └── plugin.json          # Claude Code manifest
+  ├── mcp_config.json          # Strict MCP servers and variables declaration
+  ├── .vscode/                 # Workspace settings, recommended extensions, tasks
+  ├── .gitignore               # Ignores .env*, node_modules, logs
+  ├── .env.example             # Documented template for Tier 2 BYOT
+  ├── rules/
+  │   └── AGENTS.md            # Consolidated enterprise governance SSOT
+  └── skills/
+      ├── agent-router-expert/ # Routing domain queries
+      ├── markdown-expert/     # Syntax & table formatting
+      ├── plugin-expert/       # Plugin authoring standards
+      ├── skill-expert/        # Skill validation & progressive disclosure
+      ├── secrets-expert/      # Infisical & secret hygiene
+      └── github-org-manager/  # GitHub RBAC and organization governance
+  ```
+
+### 6.2 Validated `mcp_config.json` Specification
+The configuration passes strict validation (`agy plugin validate agent-toolkit --strict`) with zero errors and zero warnings:
+
+```json
+{
+  "mcpServers": {
+    "enterprise-gateway": {
+      "type": "streamable-http",
+      "url": "https://mcp.tupynambalucas.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer ${TUPYNAMBA_GATEWAY_TOKEN}"
+      }
+    },
+    "infisical-mcp": {
+      "command": "infisical",
+      "args": ["run", "--env=dev", "--", "pnpm", "dlx", "@infisical/mcp"]
+    },
+    "github-mcp": {
+      "command": "infisical",
+      "args": ["run", "--env=dev", "--", "pnpm", "dlx", "@modelcontextprotocol/server-github"]
+    },
+    "firecrawl-mcp": {
+      "command": "infisical",
+      "args": ["run", "--env=dev", "--", "pnpm", "dlx", "firecrawl-mcp"]
+    },
+    "context7-mcp": {
+      "command": "infisical",
+      "args": ["run", "--env=dev", "--", "pnpm", "dlx", "@upstash/context7-mcp"]
+    }
+  },
+  "variables": [
+    { "name": "TUPYNAMBA_GATEWAY_TOKEN" },
+    { "name": "FIRECRAWL_API_KEY" },
+    { "name": "CONTEXT7_API_KEY" },
+    { "name": "GITHUB_TOKEN" }
+  ]
+}
+```
+
+### 6.3 Monorepo Consumption & Approach A Discovery
+- **`platform/package.json`**: `"@tupynambalucas-dev/agent-toolkit": "github:tupynambalucas-dev/agent-toolkit"`
+- **`docs/package.json`**: `"@tupynambalucas-dev/agent-toolkit": "github:tupynambalucas-dev/agent-toolkit"`
+- **`org-core/.agents/plugins.json`**:
+  ```json
+  {
+    "entries": [
+      { "path": "agent-toolkit" },
+      { "path": "platform/.agents/plugins" }
+    ]
+  }
+  ```
+- **`org-core/.agents/skills.json`**:
+  ```json
+  {
+    "entries": [
+      { "path": "docs/.agents/skills" },
+      { "path": "platform/.agents/skills" }
+    ]
+  }
+  ```
+
+---
+
+## 7. Audit of Historical Backups & Zero Component Loss
+
+An exhaustive audit of the immutable backup directory confirms zero loss of historical skills, rules, or plugins:
 `C:\Users\tupyn\projects\organizations\tupynambalucas-dev\backup\agents/`
 
-### 5.1 Backup Verification Matrix
-
-| Location | Status | Preserved Items | Final Destination |
-| :--- | :--- | :--- | :--- |
-| **`backup/agents/.github/.agents/`** | 314 files (2.09 MB) | `cortex`, `cortex-fallback`, `github-organization`, `k8s-expert`, `secrets-expert`, `agent-router-expert`, `docusaurus-expert`, `markdown-expert`, `plugin-expert`, `skill-expert`, `scripts/`, `references/`. | Verified. Duplicate skills removed; governance `AGENTS.md` and `plans/` retained. |
-| **`backup/agents/platform/.agents/`** | 308 files (2.05 MB) | Identical duplicates of `.github` skills and plugins, plus `k8s-expert`. | Verified. Purged duplicates; `k8s-expert` preserved as local domain plugin with valid trigger frontmatter. |
-| **`backup/agents/docs/.agents/`** | 268 files (1.73 MB) | Duplicate global skills plus `docusaurus-expert`. | Verified. Purged global duplicates; `docusaurus-expert` preserved as local documentation skill. |
-
-### 5.2 Plugin Architecture Summary
-
-```mermaid
-flowchart TD
-  subgraph GlobalPlugin ["agent-toolkit (Universal Agent Plugin)"]
-    direction TB
-    G1["Rules: rules/AGENTS.md (Governance SSOT)"]
-    G2["MCP: mcp_config.json (Gateway + 4 Fallback Servers)"]
-    G3["Skills: agent-router-expert, markdown-expert, plugin-expert, skill-expert, secrets-expert, github-org-manager"]
-  end
-
-  subgraph PlatformPlugin ["platform/.agents/plugins/k8s-expert (Local Domain Plugin)"]
-    direction TB
-    P1["Rules: rules/k8s-docs.md (model_decision trigger)"]
-    P2["Skills: k8s-docs-analyzer, k8s-docs-manager"]
-  end
-
-  subgraph DocsSkill ["docs/.agents/skills/docusaurus-expert (Local Domain Skill)"]
-    direction TB
-    D1["Skill: docusaurus-expert (MDX & Diátaxis Framework)"]
-  end
-
-  GlobalPlugin -->|Consumed via node_modules| PlatformPlugin
-  GlobalPlugin -->|Consumed via node_modules| DocsSkill
-```
-
-- **Zero Skills Lost**: All 6 enterprise skills are consolidated into `agent-toolkit/skills/`.
-- **Zero Plugins Lost**:
-  - `github-organization` and `secrets-expert` logic were elevated into canonical skills in `agent-toolkit`.
-  - Insecure plaintext configurations from `cortex` and `cortex-fallback` were replaced by sanitized, multi-transport definitions in `agent-toolkit/mcp_config.json`.
-  - `k8s-expert` remains intact in `platform`.
-  - `docusaurus-expert` remains intact in `docs`.
-- **Reference Assets Preserved**: Historical documentation in `references/` (`agentgateway`, `brand-identity`, `ai-concepts`) remains safely preserved in the immutable backup and can be selectively incorporated into `agent-toolkit/references/` as needed.
+1. **`backup/agents/.github/.agents/`** (314 files): All enterprise skills (`agent-router-expert`, `markdown-expert`, `plugin-expert`, `skill-expert`, `secrets-expert`, `github-org-manager`) were safely consolidated into `agent-toolkit/skills/`.
+2. **`backup/agents/platform/.agents/`** (308 files): Duplicate global skills removed; domain-specific plugin `platform/.agents/plugins/k8s-expert` preserved with valid `rules/k8s-docs.md` frontmatter triggers.
+3. **`backup/agents/docs/.agents/`** (268 files): Duplicate global skills removed; domain-specific skill `docs/.agents/skills/docusaurus-expert` preserved for Diátaxis technical writing.
 
 ---
 
-## 6. Implementation Action Plan
+## 8. Implementation Checklist & Governance Sign-Off
 
-1. **Infisical Project Renaming and Provisioning**:
-   - In Infisical Cloud, set Organization Display Name to `tupynambalucas.dev` (Slug: `tupynambalucas-dev`).
-   - Rename existing project slug `tupynambalucas-core-ez7a` to `tupynambalucas-platform` (Display Name: `Platform Infrastructure`).
-   - Create new project: `tupynambalucas-agent-toolkit` (Display Name: `Agent Toolkit`) and populate dedicated developer tokens (`FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`).
-2. **Onboarding Guidance**:
-   - Team members authenticate once via `pnpm dlx @infisical/cli login`.
-   - Contractors use Option B (local `.env`) or Option C (`/plugin agent-toolkit`) without needing Infisical access.
-3. **Continuous Auditing**:
-   - Validate plugins continuously with `agy plugin validate <dir> --strict`.
+- [x] Create and commit `.vscode/` configuration in `agent-toolkit`.
+- [x] Declare `variables` in `agent-toolkit/mcp_config.json` for interactive Antigravity setup.
+- [x] Pass `agy plugin validate agent-toolkit --strict` with 0 errors and 0 warnings.
+- [x] Add root `.gitignore` and `.env.example` to `org-core` and `agent-toolkit`.
+- [x] Standardize Monorepo dependencies (`package.json`) to `github:tupynambalucas-dev/agent-toolkit`.
+- [ ] Rename Infisical project `tupynambalucas-core-ez7a` to `tupynambalucas-platform` (Display: `Platform Infrastructure`).
+- [ ] Create corporate Infisical project `tupynambalucas-agent-toolkit` (Display: `Agent Toolkit`) and populate fallback keys.
+- [ ] Create corporate Infisical project `tupynambalucas-docs` (Display: `Documentation Portal`).
+- [ ] Create corporate Infisical project `tupynambalucas-corporate` (Display: `Corporate Applications`).
+- [ ] Create personal Infisical organization `tupynambalucas` with clean projects (`homelab`, `experiments`, `personal-site`).
+- [ ] Verify contractor invitation protocol (Project-level Viewer on `tupynambalucas-agent-toolkit` only).
