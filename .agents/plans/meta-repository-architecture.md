@@ -68,151 +68,26 @@ graph TD
 
 ---
 
-### Árvore Completa de Pastas e Subpastas (`projects/`)
+### Árvore Estrutural por Repositório (`projects/`)
 
-Abaixo está o mapeamento exaustivo de como a raiz física `C:/Users/tupyn/projects/` ficará organizada, detalhando cada diretório, repositório e submódulo:
+Mapeamento da raiz física delimitando os limites de cada repositório e suas responsabilidades arquiteturais:
 
 ```text
 C:/Users/tupyn/projects/
 │
-├── personal/                                         <- ESCOPO PESSOAL (github.com/tupynambalucas/*)
-│   ├── profile/                                      <- Repositório especial de perfil (tupynambalucas/tupynambalucas)
-│   │   ├── .agents/                                  <- Configurações de IA, skills e regras do perfil pessoal
-│   │   ├── .github/                                  <- Automações de CI/CD para deploy de métricas e badges
-│   │   │   └── workflows/                            <- CI/CD de compilação da branch orphan 'generated'
-│   │   ├── .vscode/                                  <- Tarefas e settings locais da IDE
-│   │   ├── generated/                                <- Artefatos dinâmicos gerados para publicação
-│   │   │   └── cards/                                <- SVG cards dinâmicos (overview, languages, header)
-│   │   ├── profile/                                  <- Conteúdo e badges (@tupynambalucas/profile)
-│   │   │   └── src/                                  <- Templates e definições de perfil pessoal
-│   │   ├── renderer/                                 <- Pipeline de renderização local de métricas e README
-│   │   │   └── src/                                  <- Pipelines Octokit e gerador de templates
-│   │   ├── shared/                                   <- Tokens de identidade visual e assets pessoais
-│   │   │   └── assets/                               <- Logomarcas em vetor SVG (positive/negative)
-│   │   ├── eslint.config.ts                          <- ESLint 10 com TypeScript e Jiti
-│   │   ├── package.json                              <- Scripts de build e geração de perfil
-│   │   ├── pnpm-workspace.yaml                       <- Definição do monorepo de perfil pessoal
-│   │   ├── README.md                                 <- Perfil público dinâmico no GitHub
-│   │   └── turbo.json                                <- Pipeline Turbo para compilação local
-│   │
-│   ├── academic-lab/                                 <- Repositório acadêmico de estudos (tupynambalucas/academic-lab)
-│   │   ├── .agents/                                  <- Agentes e planos de estudos acadêmicos
-│   │   ├── .vscode/                                  <- Tarefas e settings de estudo
-│   │   ├── config/                                   <- Configurações compartilhadas e compiladores
-│   │   ├── knowledge-base/                           <- Artigos, notas e resumos acadêmicos
-│   │   │   ├── apps/                                 <- Aplicações e protótipos de estudo
-│   │   │   ├── collections/                          <- Coleções de artigos e teses
-│   │   │   └── packages/                             <- Bibliotecas auxiliares experimentais
-│   │   ├── package.json
-│   │   ├── pnpm-workspace.yaml
-│   │   └── README.md
-│   │
-│   └── spicetify/                                    <- Repositório pessoal de customizações locais
-│       ├── marketplace/                              <- Extensões e apps instalados
-│       ├── spicetify-themes/                         <- Temas e folhas de estilo CSS
-│       └── README.md
+├── personal/                                         <- Escopo de projetos pessoais (github.com/tupynambalucas/*)
+│   ├── profile/                                      <- Perfil pessoal no GitHub e gerador dinâmico de cards SVG (@tupynambalucas/profile)
+│   ├── academic-lab/                                 <- Estudos, pesquisas acadêmicas e protótipos experimentais
+│   └── spicetify/                                    <- Extensões e temas de customização do Spotify
 │
-└── tupynambalucas-dev/                               <- ESCOPO CORPORATIVO (github.com/tupynambalucas-dev/*)
+└── tupynambalucas-dev/                               <- Escopo de projetos da organização (github.com/tupynambalucas-dev/*)
+    ├── core/                                         <- Meta-Repositório Umbrella (Orquestra submódulos corporativos)
+    │   ├── .github/                                  <- [Submódulo] Governança institucional, CI/CD central e agentes de IA
+    │   ├── platform/                                 <- [Submódulo] Monorepo de engenharia, Kubernetes GitOps e ferramentas Hub
+    │   └── docs/                                     <- [Submódulo] Portal oficial de documentação da empresa (Docusaurus v3)
     │
-    ├── core/                                         <- META-REPOSITÓRIO UMBRELLA (tupynambalucas-dev/tupynambalucas-dev)
-    │   ├── .git/                                     <- Repositório Git pai (orquestra os submódulos)
-    │   ├── .gitmodules                               <- Manifesto declarativo dos 3 submódulos
-    │   ├── .gitignore                                <- Regras limpas de exclusão do meta-repo
-    │   ├── package.json                              <- Scripts de orquestração corporativa (submodule:sync)
-    │   ├── README.md                                 <- Manual de engenharia e topologia corporativa
-    │   ├── tupynambalucas-dev.code-workspace         <- Multi-Root Workspace unificado para VS Code / Antigravity
-    │   │
-    │   ├── .github/                                  <- [SUBMÓDULO - branch: main] Governança & IA (tupynambalucas-dev/.github)
-    │   │   ├── .agents/                              <- Sistema de IA e orquestração de agentes
-    │   │   │   ├── plans/                            <- Planos arquiteturais corporativos
-    │   │   │   ├── plugins/                          <- Plugins de ferramentas MCP (cortex, github-organization, etc.)
-    │   │   │   ├── rules/                            <- Regras de guardrails e contexto operacional
-    │   │   │   ├── scripts/                          <- Utilitários de automação executados por IA
-    │   │   │   └── skills/                           <- Habilidades dos agentes (agent-router-expert, markdown-expert, etc.)
-    │   │   ├── .github/                              <- Automações corporativas globais
-    │   │   │   └── workflows/                        <- Workflows reutilizáveis e CI institucional
-    │   │   ├── profile/                              <- Perfil público institucional da organização no GitHub
-    │   │   │   └── README.md                         <- Apresentação pública da empresa tupynambalucas-dev
-    │   │   ├── AGENTS.md                             <- Context router corporativo para IA
-    │   │   ├── CODE_OF_CONDUCT.md                    <- Código de conduta institucional
-    │   │   ├── CONTRIBUTING.md                       <- Padrões de contribuição corporativa
-    │   │   ├── LICENSE                               <- Termos de licenciamento institucional
-    │   │   ├── README.md                             <- Documentação do repositório .github
-    │   │   ├── SECURITY.md                           <- Políticas de segurança e reporte de vulnerabilidades
-    │   │   └── SUPPORT.md                            <- SLAs e canais oficiais de suporte
-    │   │
-    │   ├── platform/                                 <- [SUBMÓDULO - branch: develop] Monorepo de Engenharia (tupynambalucas-dev/platform)
-    │   │   ├── corporate/                            <- Bounded Context de Produtos Públicos
-    │   │   │   ├── api/                              <- Backend Fastify da empresa
-    │   │   │   ├── web/                              <- Website institucional em React / Vite
-    │   │   │   └── collections/                      <- Coleções de dados públicos
-    │   │   ├── hub/                                  <- Bounded Context de Ferramentas Internas da Equipe
-    │   │   │   ├── observability/                    <- Stack LGTM (Grafana, Loki, Prometheus, Tempo)
-    │   │   │   ├── network/                          <- Roteamento Traefik e Cloudflared Tunnels
-    │   │   │   ├── studio/                           <- Penpot, Memos e assets de design
-    │   │   │   ├── cortex/                           <- AgentGateway, Guardrails e RAG Memory
-    │   │   │   └── tools/                            <- Headlamp (Dashboard K8s), Turbocache
-    │   │   ├── k8s/                                  <- Infraestrutura Kubernetes GitOps
-    │   │   │   ├── charts/                           <- Helm charts locais (agentgateway, traefik)
-    │   │   │   ├── manifests/                        <- Manifestos base separados por contexto
-    │   │   │   ├── overlays/                         <- Overlays por ambiente (dev, staging, prod)
-    │   │   │   │   ├── dev/                          <- Overlays locais com Skaffold e tunnels
-    │   │   │   │   ├── staging/                      <- Overlays de staging para ArgoCD
-    │   │   │   │   └── prod/                         <- Overlays de produção para ArgoCD
-    │   │   │   ├── references/                       <- Documentação técnica de infraestrutura (Diátaxis)
-    │   │   │   ├── skaffold.yaml                     <- Orquestrador local de desenvolvimento
-    │   │   │   ├── skaffold.hub.yaml                 <- Skaffold para cluster k3d-hub
-    │   │   │   └── skaffold.corporate.yaml           <- Skaffold para cluster k3d-corporate
-    │   │   ├── renderer/                             <- Pipeline de compilação de assets SVG e README da platform
-    │   │   ├── shared/                               <- Utilitários e configurações compartilhadas
-    │   │   ├── tools/                                <- Automações CLI e ferramentas de infraestrutura
-    │   │   ├── AGENTS.md                             <- Context router da platform
-    │   │   ├── package.json
-    │   │   ├── pnpm-workspace.yaml
-    │   │   ├── README.md                             <- Documentação técnica 100% focada em platform
-    │   │   └── turbo.json
-    │   │
-    │   └── docs/                                     <- [SUBMÓDULO - branch: develop] Hub Soberano de Documentação (tupynambalucas-dev/docs)
-    │       ├── apps/                                 <- Aplicações do hub de documentação
-    │       │   └── portal/                           <- Instância Docusaurus v3 institucional em produção
-    │       ├── collections/                          <- Documentação técnica em Markdown / MDX
-    │       │   ├── docs/                             <- Documentações de arquitetura e serviços
-    │       │   └── blog/                             <- Artigos técnicos de engenharia
-    │       ├── packages/                             <- Pacotes reutilizáveis do portal
-    │       │   ├── preset/                           <- Preset customizado de Docusaurus e plugins
-    │       │   └── studio-assets/                    <- Tokens de design system e assets gráficos
-    │       ├── AGENTS.md                             <- Context router de documentação
-    │       ├── crowdin.yml                           <- Orquestração de localização e i18n
-    │       ├── package.json
-    │       ├── pnpm-workspace.yaml
-    │       ├── README.md
-    │       └── turbo.json
-    │
-    ├── tessel/                                       <- PRODUTO SATÉLITE 1 (tupynambalucas-dev/tessel - Standalone)
-    │   ├── .gemini/                                  <- Configurações de IA específicas para game dev
-    │   ├── .github/                                  <- Workflows de CI/CD para compilação e release de jogos
-    │   ├── .vscode/                                  <- Configurações de workspace para game engine
-    │   ├── apps/                                     <- Demos, benchmarks e aplicações de jogos web
-    │   ├── packages/                                 <- Módulos centrais da engine (core, math, physics, renderer, audio)
-    │   ├── platforms/                                <- Integrações de plataforma (web, wasm, desktop)
-    │   ├── studio/                                   <- Editor visual de cenas e visualizador de assets 3D
-    │   ├── tools/                                    <- Utilitários de asset pipeline e empacotamento
-    │   ├── knowledge-base/                           <- Documentação técnica e design specs da engine
-    │   ├── package.json
-    │   ├── pnpm-workspace.yaml
-    │   ├── README.md
-    │   └── turbo.json
-    │
-    └── omni-channel/                                 <- PRODUTO SATÉLITE 2 (tupynambalucas-dev/omni-channel - Standalone)
-        ├── .github/                                  <- Workflows de CI/CD para deploy da API de mensageria
-        ├── apps/                                     <- Aplicações e microsserviços
-        │   └── api/                                  <- Serviço Fastify / WebSockets de mensageria WhatsApp
-        ├── packages/                                 <- Bibliotecas compartilhadas do ecossistema WhatsApp
-        │   ├── client/                               <- Cliente de integração e mensageria
-        │   └── types/                                <- Definições de tipagem de payloads e eventos
-        ├── package.json
-        ├── pnpm-workspace.yaml
-        └── README.md
+    ├── tessel/                                       <- [Standalone] Engine de jogos web em TypeScript/Wasm (Produto Independente)
+    └── omni-channel/                                 <- [Standalone] Serviço de API e mensageria para WhatsApp (Serviço Independente)
 ```
 
 ---
