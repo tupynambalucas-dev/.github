@@ -116,6 +116,49 @@ $$\mathbf{tupynambalucas-dev}$$
 
 ---
 
+### 3.3 Deterministic Slug Architecture Across Strict Ecosystems
+
+When generating slugs for organizations, projects, tunnels, and repositories across platforms where dots (`.`) are prohibited:
+
+```mermaid
+flowchart TD
+  subgraph SlugRules ["Deterministic Slug Rules (Class B Platforms)"]
+    direction TB
+    R_Org["Organization Slug:<br/>Personal: 'tupynambalucas'<br/>Corporate: 'tupynambalucas-dev'"]
+    R_CorpProj["Corporate Project Slug Formula:<br/>'tupynambalucas-{subsystem}'<br/>(e.g., tupynambalucas-platform, tupynambalucas-agent-toolkit)"]
+    R_PersProj["Personal Project Slug Formula:<br/>'{subsystem}'<br/>(e.g., homelab, experiments, personal-site)"]
+    R_Tunnel["Zero Trust Tunnel Slug Formula:<br/>'tupynambalucas-{subsystem}-dev'<br/>(e.g., tupynambalucas-hub-dev, tupynambalucas-corporate-dev)"]
+  end
+```
+
+1. **Organization Slugs**:
+   - Corporate: Strictly `tupynambalucas-dev` (hyphenated).
+   - Personal: Strictly `tupynambalucas` (no suffix).
+2. **Corporate Project Slugs**:
+   - Formula: `tupynambalucas-{subsystem}`
+   - Rationale: In multi-tenant CLI environments (e.g. Infisical CLI where an engineer might belong to multiple organizations), project slugs must be globally unambiguous in local configs (`.infisical.json`).
+   - Standard Slugs:
+     - `tupynambalucas-platform`
+     - `tupynambalucas-agent-toolkit`
+     - `tupynambalucas-docs`
+     - `tupynambalucas-corporate`
+3. **Personal Project Slugs**:
+   - Formula: `{subsystem}` (clean, un-prefixed).
+   - Rationale: The personal organization is strictly single-tenant and never shared with contractors. Prefixing `tupynambalucas-` inside a personal-only tenant is redundant noise.
+   - Standard Slugs:
+     - `homelab`
+     - `experiments`
+     - `personal-site`
+4. **Cloudflare Zero Trust Tunnel Slugs**:
+   - Formula: `tupynambalucas-{subsystem}-dev`
+   - Corporate: `tupynambalucas-hub-dev`, `tupynambalucas-corporate-dev`.
+   - Personal: `tupynambalucas-homelab-dev`, `tupynambalucas-desktop-dev`.
+5. **NPM Package Scopes**:
+   - Corporate: `@tupynambalucas-dev/*`
+   - Personal: `@tupynambalucas/*` (if personal packages are ever published).
+
+---
+
 ## 4. Multi-Platform Nomenclature Specifications
 
 ### 4.1 Infisical Cloud Governance: Dual-Tenant Architecture
@@ -163,6 +206,24 @@ flowchart TD
   - `experiments`: Independent algorithmic experiments and personal AI testing.
   - `personal-site`: Personal domain and portfolio deployment secrets.
 
+#### C. Infisical Operational Runbook (Tenant Creation & Migration)
+
+1. **Corporate Organization Setup**:
+   - Navigate to Infisical Cloud -> Switch Organization -> **Create New Organization** (or rename current).
+   - Enter Display Name: `tupynambalucas.dev` (or `tupynambalucas-dev`).
+   - Enter Organization Slug: `tupynambalucas-dev`.
+   - **Rename Core Project**: Access project `tupynambalucas-core-ez7a` -> Project Settings -> General -> Rename Display Name to `Platform Infrastructure` and Slug to `tupynambalucas-platform`.
+   - **Provision Toolkit Project**: Create Project -> Display Name: `Agent Toolkit`, Slug: `tupynambalucas-agent-toolkit`. Populate fallback keys (`FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`).
+   - **Provision Supporting Projects**: Create `tupynambalucas-docs` and `tupynambalucas-corporate`.
+   - **Invite Governance**: When onboarding contractors, invite them exclusively with **Project-Level Role: Viewer / Developer** scoped to `tupynambalucas-agent-toolkit`. Never grant Organization Owner or Organization Admin.
+
+2. **Personal Organization Setup**:
+   - Navigate to Infisical Cloud -> Switch Organization -> **Create New Organization**.
+   - Enter Display Name: `Tupynambá Lucas (Personal)`.
+   - Enter Organization Slug: `tupynambalucas` (strictly without `-dev`).
+   - Create clean, un-prefixed projects: `homelab`, `experiments`, `personal-site`.
+   - **Invite Governance**: Zero invitations. This organization is 100% private to the physical founder.
+
 ---
 
 ### 4.2 Cloudflare Infrastructure: Dual-Account Architecture
@@ -182,10 +243,15 @@ Cloudflare fully supports dots in account names and domain zones. To ensure pris
      - `tupynambalucas-corporate-dev`: Traefik corporate routing (Web, API, Docs).
    - **Cloudflare Pages**:
      - `tupynambalucas-docs`: Automated production builds from `docs` repository.
+   - **Billing & Entity**: Linked to corporate credit card / PJ CNPJ.
 
 2. **Personal Account (`tupynambalucas`)**:
    - **Account Name**: `tupynambalucas` (strictly NO `-dev`).
-   - **Purpose**: Strictly personal homelab tunnels (e.g. personal home desktop, private homelab cluster), personal hobby domains, and personal Cloudflare Workers experiments. Zero corporate traffic routes through this account.
+   - **Purpose**: Strictly personal homelab tunnels (e.g. personal home desktop, private homelab cluster), personal hobby domains (`tupynambalucas.com`, `tupynambalucas.me` or `lucasvarela.com.br`), and personal Cloudflare Workers experiments. Zero corporate traffic routes through this account.
+   - **Zero Trust Tunnels**:
+     - `tupynambalucas-homelab-dev`: Remote access to home NAS / Proxmox node.
+     - `tupynambalucas-desktop-dev`: Remote SSH to private workstation.
+   - **Billing & Entity**: Linked to CPF / personal card. Zero corporate co-mingling.
 
 ---
 
@@ -233,7 +299,47 @@ To ensure legal clarity and non-repudiation while preserving the founder's perso
 
 ## 5. Sovereign Domain, Subdomain, and Email Architecture
 
-### 5.1 Strategic Evaluation: The `personal.tupynambalucas.dev` Dilemma
+### 5.1 The TLD Strategic Charter: Why `tupynambalucas.dev` is Sovereign and `.org` is Rejected
+
+A critical strategic decision is the choice of Top-Level Domain (TLD) for the enterprise firm versus personal identity.
+
+**Architectural Verdict: `tupynambalucas.dev` is the immutable corporate domain. `tupynambalucas.org` is REJECTED.**
+
+#### Why `.org` is an Anti-Pattern for the Firm:
+1. **Commercial Misalignment**: Semantically and historically, `.org` is reserved for non-profit entities, open-source foundations (e.g. `python.org`, `apache.org`, `w3.org`), and charities. `tupynambalucas.dev` is a commercial software engineering studio and architectural consultancy that executes Master Services Agreements (MSAs), issues invoices, and scales enterprise platforms. Presenting as a `.org` generates confusion during enterprise vendor onboarding and corporate procurement.
+2. **Authority of `.dev`**: Operated directly by Google Registry with strict HSTS (enforced SSL out of the box), `.dev` is the global standard for elite platform engineering, developer ecosystems, and tech-native consulting firms.
+3. **Established Equity**: The entire repository ecosystem (`platform`, `docs`, `agent-toolkit`, monorepos, and `project.config.ts`) is already anchored on `tupynambalucas.dev`. Diverting to `.org` would dilute brand equity.
+
+---
+
+### 5.2 The GitHub Personal Handle Invariant: Why `@tupynambalucas` Must NOT be Renamed
+
+**Architectural Verdict: Retain `github.com/tupynambalucas` with zero modifications.**
+
+#### Strategic Justification:
+1. **The Global Founder Model**: Industry leaders maintain personal handles without sufix and firm organizations with technical suffixes:
+   - Founder / Individual Architect: `github.com/tupynambalucas` (Pessoa Física).
+   - Studio / Enterprise Monorepos: `github.com/tupynambalucas-dev` (Pessoa Jurídica).
+   - The `-dev` suffix provides 100% semantic clarity, entirely eliminating any conflict or ambiguity between personal and corporate repos.
+2. **Handle Rarity and Prestige**: "Tupynambá" is a rare, culturally rich, and highly distinctive name. Renaming to a common variation (e.g. `lucasvarela`) would diminish discoverability, break external inbound backlinks, and dilute historical Git commit attribution.
+3. **Bidirectional Authority Link**: The personal profile declares: *"Founder & Principal Systems Architect at [tupynambalucas.dev](https://tupynambalucas.dev)"*. The individual's reputation elevates the firm, and the firm's architecture proves the individual's pedigree.
+
+---
+
+### 5.3 Civil Personal Domain Architecture (Pessoa Física Sovereign Identity)
+
+For personal civil affairs, domestic utility bills, personal banking, private subscriptions, and non-commercial portfolio hosting, the founder should decouple completely from the corporate domain `tupynambalucas.dev`.
+
+| Option | Domain Candidate | TLD Category | Strategic Value | Recommended Use Case |
+| :--- | :--- | :--- | :--- | :--- |
+| **Option 1 (Top Pick)** | **`tupynambalucas.com`** / **`.com.br`** | Commercial / General Global | - 100% consistency with GitHub handle `@tupynambalucas`.<br/>- Defensive brand protection preventing third-party squatting.<br/>- Highest global trust score for personal correspondence. | - Civil personal email (`lucas@tupynambalucas.com`).<br/>- Defensive DNS forwarder to `tupynambalucas.dev`. |
+| **Option 2** | **`tupynambalucas.me`** | Personal / Identity | - `.me` explicitly designates individual persona.<br/>- Clear contrast: `.me` (personal) vs `.dev` (engineering studio). | - Independent personal blog, non-corporate essays, personal bio. |
+| **Option 3** | **`lucasvarela.com.br`** | Formal Civil Name | - Decouples tech handle entirely from legal identity.<br/>- Maximum discretion for legal, banking, family, and domestic affairs. | - Formal civil communications, domestic utilities, private family correspondence. |
+| **Option 4** | **Managed Consumer Mail** (`@gmail.com` / `@proton.me`) | Managed Secure Provider | - Zero infrastructure overhead.<br/>- Zero DNS configuration or renewal risks.<br/>- Out-of-the-box deliverability and security. | - `tupynambalucas@gmail.com` or `tupynamba@proton.me` for personal consumer accounts (Netflix, personal bank). |
+
+---
+
+### 5.4 The Subdomain Anti-Pattern: Rejection of `personal.tupynambalucas.dev`
 
 A common question in founder-led engineering firms is whether to create subdomains like `personal.tupynambalucas.dev` and emails such as `contato@personal.tupynambalucas.dev`.
 
@@ -246,7 +352,7 @@ A common question in founder-led engineering firms is whether to create subdomai
 
 ---
 
-### 5.2 The Sovereign Email Topology
+### 5.5 The Sovereign Email Topology
 
 To achieve institutional prestige, pristine auditability, and personal privacy, all email communications follow a three-tier topology:
 
@@ -266,7 +372,7 @@ flowchart TD
 
   subgraph CivilPersonal ["Physical Person / Civil Domestic Domain"]
     direction TB
-    P_Personal["tupynambalucas@gmail.com / civil domain<br/>(Personal banking, domestic utilities, private subscriptions, non-work contacts)"]
+    P_Personal["tupynambalucas@gmail.com / tupynambalucas.com<br/>(Personal banking, domestic utilities, private subscriptions, non-work contacts)"]
   end
 ```
 
@@ -279,12 +385,12 @@ flowchart TD
    - Used for board-level consulting, advisory retainers, and signing official cryptographic commits for the organization.
 3. **Civil / Domestic Tier (Pessoa Física - External)**:
    - Completely decoupled from `tupynambalucas.dev`.
-   - Utilizes `tupynambalucas@gmail.com` or a personal civil domain.
+   - Utilizes `lucas@tupynambalucas.com` (Option 1) or `tupynambalucas@gmail.com` / `tupynamba@proton.me` (Option 4).
    - Domestic utility bills, personal bank accounts, streaming services, and purely private correspondence never touch corporate servers.
 
 ---
 
-### 5.3 Web Routing and Personal Portfolio Subdomain
+### 5.6 Web Routing and Personal Portfolio Subdomain
 
 If the founder desires a dedicated personal showcase, engineering essays, or curriculum vitae hosted under the corporate brand umbrella:
 - **Canonical Subdomain**:
@@ -314,8 +420,11 @@ When an external contractor or temporary engineer joins a project:
 - [x] Add root `.gitignore` and `.env.example` in `org-core`.
 - [x] Add strict validation and variables declaration in `agent-toolkit/mcp_config.json`.
 - [x] Add `.vscode` workspace configuration in `agent-toolkit`.
+- [x] Confirm personal GitHub username retention as `tupynambalucas` (zero modification).
+- [x] Formalize immutable corporate apex domain as `tupynambalucas.dev` (rejection of `.org`).
 - [ ] Provision personal Infisical organization `tupynambalucas` for homelab and personal experiments.
 - [ ] Rename corporate Infisical project slug `tupynambalucas-core-ez7a` to `tupynambalucas-platform` under org `tupynambalucas-dev`.
 - [ ] Provision dedicated corporate Infisical project `tupynambalucas-agent-toolkit` with developer fallback tokens under org `tupynambalucas-dev`.
 - [ ] Verify Cloudflare Corporate Account Name is set to `tupynambalucas.dev`.
 - [ ] Verify Cloudflare Personal Account Name is set to `tupynambalucas`.
+- [ ] (Optional) Register `tupynambalucas.com` or `tupynambalucas.me` for defensive brand protection and civil correspondence.
