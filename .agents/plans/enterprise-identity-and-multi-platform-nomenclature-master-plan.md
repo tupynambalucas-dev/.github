@@ -390,7 +390,70 @@ flowchart TD
 
 ---
 
-### 5.6 Web Routing and Personal Portfolio Subdomain
+### 5.6 Platform Root Identity: Google Workspace vs. Consumer Gmail
+
+A critical operational question is: **"Which email should be used to sign up and hold root ownership of platforms like Infisical, Cloudflare, AWS, and GitHub?"**
+
+#### A. Evaluation of `tupynambalucasdev@gmail.com`
+**Architectural Verdict: REJECTED (Amateur Anti-Pattern)**.
+
+Creating a free consumer Gmail account with `dev` appended (e.g. `tupynambalucasdev@gmail.com`) introduces severe operational liabilities:
+1. **Lack of Corporate Legal Ownership**: Free `@gmail.com` accounts are bound to Google's Consumer Terms of Service. If Google's automated systems flag the account for unusual automated activity or SMS verification issues, the entire company loses access to its root cloud accounts.
+2. **Key-Person Single Point of Failure (SPOF)**: A consumer Gmail account cannot be transferred, audited, or governed via enterprise Identity Provider (IdP) policies.
+3. **Professional Incredibility**: Presenting `@gmail.com` on vendor invoices, Cloudflare accounts, Infisical tenant owner cards, or enterprise MSA contracts signals an amateur hobby project rather than an elite platform consultancy.
+4. **No Native Group Routing**: Consumer accounts cannot create free functional alias groups (e.g., `admin@`, `security@`, `billing@`).
+
+---
+
+#### B. The Enterprise Standard: Google Workspace Identity Provider (IdP)
+
+The gold standard for engineering consultancies and boutique software studios is deploying **Google Workspace** on the corporate domain `tupynambalucas.dev`.
+
+```mermaid
+flowchart TD
+  subgraph GoogleWorkspace ["Google Workspace Tenant: tupynambalucas.dev"]
+    direction TB
+    User_Lucas["Primary Paid Seat ($6/mo):<br/>lucas@tupynambalucas.dev<br/>(Founder Super-Admin)"]
+
+    subgraph FreeGroups ["Unlimited Free Collaborative Groups / Routing"]
+      direction LR
+      G_Admin["admin@tupynambalucas.dev<br/>(Root Platform Signups: Infisical, Cloudflare, AWS)"]
+      G_Sec["security@tupynambalucas.dev<br/>(Security Disclosures & Cloud WAF Alerts)"]
+      G_Bill["billing@tupynambalucas.dev<br/>(Invoices, Stripe, Cloud Subscriptions)"]
+      G_Contato["contato@tupynambalucas.dev<br/>(Commercial Proposals & Client Inbound)"]
+    end
+
+    User_Lucas -->|Receives & Manages All| FreeGroups
+  end
+
+  G_Admin -->|Root Owner| InfisicalCorp["Infisical Org: tupynambalucas-dev"]
+  G_Admin -->|Root Owner| CFCorp["Cloudflare Account: tupynambalucas.dev"]
+  G_Admin -->|Org Owner| GHCORP["GitHub Org: tupynambalucas-dev"]
+```
+
+#### Cost-Effective Single-Seat Architecture:
+- **Only 1 Paid User Required**: The founder purchases exactly **one** Google Workspace Business Starter license (`lucas@tupynambalucas.dev`) at ~$6/month.
+- **Zero Cost for Functional Addresses**: Google Workspace allows creating **unlimited Google Groups (collaborative inboxes) and aliases for free**.
+- **Root Admin Address (`admin@tupynambalucas.dev`)**:
+  - Used strictly for registering and holding Super Admin ownership of enterprise platforms (Infisical Org, Cloudflare Corporate Account, GitHub Organization, AWS Root Account, Stripe).
+  - All critical security alerts and verification tokens route directly to the founder's inbox without polluting personal communication.
+- **Single Sign-On (SSO / OIDC)**: Enterprise platforms (Infisical, Cloudflare Zero Trust, GitHub Enterprise) natively support "Log in with Google" using `@tupynambalucas.dev`, providing unified MFA and instant credential revocation.
+
+---
+
+#### C. Transition Runbook for Current State (`tupynambalucas@gmail.com`)
+
+Currently, both Infisical and Cloudflare are registered under `tupynambalucas@gmail.com`. The transition follows a deterministic 3-phase path:
+
+| Phase | Milestone | Action Items | Target Email State |
+| :--- | :--- | :--- | :--- |
+| **Phase 1 (Immediate)** | Tenant Segregation | - Maintain `tupynambalucas@gmail.com` as the owner of the **Personal Infisical Org** (`tupynambalucas`) and **Personal Cloudflare Account** (`tupynambalucas`).<br/>- This is 100% compliant with Pessoa Física boundaries. | Personal accounts: `tupynambalucas@gmail.com`. |
+| **Phase 2 (Bootstrap)** | Free Domain Forwarding | - Enable **Cloudflare Email Routing** on zone `tupynambalucas.dev` (free, zero setup cost).<br/>- Create route `admin@tupynambalucas.dev` forwarding to `tupynambalucas@gmail.com`.<br/>- Update root email of Corporate Infisical Org and Corporate Cloudflare Account to `admin@tupynambalucas.dev`. | Corporate root: `admin@tupynambalucas.dev` (forwarded). |
+| **Phase 3 (Enterprise)** | Google Workspace IdP | - Provision Google Workspace for `tupynambalucas.dev` (1 paid seat `lucas@tupynambalucas.dev`).<br/>- Configure groups: `admin@`, `security@`, `billing@`, `contato@`.<br/>- Enable Google OIDC SSO across Infisical and Cloudflare. | Full enterprise identity governance. |
+
+---
+
+### 5.7 Web Routing and Personal Portfolio Subdomain
 
 If the founder desires a dedicated personal showcase, engineering essays, or curriculum vitae hosted under the corporate brand umbrella:
 - **Canonical Subdomain**:
@@ -427,4 +490,6 @@ When an external contractor or temporary engineer joins a project:
 - [ ] Provision dedicated corporate Infisical project `tupynambalucas-agent-toolkit` with developer fallback tokens under org `tupynambalucas-dev`.
 - [ ] Verify Cloudflare Corporate Account Name is set to `tupynambalucas.dev`.
 - [ ] Verify Cloudflare Personal Account Name is set to `tupynambalucas`.
+- [ ] Configure `admin@tupynambalucas.dev` via Cloudflare Email Routing (Bootstrap) or Google Workspace (Enterprise IdP).
+- [ ] Migrate corporate Infisical and Cloudflare root account emails from `tupynambalucas@gmail.com` to `admin@tupynambalucas.dev`.
 - [ ] (Optional) Register `tupynambalucas.com` or `tupynambalucas.me` for defensive brand protection and civil correspondence.
