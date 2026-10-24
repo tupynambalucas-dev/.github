@@ -11,7 +11,7 @@ Este documento especifica o design arquitetural da estação de desenvolvimento 
    - Cada organização possui sua pasta dedicada dentro de `organizations/` (ex.: `organizations/tupynambalucas-dev/`, `organizations/cliente-x/`).
 2. **Hermeticidade Jurídica, de Contratos (NDAs) e Sandboxing de IA**:
    - A Antigravity CLI (`agy`) e a IDE indexam recursivamente a partir da raiz do workspace aberto.
-   - O núcleo corporativo da empresa própria (`core/`) opera unificado sem interferência de clientes ou produtos.
+   - O núcleo corporativo da empresa própria (`org-core/`) opera unificado sem interferência de clientes ou produtos.
    - Repositórios de terceirizações e clientes operam em sandboxes estanques, sem risco de vazamento de segredos industriais ou código proprietário na janela de contexto de agentes de IA.
 3. **Automação Criptográfica de Identidade Git (`includeIf:gitdir`)**:
    - Cada cliente ou empresa terceirizada exige um endereço de e-mail corporativo (ex.: `lucas@cliente.com`), chaves SSH dedicadas e perfis de assinatura específicos.
@@ -40,7 +40,7 @@ graph TD
 
   subgraph MultiOrgScope ["2. Escopo Multi-Organizações (organizations/)"]
     subgraph TupynambalucasOrg ["Organização Própria: tupynambalucas-dev/"]
-      subgraph CoreUmbrella ["Meta-Repositório Umbrella (core/)"]
+      subgraph CoreUmbrella ["Meta-Repositório Umbrella (org-core/)"]
         DotGithub[".github/ (Governança, CI Central & IA)"]
         Platform["platform/ (Monorepo K8s & Infraestrutura)"]
         Docs["docs/ (Portal de Documentação Docusaurus)"]
@@ -96,7 +96,7 @@ C:/Users/tupyn/projects/
 └── organizations/                                    <- Escopo corporativo e multi-tenant (Empresas & Clientes)
     │
     ├── tupynambalucas-dev/                           <- Organização própria (github.com/tupynambalucas-dev/*)
-    │   ├── core/                                     <- Meta-Repositório Umbrella (Orquestra submódulos corporativos)
+    │   ├── org-core/                                 <- Meta-Repositório Umbrella (Orquestra submódulos corporativos)
     │   │   ├── .github/                              <- [Submódulo] Governança institucional, CI/CD central e agentes de IA
     │   │   ├── platform/                             <- [Submódulo] Monorepo de engenharia, Kubernetes GitOps e ferramentas Hub
     │   │   └── docs/                                 <- [Submódulo] Portal oficial de documentação da empresa (Docusaurus v3)
@@ -126,7 +126,7 @@ Abriga exclusivamente repositórios de propriedade da conta pessoal de usuário 
 Abriga organizações empresariais distintas, garantindo isolamento total de código, chaves e contratos:
 
 #### 1. Organização Própria (`organizations/tupynambalucas-dev/`)
-* **Meta-Repositório Umbrella (`core/`)**: O repositório `tupynambalucas-dev/tupynambalucas-dev` orquestra os 3 pilares fundamentais da empresa via Git Submodules:
+* **Meta-Repositório Umbrella (`org-core/`)**: O repositório `tupynambalucas-dev/org-core` orquestra os 3 pilares fundamentais da empresa via Git Submodules:
   * **[`.github/`](./.github)**: Governança corporativa, fluxos centralizados de GitHub Actions, plugins e regras de IA.
   * **[`platform/`](./platform)**: Monorepo que orquestra clusters Kubernetes locais (k3d/Skaffold) e cloud, Traefik ingress, observabilidade LGTM e serviços de infraestrutura (Hub, Cortex).
   * **[`docs/`](./docs)**: Portal oficial de documentação institucional da empresa (Docusaurus v3 soberano com Crowdin).
@@ -145,7 +145,7 @@ A tabela abaixo define como a Antigravity CLI e a IDE se comportam em cada níve
 
 | Diretório de Lançamento | Modo Antigravity | Escopo de Visibilidade da IA | Limite de Fronteira (Sandboxing) |
 | :--- | :--- | :--- | :--- |
-| **`organizations/tupynambalucas-dev/core`** | **Unified Core** | `.github`, `platform`, `docs` (indexação simultânea). | **Isolamento Total**: Zero visibilidade sobre produtos satélites, clientes ou perfil pessoal. |
+| **`organizations/tupynambalucas-dev/org-core`** | **Unified Core** | `.github`, `platform`, `docs` (indexação simultânea). | **Isolamento Total**: Zero visibilidade sobre produtos satélites, clientes ou perfil pessoal. |
 | **`organizations/tupynambalucas-dev/tessel`** | **Sandboxed Product** | Restrito estritamente aos arquivos da game engine `tessel`. | **Hermético**: Não acessa `platform`, `docs` nem o meta-repo. |
 | **`organizations/tupynambalucas-dev/omni-channel`** | **Sandboxed Service** | Restrito estritamente à API do WhatsApp. | **Hermético**: Não acessa infraestrutura nem outros produtos. |
 | **`organizations/<cliente>`** | **Client Sandbox** | Restrito estritamente aos repositórios daquele cliente. | **Isolamento Legal**: Zero acesso a código ou infraestrutura de `tupynambalucas-dev`. |
@@ -212,9 +212,9 @@ Para garantir que a identidade do Git (nome, e-mail e chave de assinatura) seja 
 
 ---
 
-## 6. Especificação Técnica do Meta-Repositório (`core/`)
+## 6. Especificação Técnica do Meta-Repositório (`org-core/`)
 
-O meta-repositório localizado em `C:/Users/tupyn/projects/organizations/tupynambalucas-dev/core` orquestra o ecossistema essencial através de três manifestos principais:
+O meta-repositório localizado em `C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core` orquestra o ecossistema essencial através de três manifestos principais:
 
 ### A. Manifesto de Submódulos (`.gitmodules`)
 ```ini
@@ -318,15 +318,15 @@ if (Test-Path "C:\Users\tupyn\projects\spicetify") {
 Move-Item -Path "C:\Users\tupyn\projects\tupynambalucas-dev\tessel" -Destination "C:\Users\tupyn\projects\organizations\tupynambalucas-dev-temp\tessel"
 Move-Item -Path "C:\Users\tupyn\projects\tupynambalucas-dev\omni-channel" -Destination "C:\Users\tupyn\projects\organizations\tupynambalucas-dev-temp\omni-channel"
 
-# 4. Estruturação do meta-repositório como "core" dentro de organizations/tupynambalucas-dev/
-Move-Item -Path "C:\Users\tupyn\projects\tupynambalucas-dev" -Destination "C:\Users\tupyn\projects\organizations\tupynambalucas-dev-temp\core"
+# 4. Estruturação do meta-repositório como "org-core" dentro de organizations/tupynambalucas-dev/
+Move-Item -Path "C:\Users\tupyn\projects\tupynambalucas-dev" -Destination "C:\Users\tupyn\projects\organizations\tupynambalucas-dev-temp\org-core"
 Rename-Item -Path "C:\Users\tupyn\projects\organizations\tupynambalucas-dev-temp" -NewName "tupynambalucas-dev"
 
 # 5. Correção do remote origin de Tessel para a organização oficial
 git -C "C:\Users\tupyn\projects\organizations\tupynambalucas-dev\tessel" remote set-url origin git@github.com:tupynambalucas-dev/tessel.git
 
-# 6. Limpeza do .gitignore no meta-repositório core
-Set-Location -Path "C:\Users\tupyn\projects\organizations\tupynambalucas-dev\core"
+# 6. Limpeza do .gitignore no meta-repositório org-core
+Set-Location -Path "C:\Users\tupyn\projects\organizations\tupynambalucas-dev\org-core"
 git add .gitignore
 git commit -S -m "chore: remove detached product folders from gitignore"
 git push origin main
@@ -336,7 +336,7 @@ git push origin main
 
 ## 9. Avaliação Arquitetural Sênior: Meta-Repo vs. Monorepo Monolítico vs. Polyrepo (Padrões de Engenharia 2026)
 
-Esta seção fundamenta, com base na literatura contemporânea de arquitetura de software (*The Dev Newsletter: The Meta-Repo Pattern (2026)*, *Anyline Engineering Case Study: The Agents Meta-Repository Pattern*, e pesquisas de Context Engineering), por que a adoção de um **Meta-Repositório Umbrella** (`core/`) sobre o monorepo `platform` é a abordagem técnica ideal, madura e recomendada para a escala da organização `tupynambalucas-dev`.
+Esta seção fundamenta, com base na literatura contemporânea de arquitetura de software (*The Dev Newsletter: The Meta-Repo Pattern (2026)*, *Anyline Engineering Case Study: The Agents Meta-Repository Pattern*, e pesquisas de Context Engineering), por que a adoção de um **Meta-Repositório Umbrella** (`org-core/`) sobre o monorepo `platform` é a abordagem técnica ideal, madura e recomendada para a escala da organização `tupynambalucas-dev`.
 
 ### A. O Papel Correto de `platform`: Um "Domain-Bounded Monorepo"
 
@@ -378,7 +378,7 @@ graph TD
   end
 
   subgraph Level3 ["Nível 3: Meta-Repo Umbrella (Coordenação de Visão Global)"]
-    CoreUmbrella["tupynambalucas-dev/core (Zero Código de Negócio - Apenas Orquestração)"]
+    CoreUmbrella["tupynambalucas-dev/org-core (Zero Código de Negócio - Apenas Orquestração)"]
     Orgs --> CoreUmbrella
   end
 
@@ -415,8 +415,8 @@ graph TD
 
 | Dimensão de Engenharia | Monorepo Monolítico Total (Tudo dentro de `platform`) | Polyrepo Puro Sem Orquestração (Pastas soltas sem Meta-Repo) | Arquitetura Adotada: Meta-Repo Umbrella + Domain Monorepo |
 | :--- | :--- | :--- | :--- |
-| **Ergonomia do Desenvolvedor** | Alta para o core, porém clone pesado e lento com assets de jogos e docs. | Baixa. Desenvolvedor precisa de 4 terminais abertos para sincronizar docs e código. | **Máxima**. 1 clone único (`core/`) com submodules orquestrados via workspace. |
-| **Operação de Agentes de IA (Antigravity)** | Baixa. Context window poluída com código irrelevante de outros produtos. | Média. O agente não consegue correlacionar governança, infra e documentação. | **Ótima**. Visão unificada de 360° no `core/`, e modo estanque hermético nos produtos. |
+| **Ergonomia do Desenvolvedor** | Alta para o core, porém clone pesado e lento com assets de jogos e docs. | Baixa. Desenvolvedor precisa de 4 terminais abertos para sincronizar docs e código. | **Máxima**. 1 clone único (`org-core/`) com submodules orquestrados via workspace. |
+| **Operação de Agentes de IA (Antigravity)** | Baixa. Context window poluída com código irrelevante de outros produtos. | Média. O agente não consegue correlacionar governança, infra e documentação. | **Ótima**. Visão unificada de 360° no `org-core/`, e modo estanque hermético nos produtos. |
 | **Blast Radius de CI/CD** | Crítico. Qualquer commit em documentação pode acionar pipelines de K8s e containers. | Mínimo. Cada repo aciona apenas seu próprio pipeline de forma isolada. | **Mínimo**. Cada repositório filho possui CI soberano e autônomo. |
 | **Governança GitHub e RBAC** | Inviável para `.github` e restritivo para gestão de segredos por ambiente. | Excelente por repositório, porém sem manifesto corporativo unificado. | **Perfeito**. Atende 100% às exigências do GitHub para o repo `.github` soberano. |
 | **Multi-Tenancy e Terceirização** | Nulo. Impossível hospedar projetos de clientes com NDAs sem vazamento de código. | Frágil se solto na raiz da pasta projects. | **Impecável**. Segregação física em `organizations/<empresa>` com `includeIf`. |
@@ -425,7 +425,7 @@ graph TD
 
 ### E. Veredito Técnico de Engenharia
 
-O padrão **Meta-Repository Umbrella** (`organizations/tupynambalucas-dev/core` contendo `.github`, `platform` e `docs`):
+O padrão **Meta-Repository Umbrella** (`organizations/tupynambalucas-dev/org-core` contendo `.github`, `platform` e `docs`):
 1. **Não invalida `platform` como monorepo**: Pelo contrário, preserva `platform` como um monorepo limpo, coeso e focado estritamente em engenharia de plataforma, cloud-native e produtos corporativos acoplados.
 2. **Respeita os padrões nativos do GitHub**: Mantém o repositório `.github` soberano, permitindo que a organização tenha governança global nativa.
 3. **Isola o ciclo de vida da documentação (`docs`)**: Mantém Docusaurus v3 e Crowdin desacoplados de releases de infraestrutura.
