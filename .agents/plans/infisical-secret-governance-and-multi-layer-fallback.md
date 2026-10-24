@@ -112,7 +112,7 @@ flowchart TD
 
 | Infisical Project Slug | Display Name | Internal Folder Path | Scope & Target Secrets | Target Consumers | RBAC Policy |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`tupynambalucas-dev-platform`** | `Platform Infrastructure & Workloads` | `/cluster` | `CORTEX_MCP_TOKEN`, `CLOUDFLARE_TUNNEL_TOKEN_HUB`, `GRAFANA_ADMIN_PASSWORD`, `MONGO_INITDB_ROOT_PASSWORD`, `REDIS_PASSWORD`, `PLATFORM_FIRECRAWL_KEY`. | Kubernetes Operator (`InfisicalSecret` CRD in cluster). | Lead Architect / DevOps only. Zero contractor access. |
+| **`tupynambalucas-dev-platform`** | `Platform Infrastructure & Workloads` | `/cluster` | `CORTEX_MCP_TOKEN`, `CLOUDFLARE_TUNNEL_TOKEN_HUB`, `GRAFANA_ADMIN_PASSWORD`, `MONGO_INITDB_ROOT_PASSWORD`, `REDIS_PASSWORD`, `FIRECRAWL_API_KEY`. | Kubernetes Operator (`InfisicalSecret` CRD in cluster). | Lead Architect / DevOps only. Zero contractor access. |
 | | | `/corporate` | `FASTIFY_JWT_SECRET`, `RESEND_API_KEY`, `CORPORATE_DB_URL`, `CORPORATE_API_KEY`. | In-cluster corporate applications & APIs. | Core backend team only. |
 | | | `/ci-cd` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (if centrally synced). | Synced to GitHub Organization Secrets via Infisical Integration. | CI/CD Machine Identity. |
 | **`tupynambalucas-dev-agent-toolkit`** | `Agent Toolkit` | `/` | `FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`. | Local developer agents via `infisical run` / fallback. | Internal engineers & authorized contractors. |
@@ -189,19 +189,19 @@ If the organization decides to audit and rotate all deployment credentials throu
 
 ---
 
-## 5. Token Segregation & Quota Isolation Matrix
+## 5. Token Segregation & Canonical Variable Naming
 
-Under no circumstances may developer fallback tokens share quotas or credentials with cluster infrastructure:
+In accordance with 12-Factor App principles, environment variables use their canonical, vendor-native names (e.g. `FIRECRAWL_API_KEY`, `GITHUB_TOKEN`). There is **zero need** for synthetic prefixes like `PLATFORM_FIRECRAWL_API_KEY`: isolation is enforced at the **Infisical Project Boundary**, not through variable name decoration.
 
-| Variable Name | Context | Scope & Purpose | Target Infisical Project | Fallback Source Tier |
+| Variable Name | Context / Project | Scope & Purpose | Target Infisical Project | Fallback Source Tier |
 | :--- | :--- | :--- | :--- | :--- |
-| **`FIRECRAWL_API_KEY`** | `agent-toolkit` (Fallback) | Developer web scraping & search via `firecrawl-mcp`. | `tupynambalucas-dev-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
-| **`CONTEXT7_API_KEY`** | `agent-toolkit` (Fallback) | Framework documentation retrieval via `@upstash/context7-mcp`. | `tupynambalucas-dev-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
-| **`GITHUB_TOKEN`** | `agent-toolkit` (Fallback) | Repository and PR analysis via `github-mcp-server-js`. | `tupynambalucas-dev-agent-toolkit` | Developer PAT OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
-| **`TUPYNAMBA_GATEWAY_TOKEN`** | `agent-toolkit` (Gateway) | Bearer authentication against Cortex AgentGateway Ingress (`https://mcp.tupynambalucas.dev/mcp`). | `tupynambalucas-dev-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`). |
-| **`PLATFORM_FIRECRAWL_KEY`** | `platform` (Cluster) | In-cluster Cortex vector embeddings and scheduled scraper workers. | `tupynambalucas-dev-platform` | Kubernetes Secret via Infisical Operator (`k8s/.env`). |
-| **`PLATFORM_GITHUB_APP_TOKEN`**| `platform` (Cluster) | GitHub App credentials for CI/CD automation and deployment webhooks. | `tupynambalucas-dev-platform` | Kubernetes Secret via Infisical Operator. |
-| **`CORTEX_MCP_TOKEN`** | `platform` (Cluster) | Internal gateway inter-service authentication token. | `tupynambalucas-dev-platform` | Kubernetes Secret (`k8s/hub/cortex`). |
+| **`FIRECRAWL_API_KEY`** | `agent-toolkit` (Developer) | Developer web scraping & search via `firecrawl-mcp`. Uses isolated developer pool key. | `tupynambalucas-dev-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
+| **`CONTEXT7_API_KEY`** | `agent-toolkit` (Developer) | Framework documentation retrieval via `@upstash/context7-mcp`. | `tupynambalucas-dev-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
+| **`GITHUB_TOKEN`** | `agent-toolkit` (Developer) | Repository and PR analysis via `github-mcp-server-js`. | `tupynambalucas-dev-agent-toolkit` | Developer PAT OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
+| **`TUPYNAMBA_GATEWAY_TOKEN`** | `agent-toolkit` (Developer) | Bearer authentication against Cortex AgentGateway Ingress (`https://mcp.tupynambalucas.dev/mcp`). | `tupynambalucas-dev-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`). |
+| **`FIRECRAWL_API_KEY`** | `platform` (In-Cluster) | In-cluster Cortex vector embeddings and scheduled scraper workers. Uses production corporate key. | `tupynambalucas-dev-platform` (`/cluster`) | Kubernetes Secret via Infisical Operator. |
+| **`GITHUB_APP_PRIVATE_KEY`** | `platform` (In-Cluster) | GitHub App credentials for CI/CD automation and deployment webhooks. | `tupynambalucas-dev-platform` (`/cluster`) | Kubernetes Secret via Infisical Operator. |
+| **`CORTEX_MCP_TOKEN`** | `platform` (In-Cluster) | Internal gateway inter-service authentication token. | `tupynambalucas-dev-platform` (`/cluster`) | Kubernetes Secret (`k8s/hub/cortex`). |
 
 ---
 
