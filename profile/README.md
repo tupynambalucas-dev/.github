@@ -256,6 +256,10 @@ remain robust, testable, maintainable, and horizontally scalable:
 
 ## Organization Ecosystem
 
+- **[org-core](https://github.com/tupynambalucas-dev/org-core)**:
+  Central meta-repository orchestrating all corporate repositories via Git submodules with unified context.
+- **[agent-toolkit](https://github.com/tupynambalucas-dev/agent-toolkit)**:
+  Universal AI agent governance plugin, security guardrails, shared MCP connectors, and domain routing skills.
 - **[platform](https://github.com/tupynambalucas-dev/platform)**:
   Primary domain-driven monorepo containing corporate web products, high-throughput REST APIs,
   autonomous AI services, and Kubernetes infrastructure manifests.
@@ -265,6 +269,8 @@ remain robust, testable, maintainable, and horizontally scalable:
 - **[.github](https://github.com/tupynambalucas-dev/.github)**:
   Central GitHub organization profile, community health standards, governance rulesets, and AI
   agent configurations.
+- **[tessel](https://github.com/tupynambalucas-dev/tessel)**:
+  Core application product repository.
 
 ---
 
