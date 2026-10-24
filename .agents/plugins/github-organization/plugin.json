@@ -1,5 +1,0 @@
-{
-  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
-  "name": "github-organization",
-  "description": "Enterprise GitHub organization governance plugin combining github-mcp-server-js via pnpm dlx with organizational management skills, rules, and RBAC automation."
-}

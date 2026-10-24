@@ -1,4 +1,0 @@
-{
-  "name": "cortex-fallback",
-  "description": "Fallback plugin that provides local execution of Firecrawl and Context7 MCPs when the primary AgentGateway service is offline."
-}
