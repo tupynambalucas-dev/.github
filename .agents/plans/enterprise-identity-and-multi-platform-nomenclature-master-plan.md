@@ -273,6 +273,15 @@ Cloudflare fully supports dots in account names and domain zones. To ensure pris
      - `agent-toolkit`: Universal AI agent governance package & plugins.
      - `.github`: Organization-wide governance SSOT and workflows.
 
+3. **GitHub Ownership Architecture & Multi-Email Attribution Model**:
+   - **Native GitHub Architecture**: In GitHub's security architecture, Organizations do **not** have independent login credentials (username/password). An Organization is a corporate governance container for repositories, teams, policies, and billing.
+   - **User-Led Governance**: An Organization is **always** created, owned, and governed by **Individual User Accounts** granted the `Owner` role. Having the personal account `github.com/tupynambalucas` as the Super Admin / Owner of `github.com/tupynambalucas-dev` is **100% correct, standard, and required**.
+   - **Multi-Email Linking Strategy**: On GitHub, a single user account can hold multiple verified email addresses (GitHub Settings -> Emails):
+     - *Primary / Personal Identity*: `tupynambalucas@gmail.com` (or civil email).
+     - *Corporate Identity*: `contato@tupynambalucas.dev` (or `lucas@tupynambalucas.dev`).
+     - *Cryptographic Commit Attribution*: When commits in `org-core`, `platform`, or `agent-toolkit` are signed using `user.email = contato@tupynambalucas.dev`, GitHub matches the verified secondary email, displays the founder's verified avatar, and renders the green `Verified` badge.
+   - **Enterprise Break-Glass Owner**: Best practice dictates provisioning a secondary backup `Owner` account with passkeys stored in a secure offline vault for disaster recovery.
+
 ---
 
 ### 4.4 NPM Package Registries
@@ -335,7 +344,7 @@ For personal civil affairs, domestic utility bills, personal banking, private su
 | **Option 1 (Top Pick)** | **`tupynambalucas.com`** / **`.com.br`** | Commercial / General Global | - 100% consistency with GitHub handle `@tupynambalucas`.<br/>- Defensive brand protection preventing third-party squatting.<br/>- Highest global trust score for personal correspondence. | - Civil personal email (`lucas@tupynambalucas.com`).<br/>- Defensive DNS forwarder to `tupynambalucas.dev`. |
 | **Option 2** | **`tupynambalucas.me`** | Personal / Identity | - `.me` explicitly designates individual persona.<br/>- Clear contrast: `.me` (personal) vs `.dev` (engineering studio). | - Independent personal blog, non-corporate essays, personal bio. |
 | **Option 3** | **`lucasvarela.com.br`** | Formal Civil Name | - Decouples tech handle entirely from legal identity.<br/>- Maximum discretion for legal, banking, family, and domestic affairs. | - Formal civil communications, domestic utilities, private family correspondence. |
-| **Option 4** | **Managed Consumer Mail** (`@gmail.com` / `@proton.me`) | Managed Secure Provider | - Zero infrastructure overhead.<br/>- Zero DNS configuration or renewal risks.<br/>- Out-of-the-box deliverability and security. | - `tupynambalucas@gmail.com` or `tupynamba@proton.me` for personal consumer accounts (Netflix, personal bank). |
+| **Option 4 (Existing Baseline)**| **`tupynambalucas.v.r@gmail.com`** / **`tupynambalucas@gmail.com`** | Managed Secure Provider | - Zero infrastructure overhead.<br/>- Zero DNS configuration or renewal risks.<br/>- Clear segregation: `tupynambalucas.v.r@gmail.com` (Civil/Domestic) vs `tupynambalucas@gmail.com` (Tech Personal). | - `tupynambalucas.v.r@gmail.com` for civil domestic life (personal banking, family).<br/>- `tupynambalucas@gmail.com` for personal GitHub user profile. |
 
 ---
 
@@ -360,6 +369,7 @@ To achieve institutional prestige, pristine auditability, and personal privacy, 
 flowchart TD
   subgraph CorporateInboxes ["Corporate Institutional (tupynambalucas.dev)"]
     direction TB
+    C_Admin["admin@tupynambalucas.dev<br/>(Root Platform Signups: Infisical, Cloudflare, AWS)"]
     C_Contato["contato@tupynambalucas.dev<br/>(Inbound client leads, partnerships, RFP responses)"]
     C_Sec["security@tupynambalucas.dev<br/>(Vulnerability disclosure, compliance, CVE reporting)"]
     C_Bill["billing@tupynambalucas.dev<br/>(Invoicing, accounts receivable/payable)"]
@@ -370,23 +380,26 @@ flowchart TD
     F_Lucas["lucas@tupynambalucas.dev<br/>(High-trust client advisory, Fractional CTO engagements, official Git signing)"]
   end
 
-  subgraph CivilPersonal ["Physical Person / Civil Domestic Domain"]
+  subgraph PhysicalPersonIdentities ["Physical Person / Personal Boundaries"]
     direction TB
-    P_Personal["tupynambalucas@gmail.com / tupynambalucas.com<br/>(Personal banking, domestic utilities, private subscriptions, non-work contacts)"]
+    P_Tech["tupynambalucas@gmail.com<br/>(GitHub User Account, Personal Open-Source, Homelab Tenants)"]
+    P_Civil["tupynambalucas.v.r@gmail.com<br/>(Civil Domestic Life: Personal banking, domestic utilities, legal affairs, family)"]
   end
 ```
 
 1. **Corporate Institutional Tier (`@tupynambalucas.dev`)**:
+   - `admin@tupynambalucas.dev`: Root owner for enterprise cloud platforms (Infisical Org, Cloudflare Corporate Account, GitHub Organization).
    - `contato@tupynambalucas.dev`: Inbound business inquiries, client communication, official company announcements.
    - `security@tupynambalucas.dev`: Security audits, bug disclosures, RFC 9116 `security.txt` endpoint.
    - `billing@tupynambalucas.dev`: SaaS subscriptions, vendor billing, client invoicing.
 2. **Founder Executive Tier (`lucas@tupynambalucas.dev`)**:
    - Direct high-level email representing the Founder & Principal Systems Architect.
    - Used for board-level consulting, advisory retainers, and signing official cryptographic commits for the organization.
-3. **Civil / Domestic Tier (Pessoa Física - External)**:
-   - Completely decoupled from `tupynambalucas.dev`.
-   - Utilizes `lucas@tupynambalucas.com` (Option 1) or `tupynambalucas@gmail.com` / `tupynamba@proton.me` (Option 4).
-   - Domestic utility bills, personal bank accounts, streaming services, and purely private correspondence never touch corporate servers.
+3. **Tech Personal Persona (`tupynambalucas@gmail.com`)**:
+   - Primary login for the personal GitHub account `github.com/tupynambalucas`.
+   - Holder of personal Infisical Org (`tupynambalucas`) and personal Cloudflare account (`tupynambalucas`).
+4. **Civil Domestic Persona (`tupynambalucas.v.r@gmail.com`)**:
+   - Strictly reserved for offline civil life, personal bank accounts, domestic utility bills, family, and physical person affairs. Completely isolated from the tech ecosystem.
 
 ---
 
@@ -395,13 +408,14 @@ flowchart TD
 A critical operational question is: **"Which email should be used to sign up and hold root ownership of platforms like Infisical, Cloudflare, AWS, and GitHub?"**
 
 #### A. Evaluation of `tupynambalucasdev@gmail.com`
-**Architectural Verdict: REJECTED (Amateur Anti-Pattern)**.
+**Architectural Verdict: REJECTED (Unnecessary & Amateur Anti-Pattern)**.
 
-Creating a free consumer Gmail account with `dev` appended (e.g. `tupynambalucasdev@gmail.com`) introduces severe operational liabilities:
-1. **Lack of Corporate Legal Ownership**: Free `@gmail.com` accounts are bound to Google's Consumer Terms of Service. If Google's automated systems flag the account for unusual automated activity or SMS verification issues, the entire company loses access to its root cloud accounts.
-2. **Key-Person Single Point of Failure (SPOF)**: A consumer Gmail account cannot be transferred, audited, or governed via enterprise Identity Provider (IdP) policies.
-3. **Professional Incredibility**: Presenting `@gmail.com` on vendor invoices, Cloudflare accounts, Infisical tenant owner cards, or enterprise MSA contracts signals an amateur hobby project rather than an elite platform consultancy.
-4. **No Native Group Routing**: Consumer accounts cannot create free functional alias groups (e.g., `admin@`, `security@`, `billing@`).
+Creating a third consumer Gmail account (such as `tupynambalucasdev@gmail.com`) is strongly rejected:
+1. **Redundancy & Fragmentation**: The founder already possesses `tupynambalucas.v.r@gmail.com` (Civil Domestic) and `tupynambalucas@gmail.com` (Tech Personal). Adding a third consumer account (`tupynambalucasdev@gmail.com`) fragments attention across three distinct Google accounts without solving any enterprise requirement.
+2. **Lack of Corporate Legal Ownership**: Free `@gmail.com` accounts are bound to Google's Consumer Terms of Service. If Google's automated systems flag the account for unusual automated activity or SMS verification issues, the entire company loses access to its root cloud accounts.
+3. **Key-Person Single Point of Failure (SPOF)**: A consumer Gmail account cannot be transferred, audited, or governed via enterprise Identity Provider (IdP) policies.
+4. **Professional Incredibility**: Presenting `@gmail.com` on vendor invoices, Cloudflare accounts, Infisical tenant owner cards, or enterprise MSA contracts signals an amateur hobby project rather than an elite platform consultancy.
+5. **The Sovereign Path**: All corporate platforms should use `admin@tupynambalucas.dev` (via free Cloudflare Email Routing forwarding to `tupynambalucas@gmail.com`, or via Google Workspace).
 
 ---
 
