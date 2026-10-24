@@ -1,104 +1,204 @@
-# Plano de Arquitetura: Meta-Repositório Corporativo (`tupynambalucas-dev`)
+# Plano de Arquitetura: Workstation Corporativa e Ecossistema Umbrella (`tupynambalucas-dev`)
 
-Este documento especifica o design, a governança e o plano de implementação do **Meta-Repositório Corporativo** (ou *Umbrella Repository*) da organização `tupynambalucas-dev`. O meta-repositório unifica sob uma única raiz física os repositórios soberanos `.github`, `platform` e `docs`, garantindo que a Antigravity CLI e a IDE naveguem nativamente com referências `@` globais, sem abrir mão da autonomia de CI/CD e governança de cada repositório.
-
----
-
-## 1. Objetivos Arquiteturais
-
-1. **Navegação Nativa e Autocomplete `@` no Antigravity**:
-   - Prover uma árvore de diretórios unificada para que a Antigravity CLI e a IDE indexem simultaneamente governança, engenharia e documentação sem necessidade de flags adicionais (`--add-dir`).
-2. **Soberania e Desacoplamento dos Repositórios**:
-   - Cada repositório filho (`.github`, `platform`, `docs`) mantém seu próprio histórico Git, branches, permissões RBAC e pipelines de CI/CD completamente autônomos.
-3. **Versionamento Atômico de Estado Corporativo**:
-   - O meta-repositório atua como um manifesto de release corporativo, fixando commits compatíveis entre governança, infraestrutura e documentação.
+Este documento especifica o design arquitetural da estação de desenvolvimento (`projects/`) e a governança do ecossistema de repositórios da organização `tupynambalucas-dev`. Ele estabelece a segregação física e contextual entre o **escopo pessoal** e o **escopo corporativo**, além de delimitar a atuação do **Meta-Repositório Umbrella** em relação aos **produtos e serviços satélites autônomos**.
 
 ---
 
-## 2. Comparativo de Abordagens de Meta-Repositório
+## 1. Princípios Arquiteturais e Objetivos
 
-Com base na pesquisa de engenharia e na documentação do Git e GitHub:
-
-| Critério | Git Submodules (Recomendado) | Git Subtree | Multi-Root Workspace puro | Meta CLI / Ferramentas Externas |
-| :--- | :--- | :--- | :--- | :--- |
-| **Soberania do Git** | 100% autônomo por repositório | Histórico mesclado no repo pai | 100% autônomo | Depende de CLI de terceiros |
-| **Indexação Antigravity (`@`)** | **Nativa** (mesma raiz de FS) | **Nativa** | Limitada por caminhos de terminal | Requer sincronização manual |
-| **Sobrecarga de CI/CD** | Mínima (`submodules: recursive`) | Alta (reescrita de histórico) | Nenhuma (CI independente) | Requer runtime extra em CI |
-| **Padrão da Indústria** | Padrão do Git / Kubernetes / Chromium | Projetos legados / forks | VS Code multi-root | Dependência de ecossistema Node |
-
-**Decisão**: Adoção de **Git Submodules com Branch Tracking**, complementada pelo arquivo de workspace canônico [`tupynambalucas-dev.code-workspace`](file:///C:/Users/tupyn/projects/tupynambalucas-dev/.github/tupynambalucas-dev.code-workspace).
+1. **Hermeticidade e Sandboxing para Agentes de IA (Antigravity CLI / IDE)**:
+   - A Antigravity CLI (`agy`) e a IDE indexam toda a árvore de arquivos a partir da raiz de execução (`workspaceRoot`).
+   - O núcleo corporativo de infraestrutura (`.github`, `platform`, `docs`) necessita de contexto unificado e visão cruzada.
+   - Aplicações de negócio e produtos específicos (como `tessel` e `omni-channel`) devem operar em sandboxes estritas, sem acesso nem interferência cruzada com a infraestrutura corporativa.
+2. **Segregação de Namespaces (Personal vs. Organization)**:
+   - Espelhamento exato da taxonomia de proprietários do GitHub (`github.com/tupynambalucas/*` vs `github.com/tupynambalucas-dev/*`) no sistema de arquivos local.
+3. **Automação Criptográfica de Identidade Git (`includeIf:gitdir`)**:
+   - Alternância transparente de chaves SSH, e-mails de autor e assinaturas GPG/SSH com base no caminho físico do repositório, eliminando commits cruzados de identidade por erro humano.
+4. **Soberania e Versionamento Atômico**:
+   - Repositórios filhos mantêm histórico Git, branches, versionamento e pipelines de CI/CD autônomos.
+   - O meta-repositório umbrella atua como manifesto corporativo, fixando commits compatíveis entre governança, infraestrutura e documentação.
 
 ---
 
-## 3. Topologia e Estrutura de Diretórios
+## 2. Topologia Completa da Workstation (`C:/Users/tupyn/projects`)
 
+```mermaid
+graph TD
+  direction TB
+
+  Root["C:/Users/tupyn/projects/"]
+
+  subgraph PersonalScope ["1. Escopo Pessoal (personal/)"]
+    Profile["profile/ (@tupynambalucas/profile - Perfil Público)"]
+    AcadLab["academic-lab/ (Estudos & Artigos)"]
+    Spicetify["spicetify/ (Customizações locais)"]
+  end
+
+  subgraph OrgScope ["2. Escopo Corporativo (tupynambalucas-dev/)"]
+    subgraph CoreUmbrella ["Meta-Repositório Umbrella (core/)"]
+      DotGithub[".github/ (Governança, CI Central & IA)"]
+      Platform["platform/ (Monorepo K8s & Infraestrutura)"]
+      Docs["docs/ (Portal de Documentação Docusaurus)"]
+      DotGithub --- Platform --- Docs
+    end
+
+    subgraph OrgProducts ["Produtos & Serviços Autônomos"]
+      Tessel["tessel/ (Web Game Engine TS/Wasm)"]
+      Omni["omni-channel/ (WhatsApp API Service)"]
+    end
+  end
+
+  Root --> PersonalScope
+  Root --> OrgScope
+
+  classDef root fill:#11111b,stroke:#cdd6f4,stroke-width:2px,color:#cdd6f4;
+  classDef personal fill:#1e1e2e,stroke:#f38ba8,stroke-width:2px,color:#cdd6f4;
+  classDef org fill:#181825,stroke:#89b4fa,stroke-width:2px,color:#cdd6f4;
+  classDef umbrella fill:#313244,stroke:#a6e3a1,stroke-width:2px,color:#cdd6f4;
+  classDef prod fill:#313244,stroke:#fab387,stroke-width:2px,color:#cdd6f4;
+
+  class Root root;
+  class PersonalScope,Profile,AcadLab,Spicetify personal;
+  class OrgScope org;
+  class CoreUmbrella,DotGithub,Platform,Docs umbrella;
+  class OrgProducts,Tessel,Omni prod;
 ```
-tupynambalucas-dev/                         <- Raiz do Meta-Repositório Git
-├── .github/                                <- Submódulo Git (Org Governance & Agentic Configs)
-│   ├── .agents/                            <- Plugins, Skills, Rules e Plans corporativos
-│   ├── profile/                            <- Perfil público da organização
-│   └── tupynambalucas-dev.code-workspace   <- Definição de workspace multi-root
-├── platform/                               <- Submódulo Git (Monorepo de Engenharia & K8s)
-│   ├── hub/                                <- Serviços internos, Penpot, Memos, Studio
-│   ├── renderer/                           <- Pipeline gerador de SVG cards dinâmicos
-│   ├── cortex/                             <- AgentGateway, Guardrails e RAG Memory
-│   └── kubernetes/                         <- Helm charts, Skaffold e manifestos GitOps
-├── docs/                                   <- Submódulo Git (Hub Soberano de Documentação)
-│   ├── apps/portal/                        <- Docusaurus 3 em produção
-│   ├── collections/                        <- Documentações e blogs de todos os projetos
-│   ├── packages/preset/                    <- Preset multi-instância e locales-sync
-│   └── packages/studio-assets/             <- Tokens e assets corporativos
-├── .gitmodules                             <- Manifesto declarativo dos submódulos
-├── .gitignore                              <- Regras globais de exclusão do meta-repo
-├── package.json                            <- Scripts de automação e orquestração local
-└── README.md                               <- Manual de operação do meta-repositório
+
+---
+
+## 3. Detalhamento Estrutural dos Diretórios
+
+### A. Escopo Pessoal (`C:/Users/tupyn/projects/personal/`)
+Abriga exclusivamente repositórios de propriedade da conta pessoal de usuário (`tupynambalucas`):
+
+| Diretório | Repositório Remoto | Escopo e Responsabilidade |
+| :--- | :--- | :--- |
+| **`profile/`** | `git@github.com:tupynambalucas/tupynambalucas.git` | Repositório especial de perfil pessoal com gerador `@tupynambalucas/profile` e branch `generated`. |
+| **`academic-lab/`** | `git@github.com:tupynambalucas/academic-lab.git` | Estudos acadêmicos, simulações e documentação de pesquisa pessoal. |
+| **`spicetify/`** | Repositório pessoal / fork local | Customizações de ambiente de desenvolvimento pessoal. |
+
+### B. Escopo Corporativo (`C:/Users/tupyn/projects/tupynambalucas-dev/`)
+Abriga exclusivamente repositórios pertencentes à organização `tupynambalucas-dev`, subdivididos em **Infraestrutura Core** e **Produtos de Negócio**:
+
+#### 1. Meta-Repositório Umbrella (`tupynambalucas-dev/core/`)
+O repositório `tupynambalucas-dev/tupynambalucas-dev` orquestra os 3 pilares fundamentais da empresa via Git Submodules:
+* **[`.github/`](./.github)**: Governança corporativa, fluxos centralizados de GitHub Actions, plugins e regras de IA.
+* **[`platform/`](./platform)**: Monorepo que orquestra clusters Kubernetes locais (k3d/Skaffold) e cloud, Traefik ingress, observabilidade LGTM e serviços de infraestrutura (Hub, Cortex).
+* **[`docs/`](./docs)**: Portal oficial de documentação institucional da empresa (Docusaurus v3 soberano com Crowdin).
+
+#### 2. Produtos e Serviços Autônomos (`tupynambalucas-dev/tessel/` e `tupynambalucas-dev/omni-channel/`)
+* **`tessel/` (`tupynambalucas-dev/tessel`)**: Engine de jogos web em TypeScript. Possui dependências pesadas de física, rendering (WebGL/WebGPU) e ciclo de release completamente desacoplado da infraestrutura corporativa.
+* **`omni-channel/` (`tupynambalucas-dev/omni-channel`)**: Serviço de mensageria e API de integração com WhatsApp. Opera com regras próprias de segurança, webhooks e microserviço independente.
+
+---
+
+## 4. Matriz de Sandboxing e Hermeticidade da Antigravity
+
+A tabela abaixo define como a Antigravity CLI e a IDE se comportam em cada nível da estrutura:
+
+| Diretório de Lançamento | Modo Antigravity | Escopo de Visibilidade da IA | Limite de Fronteira (Sandboxing) |
+| :--- | :--- | :--- | :--- |
+| **`tupynambalucas-dev/core`** | **Unified Core** | `.github`, `platform`, `docs` (indexação simultânea). | **Isolamento Total**: Zero visibilidade sobre `tessel`, `omni-channel` ou repositórios pessoais. |
+| **`tupynambalucas-dev/tessel`** | **Sandboxed Product** | Restrito estritamente aos arquivos da game engine `tessel`. | **Hermético**: Não acessa `platform`, `docs` nem o meta-repo. |
+| **`tupynambalucas-dev/omni-channel`** | **Sandboxed Service** | Restrito estritamente à API do WhatsApp. | **Hermético**: Não acessa infraestrutura nem outros produtos. |
+| **`personal/profile`** | **Personal Profile** | Restrito ao repositório de perfil pessoal e assets SVG. | **Hermético**: Não acessa a organização corporativa. |
+
+---
+
+## 5. Governança Git Automatizada via `includeIf:gitdir`
+
+Para garantir que a identidade do Git (nome, e-mail e chave de assinatura) seja aplicada deterministicamente sem intervenção manual, o arquivo global `~/.gitconfig` deve delegar as configurações com base no caminho físico do repositório:
+
+### Configuração no `C:/Users/tupyn/.gitconfig`
+```ini
+[core]
+    autocrlf = true
+    fscache = true
+    symlinks = false
+
+[init]
+    defaultbranch = main
+
+# --- Delegação Condicional por Namespace Físico ---
+
+[includeIf "gitdir:C:/Users/tupyn/projects/personal/"]
+    path = C:/Users/tupyn/.gitconfig-personal
+
+[includeIf "gitdir:C:/Users/tupyn/projects/tupynambalucas-dev/"]
+    path = C:/Users/tupyn/.gitconfig-org
+```
+
+### Arquivo: `C:/Users/tupyn/.gitconfig-personal`
+```ini
+[user]
+    name = tupynambalucas
+    email = tupynambalucas@gmail.com
+    signingkey = C:/Users/tupyn/.ssh/github_tupynambalucas_ed25519.pub
+
+[commit]
+    gpgsign = true
+
+[gpg]
+    format = ssh
+```
+
+### Arquivo: `C:/Users/tupyn/.gitconfig-org`
+```ini
+[user]
+    name = tupynambalucasdev
+    email = contato@tupynambalucas.dev
+    signingkey = C:/Users/tupyn/.ssh/github_tupynambalucas_ed25519.pub
+
+[commit]
+    gpgsign = true
+
+[gpg]
+    format = ssh
 ```
 
 ---
 
-## 4. Especificação dos Arquivos de Configuração
+## 6. Especificação Técnica do Meta-Repositório (`core/`)
+
+O meta-repositório localizado em `C:/Users/tupyn/projects/tupynambalucas-dev/core` orquestra o ecossistema essencial através de três manifestos principais:
 
 ### A. Manifesto de Submódulos (`.gitmodules`)
-
-O arquivo `.gitmodules` deve utilizar URLs relativas à organização ou SSH padrão, com rastreamento explícito da branch canônica de desenvolvimento:
-
 ```ini
 [submodule ".github"]
 	path = .github
-	url = https://github.com/tupynambalucas-dev/.github.git
+	url = git@github.com:tupynambalucas-dev/.github.git
 	branch = main
 	update = merge
 
 [submodule "platform"]
 	path = platform
-	url = https://github.com/tupynambalucas-dev/platform.git
+	url = git@github.com:tupynambalucas-dev/platform.git
 	branch = develop
 	update = merge
 
 [submodule "docs"]
 	path = docs
-	url = https://github.com/tupynambalucas-dev/docs.git
-	branch = main
+	url = git@github.com:tupynambalucas-dev/docs.git
+	branch = develop
 	update = merge
 ```
 
 ### B. Workspace Multi-Root (`tupynambalucas-dev.code-workspace`)
-
-Localizado na raiz do meta-repositório para abertura no VS Code e Antigravity IDE:
+Permite ao desenvolvedor e à Antigravity IDE abrir simultaneamente os 3 repositórios em uma janela de trabalho coesa:
 
 ```json
 {
   "folders": [
     {
-      "name": "Org Governance (.github)",
+      "name": ".github (Org Governance)",
       "path": ".github"
     },
     {
-      "name": "Core Monorepo (platform)",
+      "name": "platform (Core Monorepo)",
       "path": "platform"
     },
     {
-      "name": "Documentation Hub (docs)",
+      "name": "docs (Documentation Hub)",
       "path": "docs"
     }
   ],
@@ -112,12 +212,12 @@ Localizado na raiz do meta-repositório para abertura no VS Code e Antigravity I
     "version": "2.0.0",
     "tasks": [
       {
-        "label": "Antigravity CLI (Meta-Repo Scope)",
+        "label": "Antigravity CLI (Core Scope)",
         "type": "process",
-        "command": "agy",
+        "command": "wt.exe",
         "windows": {
-          "command": "powershell.exe",
-          "args": ["-NoExit", "-Command", "agy"]
+          "command": "wt.exe",
+          "args": ["-d", "${workspaceFolder:.github (Org Governance)}\\..", "powershell.exe", "-NoExit", "-Command", "agy"]
         },
         "problemMatcher": []
       },
@@ -132,137 +232,48 @@ Localizado na raiz do meta-repositório para abertura no VS Code e Antigravity I
 }
 ```
 
-### C. Scripts Utilitários (`package.json` do Meta-Repositório)
+---
 
-```json
-{
-  "name": "@tupynambalucas-dev/meta",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Meta-repository orchestrating the tupynambalucas-dev ecosystem.",
-  "scripts": {
-    "sync": "git submodule update --init --recursive --remote --merge",
-    "checkout:branches": "git submodule foreach 'git checkout $(git config -f $toplevel/.gitmodules submodule.$name.branch || echo main)'",
-    "status": "git submodule status",
-    "lint:all": "pnpm -r --filter=./platform --filter=./docs run lint"
-  }
+## 7. Comparativo de Vantagens Arquiteturais
+
+| Dimensão | Estrutura Anterior (Tudo na Raiz de `tupynambalucas-dev`) | Nova Estrutura (Namespace Segregation) |
+| :--- | :--- | :--- |
+| **Janela de Contexto de IA** | Poluição com código de game engine e mensageria em sessões de infraestrutura. | **Otimização Máxima**: Cada agente consome tokens apenas do seu domínio restrito. |
+| **Risco de Commit Cruzado** | Alto risco de assinar commits corporativos com e-mail pessoal. | **Zero Risco**: O Git detecta automaticamente o diretório via `includeIf:gitdir`. |
+| **Higiene do Root Git** | Diretórios untracked exigindo regras artificiais em `.gitignore`. | **100% Limpo**: O meta-repo possui apenas os 3 submódulos centrais declarados. |
+| **Escalabilidade da Empresa** | Cada novo serviço polui a raiz do meta-repo. | **Linear**: Novos serviços são clonados em `tupynambalucas-dev/<servico>` sem afetar o core. |
+
+---
+
+## 8. Roteiro Passo a Passo de Execução da Migração
+
+```powershell
+# 1. Criação das pastas de namespace em C:\Users\tupyn\projects
+New-Item -ItemType Directory -Path "C:\Users\tupyn\projects\personal" -Force
+New-Item -ItemType Directory -Path "C:\Users\tupyn\projects\tupynambalucas-dev-temp" -Force
+
+# 2. Migração dos repositórios pessoais para personal/
+Move-Item -Path "C:\Users\tupyn\projects\tupynambalucas" -Destination "C:\Users\tupyn\projects\personal\profile"
+Move-Item -Path "C:\Users\tupyn\projects\academic-lab" -Destination "C:\Users\tupyn\projects\personal\academic-lab"
+if (Test-Path "C:\Users\tupyn\projects\spicetify") {
+    Move-Item -Path "C:\Users\tupyn\projects\spicetify" -Destination "C:\Users\tupyn\projects\personal\spicetify"
 }
-```
 
----
+# 3. Retirada dos produtos corporativos autônomos de dentro do meta-repo
+Move-Item -Path "C:\Users\tupyn\projects\tupynambalucas-dev\tessel" -Destination "C:\Users\tupyn\projects\tupynambalucas-dev-temp\tessel"
+Move-Item -Path "C:\Users\tupyn\projects\tupynambalucas-dev\omni-channel" -Destination "C:\Users\tupyn\projects\tupynambalucas-dev-temp\omni-channel"
 
-## 5. Workflows de Operação Diária
+# 4. Estruturação do meta-repositório como "core" dentro de tupynambalucas-dev
+Move-Item -Path "C:\Users\tupyn\projects\tupynambalucas-dev" -Destination "C:\Users\tupyn\projects\tupynambalucas-dev-temp\core"
+Rename-Item -Path "C:\Users\tupyn\projects\tupynambalucas-dev-temp" -NewName "tupynambalucas-dev"
 
-### 1. Clonagem Inicial por um Desenvolvedor
-Para clonar todo o ecossistema com uma única linha:
-```bash
-git clone --recurse-submodules https://github.com/tupynambalucas-dev/tupynambalucas-dev.git
-```
+# 5. Correção do remote origin de Tessel para a organização oficial
+git -C "C:\Users\tupyn\projects\tupynambalucas-dev\tessel" remote set-url origin git@github.com:tupynambalucas-dev/tessel.git
 
-### 2. Sincronização Diária de Todos os Repositórios
-Para trazer as últimas alterações de todos os repositórios filhos de forma atômica:
-```bash
-git submodule update --remote --merge
-```
-
-### 3. Evitando o Estado `detached HEAD`
-Por padrão, `git submodule update` deixa o submódulo em `detached HEAD`. O comando abaixo assegura que cada submódulo esteja na sua branch ativa:
-```bash
-git submodule foreach 'git checkout $(git config -f $toplevel/.gitmodules submodule.$name.branch || echo main)'
-```
-
-### 4. Fluxo de Commit e Push
-1. O desenvolvedor realiza alterações dentro da pasta do submódulo (`platform/`, `docs/` ou `.github/`).
-2. Faz commit e push **dentro do repositório filho**:
-   ```bash
-   cd platform
-   git add .
-   git commit -m "feat(hub): add new internal service"
-   git push origin develop
-   cd ..
-   ```
-3. No meta-repositório, registra o novo ponteiro de commit:
-   ```bash
-   git add platform
-   git commit -m "chore(platform): bump platform pointer to latest develop"
-   git push origin main
-   ```
-
----
-
-## 6. Automação de CI/CD no GitHub Actions
-
-O meta-repositório hospeda um workflow de atualização contínua para sincronizar automaticamente os ponteiros quando branches remotas recebem novos commits.
-
-### Workflow: `.github/workflows/submodule-sync.yaml`
-```yaml
-name: Submodule Sync
-
-on:
-  schedule:
-    - cron: '0 0 * * *' # Diário à meia-noite UTC
-  workflow_dispatch:
-
-permissions:
-  contents: write
-  pull-requests: write
-
-jobs:
-  sync-submodules:
-    name: Synchronize Submodule Pointers
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Meta-Repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.ORGANIZATION_GITHUB_TOKEN }}
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Update Submodules to Latest Remote Commits
-        run: |
-          git submodule update --init --recursive --remote --merge
-
-      - name: Create Pull Request on Changes
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.ORGANIZATION_GITHUB_TOKEN }}
-          commit-message: "chore(deps): synchronize submodule pointers"
-          title: "chore: synchronize submodule pointers"
-          body: "Automated synchronization of `.github`, `platform`, and `docs` submodule commit pointers."
-          branch: "chore/sync-submodules"
-          base: "main"
-```
-
----
-
-## 7. Roteiro de Execução Passo a Passo
-
-### Passo 1: Criação do Repositório Remoto no GitHub
-Criar o repositório na organização via GitHub CLI:
-```bash
-gh repo create tupynambalucas-dev/tupynambalucas-dev --public --description "Meta-repository orchestrating the tupynambalucas-dev ecosystem."
-```
-
-### Passo 2: Inicialização Local da Pasta Raiz
-No diretório `C:\Users\tupyn\projects\tupynambalucas-dev`:
-```bash
-cd C:\Users\tupyn\projects\tupynambalucas-dev
-git init -b main
-```
-
-### Passo 3: Vinculação dos Três Submódulos
-```bash
-git submodule add -b main https://github.com/tupynambalucas-dev/.github.git .github
-git submodule add -b develop https://github.com/tupynambalucas-dev/platform.git platform
-git submodule add -b main https://github.com/tupynambalucas-dev/docs.git docs
-```
-
-### Passo 4: Commit e Push Inicial do Meta-Repositório
-```bash
-git remote add origin https://github.com/tupynambalucas-dev/tupynambalucas-dev.git
-git add .
-git commit -m "feat(meta): initialize meta-repository orchestrating .github, platform, and docs"
-git push -u origin main
+# 6. Limpeza do .gitignore no meta-repositório core
+Set-Location -Path "C:\Users\tupyn\projects\tupynambalucas-dev\core"
+# Remove referências obsoletas a tessel e omni-channel do .gitignore e comita
+git add .gitignore
+git commit -S -m "chore: remove detached product folders from gitignore"
+git push origin main
 ```
