@@ -78,16 +78,20 @@ flowchart TD
 
 ## 3. Dual-Tenant Infisical Architecture: Corporate vs. Personal
 
-To maintain strict compliance and zero metadata leakage, Infisical Cloud is partitioned into two completely isolated tenant organizations:
+To maintain strict compliance, zero metadata leakage, and operational simplicity without project sprawl, Infisical Cloud is partitioned into two tenant organizations, with the corporate tenant hosting exactly **two core projects**:
 
 ```mermaid
 flowchart TD
   subgraph TenantCorp ["Corporate Tenant: tupynambalucas-dev"]
     direction TB
-    C_Platform["tupynambalucas-dev-platform<br/>(Display: Platform Infrastructure)<br/>Scope: Kubernetes Operator, Cluster DBs, Tunnels, In-Cluster Cortex"]
-    C_Toolkit["tupynambalucas-dev-agent-toolkit<br/>(Display: Agent Toolkit)<br/>Scope: Developer Agent Fallback MCP Tokens (Firecrawl, Context7, GitHub)"]
-    C_Docs["tupynambalucas-dev-docs<br/>(Display: Documentation Portal)<br/>Scope: Cloudflare Pages Deployments, Docs Analytics"]
-    C_Corp["tupynambalucas-dev-corporate<br/>(Display: Corporate Applications)<br/>Scope: Fastify API Secrets, Production JWTs, Resend Keys"]
+    subgraph P_Platform ["Project: tupynambalucas-dev-platform (Platform Infrastructure & Workloads)"]
+      F_Cluster["Folder: /cluster<br/>K8s Operator, Cluster DBs, Tunnels, In-Cluster Cortex"]
+      F_Corp["Folder: /corporate<br/>In-Cluster Corporate Apps, Fastify API Secrets, Production JWTs, Resend Keys"]
+      F_CICD["Folder: /ci-cd<br/>(Optional) Pipeline Deploy Tokens synced via Infisical GitHub Integration"]
+    end
+    subgraph P_Toolkit ["Project: tupynambalucas-dev-agent-toolkit (Agent Toolkit Sandbox)"]
+      F_Fallbacks["Developer Agent Fallback MCP Tokens<br/>(Firecrawl, Context7, Developer PAT)"]
+    end
   end
 
   subgraph TenantPers ["Personal Tenant: tupynambalucas (No -dev)"]
@@ -102,18 +106,41 @@ flowchart TD
 - **Display Name**: `tupynambalucas.dev` (or `tupynambalucas-dev`)
 - **Organization Slug**: `tupynambalucas-dev`
 - **Root Admin Email**: `admin@tupynambalucas.dev` (via Cloudflare Email Routing or Google Workspace)
-- **Access Governance**: Strict RBAC. Contractors are invited strictly at the **Project Level** (Viewer/Contributor on `tupynambalucas-dev-agent-toolkit`). Contractors **never** receive organization-level roles.
+- **Access Governance**: Strict RBAC. Contractors are invited strictly at the **Project Level** (Viewer/Contributor on `tupynambalucas-dev-agent-toolkit`). Contractors **never** receive access to `tupynambalucas-dev-platform` or organization-level admin privileges.
 
 #### Corporate Project Directory & Security Matrix:
 
-| Infisical Project Slug | Display Name | Scope & Target Secrets | Target Consumers | RBAC Policy |
-| :--- | :--- | :--- | :--- | :--- |
-| **`tupynambalucas-dev-platform`** | `Platform Infrastructure` | `CORTEX_MCP_TOKEN`, `CLOUDFLARE_TUNNEL_TOKEN_HUB`, `GRAFANA_ADMIN_PASSWORD`, `MONGO_INITDB_ROOT_PASSWORD`, `REDIS_PASSWORD`, `PLATFORM_FIRECRAWL_KEY`. | Kubernetes Operator (`InfisicalSecret` CRD in `platform-dev`, `staging`, `prod`). | Lead Architect / DevOps only. Zero contractor access. |
-| **`tupynambalucas-dev-agent-toolkit`** | `Agent Toolkit` | `FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`. | Local developer agents via `infisical run` / fallback. | Internal engineers & authorized contractors. |
-| **`tupynambalucas-dev-docs`** | `Documentation Portal` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DOCS_ANALYTICS_KEY`. | GitHub Actions CI/CD for Cloudflare Pages. | CI/CD Machine Identity & Technical Writers. |
-| **`tupynambalucas-dev-corporate`** | `Corporate Applications`| `FASTIFY_JWT_SECRET`, `RESEND_API_KEY`, `CLOUDFLARE_TUNNEL_TOKEN_CORPORATE`. | Production Web and API microservices. | Core backend team. |
+| Infisical Project Slug | Display Name | Internal Folder Path | Scope & Target Secrets | Target Consumers | RBAC Policy |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`tupynambalucas-dev-platform`** | `Platform Infrastructure & Workloads` | `/cluster` | `CORTEX_MCP_TOKEN`, `CLOUDFLARE_TUNNEL_TOKEN_HUB`, `GRAFANA_ADMIN_PASSWORD`, `MONGO_INITDB_ROOT_PASSWORD`, `REDIS_PASSWORD`, `PLATFORM_FIRECRAWL_KEY`. | Kubernetes Operator (`InfisicalSecret` CRD in cluster). | Lead Architect / DevOps only. Zero contractor access. |
+| | | `/corporate` | `FASTIFY_JWT_SECRET`, `RESEND_API_KEY`, `CORPORATE_DB_URL`, `CORPORATE_API_KEY`. | In-cluster corporate applications & APIs. | Core backend team only. |
+| | | `/ci-cd` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (if centrally synced). | Synced to GitHub Organization Secrets via Infisical Integration. | CI/CD Machine Identity. |
+| **`tupynambalucas-dev-agent-toolkit`** | `Agent Toolkit` | `/` | `FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`. | Local developer agents via `infisical run` / fallback. | Internal engineers & authorized contractors. |
 
-### 3.2 Personal Infisical Organization (`tupynambalucas`)
+### 3.2 GitHub Actions Workflows vs. Infisical: Architectural Decision & Best Practices
+
+#### A. Does `docs` GitHub Workflow Really Need Infisical?
+**Verdict: No. It is an anti-pattern for static documentation.**
+- The [`docs`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/docs) repository builds a static Docusaurus site and deploys it to Cloudflare Pages.
+- It requires exactly two credentials: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+- Forcing the GitHub Actions workflow in `docs` to invoke an Infisical CLI or action adds:
+  1. **Build Latency**: 15 to 30 seconds added to every commit run to spin up, authenticate, and query Infisical Cloud.
+  2. **Single Point of Failure (SPOF)**: Any transient API latency or rate limit from the secret manager aborts static site publication.
+  3. **Circular Bootstrap Friction**: The workflow needs an `INFISICAL_CLIENT_SECRET` saved in GitHub Secrets just to pull the Cloudflare token from Infisical.
+- **The Ideal Solution for `docs`**:
+  - Define `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` directly in **GitHub Organization Secrets** (`github.com/organizations/tupynambalucas-dev/settings/secrets/actions`) with repository access granted to `docs` and `platform`.
+  - Alternatively, connecting `docs` directly through Cloudflare Pages Git Integration deploys on push with zero credentials stored in GitHub Actions.
+
+#### B. The Folder Strategy for CI/CD Secrets in Infisical
+If the organization decides to audit and rotate all deployment credentials through Infisical as the Single Source of Truth:
+- **Never create separate projects for individual workflows or repositories**.
+- Instead, place them inside [`tupynambalucas-dev-platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform) under the folder `/ci-cd` (or `/github-actions`).
+- **Use Infisical's Native GitHub Integration (Push Sync)**:
+  - Infisical Cloud connects directly to the GitHub Organization `tupynambalucas-dev`.
+  - Infisical automatically pushes secrets from `/ci-cd` to GitHub Organization Secrets.
+  - In GitHub workflows, jobs consume standard `${{ secrets.CLOUDFLARE_API_TOKEN }}` with zero build latency, while Infisical retains centralized rotation and audit logs.
+
+### 3.3 Personal Infisical Organization (`tupynambalucas`)
 - **Display Name**: `Tupynambá Lucas (Personal)`
 - **Organization Slug**: `tupynambalucas` (strictly without `-dev`)
 - **Root Owner Email**: `tupynambalucas@gmail.com`
@@ -127,23 +154,28 @@ flowchart TD
 ### 4.1 Step 1: Corporate Organization & Project Migration
 1. Log in to [Infisical Cloud](https://app.infisical.com).
 2. Switch to the corporate organization and verify the **Slug** is set to `tupynambalucas-dev`.
-3. **Purge the Legacy Random Hash**:
+3. **Consolidate Platform & Corporate into `tupynambalucas-dev-platform`**:
    - Locate the existing project `tupynambalucas-core-ez7a`.
    - Navigate to **Project Settings -> General**.
-   - Change **Project Name** to: `Platform Infrastructure`.
+   - Change **Project Name** to: `Platform Infrastructure & Workloads`.
    - Change **Project Slug** to: `tupynambalucas-dev-platform`.
+   - Create internal folders:
+     - `/cluster`: For Kubernetes Operator, database passwords, in-cluster Cortex, and tunnel secrets.
+     - `/corporate`: For in-cluster corporate microservices, Fastify JWTs, and API credentials.
+     - `/ci-cd`: For GitHub Actions deployment tokens (if using Infisical GitHub Sync).
 4. **Provision the Agent Toolkit Project**:
    - In the organization project switcher, click **Create New Project**.
    - Project Name: `Agent Toolkit`.
    - Project Slug: `tupynambalucas-dev-agent-toolkit`.
-   - In the `dev` environment, add the fallback tokens:
+   - In the `dev` environment (root `/`), add the developer fallback tokens:
      - `FIRECRAWL_API_KEY`: Dedicated developer pool key from Firecrawl.
      - `CONTEXT7_API_KEY`: Dedicated developer pool key from Upstash/Context7.
      - `GITHUB_TOKEN`: Organization developer PAT (scopes: `repo`, `read:org`).
      - `TUPYNAMBA_GATEWAY_TOKEN`: Bearer token for Cortex AgentGateway.
-5. **Provision Supporting Projects**:
-   - Create `tupynambalucas-dev-docs` (Slug: `tupynambalucas-dev-docs`).
-   - Create `tupynambalucas-dev-corporate` (Slug: `tupynambalucas-dev-corporate`).
+5. **No Separate Docs or Corporate Projects**:
+   - Do NOT create `tupynambalucas-dev-docs` or `tupynambalucas-dev-corporate`.
+   - All in-cluster corporate workloads reside in `tupynambalucas-dev-platform` under `/corporate`.
+   - All `docs` deployment secrets reside in GitHub Organization Secrets or under `/ci-cd`.
 
 ### 4.2 Step 2: Personal Organization Provisioning
 1. In the top-left organization dropdown, click **Create Organization**.
@@ -284,9 +316,9 @@ An exhaustive audit of the immutable backup directory confirms zero loss of hist
 - [x] Pass `agy plugin validate agent-toolkit --strict` with 0 errors and 0 warnings.
 - [x] Add root `.gitignore` and `.env.example` to `org-core` and `agent-toolkit`.
 - [x] Standardize Monorepo dependencies (`package.json`) to `github:tupynambalucas-dev/agent-toolkit`.
-- [ ] Rename Infisical project `tupynambalucas-core-ez7a` to `tupynambalucas-dev-platform` (Display: `Platform Infrastructure`).
+- [ ] Rename Infisical project `tupynambalucas-core-ez7a` to `tupynambalucas-dev-platform` (Display: `Platform Infrastructure & Workloads`).
+- [ ] Create internal folders `/cluster`, `/corporate`, and `/ci-cd` inside `tupynambalucas-dev-platform`.
 - [ ] Create corporate Infisical project `tupynambalucas-dev-agent-toolkit` (Display: `Agent Toolkit`) and populate fallback keys.
-- [ ] Create corporate Infisical project `tupynambalucas-dev-docs` (Display: `Documentation Portal`).
-- [ ] Create corporate Infisical project `tupynambalucas-dev-corporate` (Display: `Corporate Applications`).
+- [ ] Configure `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` directly in GitHub Organization Secrets for `docs` (or sync via Infisical GitHub Integration).
 - [ ] Create personal Infisical organization `tupynambalucas` with clean projects (`homelab`, `experiments`, `personal-site`).
 - [ ] Verify contractor invitation protocol (Project-level Viewer on `tupynambalucas-dev-agent-toolkit` only).
