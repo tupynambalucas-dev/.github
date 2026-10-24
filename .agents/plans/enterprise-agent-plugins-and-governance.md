@@ -7,7 +7,7 @@ As software engineering organizations scale with agentic AI workflows, maintaini
 1. **Fragmentation and Drift**: If every repository maintains its own disconnected rules, skills, and Model Context Protocol (MCP) servers, corporate guidelines (cryptographic signing, conventional commits, secret hygiene, zero-emoji policy) drift out of synchronization, requiring N pull requests for every governance change.
 2. **Brittle Isolation**: If agent configurations are stored exclusively in an external global environment or parent meta-repo, an engineer cloning a single repository (such as `platform` or `tessel`) standalone in an isolated environment loses access to necessary tools, skills, and contextual constraints.
 
-This document presents a comprehensive comparative analysis of architectural approaches, specifies the canonical schema for an Enterprise Antigravity Plugin hosted in the [`.github`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github) repository, and establishes the deployment, dynamic updating, and graceful degradation models for enterprise-grade autonomous agents.
+This document presents a comprehensive comparative analysis of architectural approaches, specifies the canonical schema for an Enterprise Antigravity Plugin, evaluates repository placement options ([`.github`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github) vs. [`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform) vs. a dedicated repository), defines package distribution via GitHub Packages and Git, and establishes cloud dynamic provisioning models.
 
 ---
 
@@ -18,9 +18,7 @@ This document presents a comprehensive comparative analysis of architectural app
 In Approach A, the organization packages all shared skills, corporate rules, MCP configurations, and hooks into a centralized Antigravity plugin (e.g., `tupynambalucas-dev-plugin`). This plugin is published to a Git repository or enterprise registry and installed into each developer's workstation profile located at `~/.gemini/config/plugins/` using the Antigravity CLI:
 
 ```bash
-agy plugin install https://github.com/tupynambalucas-dev/.github
-# or via dedicated plugin repository / release artifact
-agy plugin install tupynambalucas-dev-plugin@tupynambalucas-registry
+agy plugin install https://github.com/tupynambalucas-dev/antigravity-toolkit
 ```
 
 #### Advantages
@@ -73,21 +71,22 @@ The recommended production architecture combines Approach A and Approach B into 
 ```mermaid
 flowchart TD
     subgraph Tier1["Tier 1: Global Corporate Governance (Centralized)"]
-        A[".github repository / Enterprise Plugin"] --> B["Global Rules: AGENTS.md (Signing, Zero-Emoji, Security)"]
+        A["antigravity-toolkit (Dedicated Repo)"] --> B["Global Rules: AGENTS.md (Signing, Zero-Emoji, Security)"]
         A --> C["Organization Skills (router-expert, secrets-expert, org-manager)"]
-        A --> D["Enterprise MCP Connectors (Infisical, Remote MCP Gateways)"]
+        A --> D["Enterprise MCP Connectors (Streamable HTTP Gateway, Infisical)"]
     end
 
-    subgraph Distribution["Distribution Engine"]
-        E["agy plugin install / ~/.gemini/config/plugins.json"]
-        F["Git Submodule in org-core Meta-Repository"]
-        G[".agents/plugins.json inherits directive"]
+    subgraph Distribution["Dual Distribution Engine"]
+        E["CLI Git Install: agy plugin install <repo> (~/.gemini/config/plugins)"]
+        F["NPM / GitHub Package: @tupynambalucas-dev/antigravity-toolkit"]
+        G["Git Submodule in org-core Meta-Repository"]
+        H[".agents/plugins.json entries / inherits directive"]
     end
 
     subgraph Tier2["Tier 2: Repository Bounded Context (Local)"]
-        H["platform/.agents (k8s-operator, nestjs-expert, postgres-migrator)"]
-        I["docs/.agents (docusaurus-bundler, corporate-preset-publisher)"]
-        J["tessel/.agents (webgpu-shaders, rendering-pipeline)"]
+        I["platform/.agents (k8s-operator, nestjs-expert, postgres-migrator)"]
+        J["docs/.agents (docusaurus-bundler, corporate-preset-publisher)"]
+        K["tessel/.agents (webgpu-shaders, rendering-pipeline)"]
     end
 
     Tier1 --> Distribution
@@ -95,12 +94,12 @@ flowchart TD
 ```
 
 1. **Tier 1 (Global Corporate Governance)**:
-   - Packaged as a standard Antigravity Plugin hosted in [`.github`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github) (`tupynambalucas-dev-plugin`).
+   - Packaged as a standard Antigravity Plugin and published both as a standalone Git repo and an NPM package via GitHub Packages (`@tupynambalucas-dev/antigravity-toolkit`).
    - Distributes immutable corporate policies: cryptographic commit signing (`-S`), conventional commit validation, zero emojis, Infisical secrets resolution, and high-level routing.
-   - Installed globally on workstations or inherited via configuration manifests.
+   - Installed globally on workstations or inherited via package manifests.
 2. **Tier 2 (Repository Bounded Context)**:
    - Each individual repository retains a lightweight root `AGENTS.md` and repository-specific `.agents/skills/` tailored strictly to its technology stack (e.g., NestJS/Kubernetes in `platform`, Docusaurus in `docs`, WebGPU in `tessel`).
-   - If a developer opens `platform` in standalone mode without the global plugin, the local `AGENTS.md` provides **graceful degradation** (the agent can still build, test, and run the service).
+   - If a developer opens `platform` in standalone mode, standard `package.json` resolution loads `@tupynambalucas-dev/antigravity-toolkit` directly from `node_modules`.
    - If the developer has the global plugin installed (or opens the workspace via `org-core`), the global enterprise rules and skills seamlessly layer over the local context.
 
 ---
@@ -110,25 +109,213 @@ flowchart TD
 | Evaluation Dimension | Approach A: Pure Global Plugin | Approach B: Pure Local Repo | Approach C: Hybrid Federated (Recommended) |
 | :--- | :--- | :--- | :--- |
 | **Single Source of Truth** | High (Central repository) | Very Low (Duplicated N times) | High (Global governance centralized, domain local) |
-| **Setup Friction (New Dev)** | Medium (Requires `agy plugin install`) | Zero (`git clone` is sufficient) | Low (Zero for local dev; full tools via one command) |
+| **Setup Friction (New Dev)** | Medium (Requires `agy plugin install`) | Zero (`git clone` is sufficient) | Zero (Automated via `pnpm install` in repo) |
 | **Atomic PRs with Code** | Low (Plugin changes decoupled) | High (Agent rules committed with code) | High (Domain skills versioned with code) |
 | **Cross-Repo Context Awareness** | High (Global knowledge accessible) | None (Siloed to single repo) | High (Hierarchical resolution) |
 | **Maintenance & Patching Effort** | Low (Update once centrally) | Extreme (Sync across N repos) | Low (Corporate policies updated centrally) |
-| **CI/CD Pipeline Portability** | Requires plugin installation step | 100% Native | 100% Native (Falls back to local rules in CI) |
+| **CI/CD Pipeline Portability** | Requires plugin installation step | 100% Native | 100% Native (Reads from `node_modules` or local rules) |
 | **Security Credential Protection** | High (No secrets stored in repos) | Low (Risk of committing MCP envs) | High (Centralized MCP endpoints and Infisical) |
 | **Antigravity CLI Compatibility** | Native (`~/.gemini/config/plugins/`) | Native (`.agents/` in workspace) | Fully Optimized (Multi-tier resolution engine) |
 
 ---
 
-## 3. Enterprise Plugin Anatomy (`tupynambalucas-dev-plugin`)
+## 3. Strategic Repository Placement: `.github` vs. `platform` vs. Dedicated Repository
+
+A critical architectural decision is determining where the global plugin codebase should reside. We evaluate the three primary options:
+
+```mermaid
+flowchart LR
+    subgraph Repos["Candidate Repositories"]
+        R1[".github"]
+        R2["platform"]
+        R3["antigravity-toolkit (Dedicated)"]
+    end
+
+    subgraph Purposes["Primary Responsibility"]
+        P1["Organization Metadata & Default Policies"]
+        P2["Core Monorepo, APIs & Cloud MCP Services"]
+        P3["Agent Plugins, Skills, Rules & Client Toolkits"]
+    end
+
+    R1 --> P1
+    R2 --> P2
+    R3 --> P3
+```
+
+### 3.1 Option 1: The `.github` Repository (`tupynambalucas-dev/.github`)
+
+- **Role**: GitHub special administrative repository for organization-wide default profiles, issue templates, workflow templates, security disclosures, and repository health files.
+- **Why NOT suitable for full plugin software hosting**:
+  - **Separation of Concerns**: `.github` is designed for static administrative markdown and workflow templates. Bundling executable TypeScript scripts, testing suites, MCP connector code, and node modules bloats this administrative hub.
+  - **Git URL Clone Overhead**: Running `agy plugin install https://github.com/tupynambalucas-dev/.github` clones the entire administrative repository into developer machines, downloading issue templates and profile media.
+  - **Release Cadence Coupling**: Tagging release versions (`v1.0.0`, `v1.1.0`) on `.github` conflates organization-wide administrative changes with agent software releases.
+- **Architectural Role for `.github`**: Keep high-level corporate governance declarations (`AGENTS.md`) and standard issue/PR templates in `.github`. Do NOT make `.github` the build/publishing repository for agent plugins.
+
+### 3.2 Option 2: Inside the `platform` Monorepo (`tupynambalucas-dev/platform`)
+
+- **Role**: The core business application monorepo (NestJS backend, web apps, databases, Kubernetes deployments).
+- **Why NOT suitable for client-side global plugin distribution**:
+  - **Monorepo Coupling**: `platform` is a large monorepo with hundreds of application dependencies and heavy Turborepo build graphs. Requiring developers working on `docs`, `tessel`, or `omni-channel` to clone or depend on `platform` creates unnecessary coupling.
+  - **CI/CD Noise**: Every minor prompt revision in an agent skill would trigger Turborepo build analysis and potentially run tests across unrelated platform services.
+  - **Access Boundary & Blast Radius**: External contractors or developers working exclusively on documentation or client SDKs should not need repository read/write access to `platform` just to consume or contribute agent skills.
+- **Architectural Role for `platform`**: `platform` should host and deploy **Cloud-Hosted Remote MCP Gateways** (e.g., NestJS-based Streamable HTTP MCP services running on Kubernetes) and maintain its own domain-specific skills (`k8s-operator`, `nest-architect`).
+
+### 3.3 Option 3: Dedicated Repository (`tupynambalucas-dev/antigravity-toolkit`) *(Recommended)*
+
+- **Role**: A purpose-built, lightweight repository dedicated 100% to agent engineering, custom skills, shared rules, lifecycle hooks, and MCP client configurations.
+- **Decisive Advantages**:
+  1. **Canonical Plugin Root**: The repository root contains `plugin.json`. Running `agy plugin install https://github.com/tupynambalucas-dev/antigravity-toolkit` works immediately out-of-the-box without requiring complex subpath workarounds.
+  2. **Ultra-Fast Clone & Staging**: Clones in under 1 second (no application bloat, no heavy node modules).
+  3. **Isolated Semantic Versioning**: Release tags (`v1.0.0`, `v1.1.0`, `v2.0.0`) belong strictly to the agent toolkit and generate automated GitHub Releases with explicit changelogs.
+  4. **Dual Distribution Capability**: Can act as a Git plugin repository AND publish an automated package to GitHub Packages (`@tupynambalucas-dev/antigravity-toolkit`).
+  5. **Submodule Integration**: Can be mounted cleanly inside [`org-core`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core) as a submodule alongside `platform` and `docs`.
+
+---
+
+## 4. Distribution and Packaging: GitHub Packages vs. Git Repository
+
+To achieve zero-friction onboarding, deterministic versioning, and cloud-driven dynamic updates, the organization should employ a **Dual-Distribution Model**:
+
+```mermaid
+flowchart TD
+    subgraph Source["Source Repository: antigravity-toolkit"]
+        A["plugin.json + package.json + skills/ + rules/"]
+    end
+
+    subgraph CI["GitHub Actions Release Pipeline"]
+        B["1. agy plugin validate --strict"]
+        C["2. Tag vX.Y.Z & Create GitHub Release"]
+        D["3. Publish NPM Package to GitHub Packages"]
+    end
+
+    subgraph Channels["Distribution Channels"]
+        E["Channel 1: Git URL (agy plugin install)"]
+        F["Channel 2: NPM Package (@tupynambalucas-dev/antigravity-toolkit)"]
+        G["Channel 3: Git Submodule in org-core"]
+    end
+
+    subgraph Consumers["Consumers"]
+        H["Developer Machine (~/.gemini/config/plugins)"]
+        I["Monorepos (platform, docs, tessel node_modules)"]
+        J["Meta-Workspace (org-core hierarchical discovery)"]
+    end
+
+    Source --> CI
+    CI --> E --> H
+    CI --> F --> I
+    CI --> G --> J
+```
+
+### 4.1 Packaging as a GitHub Package (NPM Registry)
+
+Packaging the plugin as an NPM module published to GitHub Packages (`npm.pkg.github.com/@tupynambalucas-dev/antigravity-toolkit`) is the most powerful technique for application monorepos:
+
+1. **`package.json` in `antigravity-toolkit`**:
+   ```json
+   {
+     "name": "@tupynambalucas-dev/antigravity-toolkit",
+     "version": "1.0.0",
+     "description": "Enterprise AI agent governance, shared MCP connectors, and domain routing skills.",
+     "repository": "git@github.com:tupynambalucas-dev/antigravity-toolkit.git",
+     "publishConfig": {
+       "registry": "https://npm.pkg.github.com"
+     },
+     "files": [
+       "plugin.json",
+       "mcp_config.json",
+       "hooks.json",
+       "rules/",
+       "skills/"
+     ]
+   }
+   ```
+
+2. **Integration into `platform`, `docs`, and `tessel`**:
+   In `platform/package.json`:
+   ```json
+   {
+     "devDependencies": {
+       "@tupynambalucas-dev/antigravity-toolkit": "^1.0.0"
+     }
+   }
+   ```
+   In `platform/.agents/plugins.json`:
+   ```json
+   {
+     "entries": [
+       { "path": "node_modules/@tupynambalucas-dev/antigravity-toolkit" }
+     ]
+   }
+   ```
+
+3. **Why this eliminates developer friction**:
+   - **Zero Onboarding Setup**: When a developer runs `pnpm install`, the exact version of the enterprise toolkit is placed into `node_modules/`. Antigravity's `.agents/plugins.json` immediately discovers it.
+   - **Deterministic Lockfiles**: The agent toolkit version is pinned in `pnpm-lock.yaml`. Different branches or historical commits use the exact agent rules that matched the code at that point in time.
+   - **Automated Update PRs**: Dependabot and Renovate automatically submit pull requests when a new version of `@tupynambalucas-dev/antigravity-toolkit` is published.
+
+### 4.2 Git-Based Workstation Installation (`agy plugin install`)
+
+For developers who want the enterprise toolkit available across all projects globally (even when working outside initialized Node repositories):
+
+```bash
+agy plugin install https://github.com/tupynambalucas-dev/antigravity-toolkit
+```
+This stages the plugin into `~/.gemini/config/plugins/antigravity-toolkit` and registers it in `~/.gemini/config/config.json`.
+
+---
+
+## 5. Cloud Dynamic Provisioning and Remote MCP Gateways
+
+Updating prompt markdown or local scripts requires updating client-side files. However, updating **tools, capabilities, and backend integrations** can be handled 100% dynamically via the cloud using **Streamable HTTP MCP Gateways**.
+
+### 5.1 Remote Streamable HTTP MCP Architecture
+
+Instead of running local Node/Python processes on developer machines for enterprise tools, the organization deploys a centralized **MCP Gateway** (hosted within `platform` infrastructure on Kubernetes or Cloudflare Workers):
+
+```mermaid
+sequenceDiagram
+    participant Agent as Antigravity Agent (Developer Machine)
+    participant Plugin as antigravity-toolkit (mcp_config.json)
+    participant Gateway as Cloud MCP Gateway (https://mcp.tupynambalucas.dev/mcp)
+    participant Services as Internal Services (Infisical, GitHub, JIRA, Vector DB)
+
+    Agent->>Plugin: Load mcp_config.json
+    Plugin->>Gateway: Connect via Streamable HTTP (/mcp)
+    Gateway-->>Agent: Dynamic Tool Definitions (search_docs, query_secrets, audit_compliance)
+    Agent->>Gateway: Execute Tool Call: audit_compliance(repo="platform")
+    Gateway->>Services: Fetch live enterprise data
+    Services-->>Gateway: Return data
+    Gateway-->>Agent: Return tool result
+```
+
+### 5.2 Dynamic Tool Evolution without Client Updates
+
+In the plugin's `mcp_config.json`:
+```json
+{
+  "mcpServers": {
+    "enterprise-gateway": {
+      "url": "https://mcp.tupynambalucas.dev/mcp"
+    }
+  }
+}
+```
+
+- When the DevOps or Security team adds a new tool (e.g., `query_cloudflared_tunnels` or `scan_vulnerabilities`) to the cloud gateway, the next time a developer's agent starts a session, the new tool is **instantly available**.
+- No `git pull`, no `agy plugin update`, and no client-side rebuilds are required.
+
+---
+
+## 6. Enterprise Plugin Anatomy (`tupynambalucas-dev-plugin`)
 
 The enterprise plugin must strictly follow the Antigravity Customization System specification. It bundles **Manifest**, **Rules**, **Skills**, **Lifecycle Hooks**, and **MCP Servers** into a single versioned unit.
 
-### 3.1 Canonical Directory Layout
+### 6.1 Canonical Directory Layout
 
 ```text
-tupynambalucas-dev-plugin/
-├── plugin.json              # Canonical plugin manifest
+antigravity-toolkit/
+├── package.json             # NPM package manifest for GitHub Packages
+├── plugin.json              # Canonical Antigravity plugin manifest
 ├── mcp_config.json          # Enterprise MCP server configurations
 ├── hooks.json               # Security, formatting, and verification lifecycle hooks
 ├── rules/
@@ -148,14 +335,12 @@ tupynambalucas-dev-plugin/
         └── references/
 ```
 
-### 3.2 Canonical Manifest Specification (`plugin.json`)
-
-The manifest identifies the package and sets metadata recognized by `agy plugin validate` and the Antigravity Marketplace:
+### 6.2 Canonical Manifest Specification (`plugin.json`)
 
 ```json
 {
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
-  "name": "tupynambalucas-dev-plugin",
+  "name": "antigravity-toolkit",
   "displayName": "Tupynamba Lucas Enterprise Toolkit",
   "version": "1.0.0",
   "description": "Enterprise AI agent governance, security guardrails, shared MCP connectors, and domain routing skills for the tupynambalucas-dev organization.",
@@ -164,8 +349,8 @@ The manifest identifies the package and sets metadata recognized by `agy plugin 
     "email": "contato@tupynambalucas.dev",
     "url": "https://tupynambalucas.dev"
   },
-  "homepage": "https://github.com/tupynambalucas-dev/.github",
-  "repository": "https://github.com/tupynambalucas-dev/.github",
+  "homepage": "https://github.com/tupynambalucas-dev/antigravity-toolkit",
+  "repository": "https://github.com/tupynambalucas-dev/antigravity-toolkit",
   "license": "UNLICENSED",
   "keywords": [
     "enterprise-governance",
@@ -183,13 +368,22 @@ The manifest identifies the package and sets metadata recognized by `agy plugin 
 }
 ```
 
-### 3.3 Enterprise MCP Configuration (`mcp_config.json`)
-
-Antigravity supports both **Stdio** and **Streamable HTTP** transports. In an enterprise environment, MCP configurations must avoid hardcoded tokens. Tokens must resolve from system environment variables or secure credential providers:
+### 6.3 Enterprise MCP Configuration (`mcp_config.json`)
 
 ```json
 {
   "mcpServers": {
+    "enterprise-gateway": {
+      "url": "https://mcp.tupynambalucas.dev/mcp",
+      "tools": {
+        "search_enterprise_docs": {
+          "eager": true
+        },
+        "query_architecture_decision_records": {
+          "eager": false
+        }
+      }
+    },
     "infisical-vault": {
       "command": "infisical",
       "args": ["export", "--format=json"],
@@ -203,28 +397,12 @@ Antigravity supports both **Stdio** and **Streamable HTTP** transports. In an en
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       }
-    },
-    "enterprise-knowledge-gateway": {
-      "url": "https://mcp.tupynambalucas.dev/mcp",
-      "tools": {
-        "search_enterprise_docs": {
-          "eager": true
-        },
-        "query_architecture_decision_records": {
-          "eager": false
-        }
-      }
     }
   }
 }
 ```
 
-> [!IMPORTANT]
-> The legacy HTTP+SSE transport (MCP spec 2024-11-05) is deprecated in Antigravity. Enterprise remote endpoints must expose the **Streamable HTTP** transport (`/mcp` endpoint) or bridge through a local Stdio proxy (`mcp-remote`).
-
-### 3.4 Consolidated Governance Rules (`rules/AGENTS.md`)
-
-In Antigravity, placing a single consolidated `AGENTS.md` file under `rules/` is the official standard. This prevents rule fragmentation and guarantees deduplicated injection:
+### 6.4 Consolidated Governance Rules (`rules/AGENTS.md`)
 
 ```markdown
 ---
@@ -253,9 +431,7 @@ trigger: always_on
    - Conversational responses to the user must follow the user's prompt language (defaulting to pt-BR when prompted in Portuguese).
 ```
 
-### 3.5 Lifecycle Hooks (`hooks.json`)
-
-Lifecycle hooks enforce security guardrails before and after tool executions:
+### 6.5 Lifecycle Hooks (`hooks.json`)
 
 ```json
 {
@@ -287,104 +463,23 @@ Lifecycle hooks enforce security guardrails before and after tool executions:
 
 ---
 
-## 4. Hosting, Dynamic Updates, and Distribution via GitHub
+## 7. Local Repositories Integration and Graceful Degradation
 
-### 4.1 Hosting in the `.github` Repository
-
-GitHub treats the repository named `.github` (e.g., `tupynambalucas-dev/.github`) as the default configuration source for the entire organization. By hosting the enterprise plugin inside `.github`, the organization aligns its agent configurations with its default profile, security policies, and issue templates.
-
-#### Directory Placement Options in `.github`:
-1. **Root-Level Plugin (`.github/plugin.json`)**:
-   - The entire `.github` repository behaves directly as an Antigravity plugin.
-   - Installation: `agy plugin install https://github.com/tupynambalucas-dev/.github`.
-2. **Packaged Plugin Subdirectory (`.github/.agents/plugins/tupynambalucas-dev/`)** *(Recommended)*:
-   - Keeps the repository root clean for standard GitHub health files (`SECURITY.md`, `README.md`, `profile/`).
-   - Allows multiple plugins to be hosted in the governance repository (`tupynambalucas-dev-plugin`, `compliance-plugin`).
-
-### 4.2 Dynamic Distribution Channels
-
-#### Channel 1: Declarative Inheritance via `plugins.json` (Zero-Copy)
-In the meta-repository [`org-core`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core) or individual repositories, Antigravity supports explicit inheritance in `.agents/plugins.json`:
-
-```json
-{
-  "inherits": [
-    {
-      "path": ".github/.agents/plugins/tupynambalucas-dev/plugins.json"
-    }
-  ],
-  "entries": [
-    {
-      "path": ".agents/plugins"
-    }
-  ]
-}
-```
-When opened in a multi-root workspace or meta-repository, Antigravity resolves the path dynamically against the workspace root.
-
-#### Channel 2: Workstation CLI Installation (`agy plugin install`)
-For standalone repository clones, developers run a one-time onboarding command:
-
-```bash
-agy plugin install https://github.com/tupynambalucas-dev/.github --subpath .agents/plugins/tupynambalucas-dev
-```
-This stages the bundle into `~/.gemini/config/plugins/tupynambalucas-dev/` and registers it in `~/.gemini/config/config.json`:
-
-```json
-{
-  "plugins": {
-    "tupynambalucas-dev": {
-      "installedFrom": {
-        "id": "tupynambalucas-dev/plugin/tupynambalucas-dev",
-        "marketplace": "git",
-        "version": "1.0.0"
-      }
-    }
-  }
-}
-```
-
-#### Channel 3: Git-Based Synchronous Updates via GitHub Actions
-To automate dynamic updates across developer machines and repositories:
-1. **Automated Validation on Pull Request**:
-   Every PR modifying `.agents/` in `.github` executes `agy plugin validate`:
-   ```yaml
-   name: Validate Enterprise Plugin
-   on:
-     pull_request:
-       paths:
-         - '.agents/**'
-   jobs:
-     validate:
-       runs-on: ubuntu-latest
-       steps:
-         - uses: actions/checkout@v4
-         - name: Install Antigravity CLI
-           run: curl -fsSL https://antigravity.google/install.sh | bash
-         - name: Validate Plugin
-           run: agy plugin validate .agents/plugins/tupynambalucas-dev --strict --json
-   ```
-2. **Semantic Versioning & Release Tagging**:
-   On merging to `main`, an Action cuts a release tag (e.g., `v1.2.0`) and publishes release metadata.
-3. **Automated Submodule Bump**:
-   A repository dispatch trigger updates the `.github` submodule in `org-core`, ensuring that all engineers pulling `org-core` receive the latest pointer immediately.
-
----
-
-## 5. Local Repositories Integration and Graceful Degradation
-
-### 5.1 Scenario A: Developer in Meta-Workspace (`org-core`)
+### 7.1 Scenario A: Developer in Meta-Workspace (`org-core`)
 - Working directory: `C:\Users\tupyn\projects\organizations\tupynambalucas-dev\org-core`.
 - Antigravity walks up from any file (e.g., `platform/apps/web/main.ts`) to the repository root.
-- The root `.github` submodule is detected.
+- The `antigravity-toolkit` submodule is detected.
 - All enterprise plugins, rules, and skills are active without requiring any global configuration.
 
-### 5.2 Scenario B: Developer Clones Standalone `platform` (Isolated Workspace)
+### 7.2 Scenario B: Developer Clones Standalone `platform` (Isolated Workspace)
 - Working directory: `C:\Users\tupyn\projects\organizations\tupynambalucas-dev\platform`.
-- **Condition 1 (Global Plugin Installed)**:
-  - Antigravity loads `platform/AGENTS.md` (local NestJS rules) and merges them with `~/.gemini/config/plugins/tupynambalucas-dev/` (global signing and routing rules).
+- **Condition 1 (Installed via NPM in `node_modules`)**:
+  - `platform/.agents/plugins.json` points to `node_modules/@tupynambalucas-dev/antigravity-toolkit`.
+  - Full enterprise skills and MCP configurations load identically to the meta-workspace.
+- **Condition 2 (Global Plugin Installed)**:
+  - Antigravity loads `platform/AGENTS.md` (local NestJS rules) and merges them with `~/.gemini/config/plugins/antigravity-toolkit/` (global signing and routing rules).
   - Priority: Local repository rules override conflicting global plugin rules.
-- **Condition 2 (Global Plugin NOT Installed)**:
+- **Condition 3 (Zero External Dependencies / Clean Clone)**:
   - Antigravity loads `platform/AGENTS.md`.
   - The local `AGENTS.md` includes a **fallback section**:
     ```markdown
@@ -393,32 +488,35 @@ To automate dynamic updates across developer machines and repositories:
     > Global enterprise plugin not detected. Applying standalone fallback rules:
     > - Conventional commits required.
     > - Cryptographic signing required: git commit -S.
-    > - For enterprise routing skills, install: agy plugin install https://github.com/tupynambalucas-dev/.github
+    > - To activate full enterprise skills, run: pnpm install or agy plugin install https://github.com/tupynambalucas-dev/antigravity-toolkit
     ```
   - Result: The agent does not break or crash; it operates with full local capabilities and basic governance enforcement.
 
 ---
 
-## 6. Implementation Roadmap
+## 8. Implementation Roadmap
 
 ### Phase 1: Canonicalization of Existing Governance Plugins
 - [ ] Run `agy plugin validate` on all directories inside [`.github/.agents/plugins/`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github/.agents/plugins).
 - [ ] Fix frontmatter trigger issues in `github-organization/rules/github-governance.md` (convert to `trigger: always_on` or consolidate into `rules/AGENTS.md`).
 - [ ] Sanitize environment variable configurations in `mcp_config.json` to prevent token leakage.
 
-### Phase 2: Consolidation of Enterprise Toolkit Plugin
-- [ ] Create the canonical `tupynambalucas-dev` umbrella plugin under `.github/.agents/plugins/tupynambalucas-dev/`.
+### Phase 2: Setup Dedicated Repository (`tupynambalucas-dev/antigravity-toolkit`)
+- [ ] Initialize repository `git@github.com:tupynambalucas-dev/antigravity-toolkit.git`.
+- [ ] Place `plugin.json` and `package.json` at root.
 - [ ] Consolidate core skills:
   - `agent-router-expert`
   - `conventional-commits`
   - `secrets-expert`
   - `github-org-manager`
-- [ ] Author standard `rules/AGENTS.md` and `plugin.json`.
+- [ ] Author standard `rules/AGENTS.md` and `hooks.json`.
 
-### Phase 3: Setup CI/CD Verification Pipeline
-- [ ] Add `.github/workflows/validate-plugins.yml` to run `agy plugin validate --strict` on PRs.
-- [ ] Configure automatic signed tagging on release merges.
+### Phase 3: Setup GitHub Packages & Actions CI Pipeline
+- [ ] Add `.github/workflows/ci.yml` in `antigravity-toolkit` to run `agy plugin validate --strict` on PRs.
+- [ ] Add release workflow to build tarball, tag releases, and publish `@tupynambalucas-dev/antigravity-toolkit` to GitHub Packages (`npm.pkg.github.com`).
 
-### Phase 4: Workstation Onboarding and Verification
-- [ ] Document the single-command onboarding script for developers: `agy plugin install ...`.
-- [ ] Test standalone isolation in `platform` and `tessel` to confirm graceful degradation.
+### Phase 4: Integration Across Repositories and Workstations
+- [ ] Add `antigravity-toolkit` as a Git submodule in `org-core`.
+- [ ] Add `@tupynambalucas-dev/antigravity-toolkit` to `devDependencies` in `platform` and `docs`.
+- [ ] Configure `.agents/plugins.json` in child repositories to read from `node_modules`.
+- [ ] Document single-command CLI onboarding: `agy plugin install https://github.com/tupynambalucas-dev/antigravity-toolkit`.
