@@ -12,10 +12,13 @@ As modern software engineering organizations evolve toward AI-driven platform en
 2. **The Individual Founder / Principal Architect**: **`Tupynambá Lucas`** (civil name: `Tupynambá Lucas Varela Rodrigues`).
    - Serves as Founder, Principal Systems Architect, and Fractional CTO.
    - Provides architectural oversight, cryptographic sign-off (`-S`), and technical leadership.
-3. **The Personal Handle (Pessoa Física)**: **`tupynambalucas`**.
-   - Used for the personal GitHub profile (`github.com/tupynambalucas`), personal open-source experiments, dotfiles, and individual career reputation.
-4. **The Corporate Technical Handle (Pessoa Jurídica)**: **`tupynambalucas-dev`**.
+3. **The Personal Handle (Pessoa Física)**: **`tupynambalucas`** (Strictly NO `-dev`).
+   - Used for the personal GitHub profile (`github.com/tupynambalucas`), personal Infisical organization (`tupynambalucas`), personal Cloudflare account (`tupynambalucas`), personal open-source experiments, dotfiles, and individual career reputation.
+4. **The Corporate Technical Handle (Pessoa Jurídica)**: **`tupynambalucas-dev`** (WITH `-dev` suffix).
    - Used across technical platforms where the dot (`.`) is prohibited by validation schemas (GitHub Organization `github.com/tupynambalucas-dev`, NPM package scope `@tupynambalucas-dev`, Infisical organization slug `tupynambalucas-dev`).
+5. **The Universal Demarcator Rule**:
+   - **No suffix (`tupynambalucas`)** = Pessoa Física (Personal boundary, personal accounts, personal credentials).
+   - **Suffix `-dev` / `.dev` (`tupynambalucas-dev` / `tupynambalucas.dev`)** = Pessoa Jurídica (Corporate studio, enterprise platform, contractor access).
 
 ### 1.2 Purpose of this Master Plan
 This document establishes the **Single Source of Truth (SSOT)** for all branding, nomenclature, and infrastructure asset naming across the organization. It consolidates, formalizes, and harmonizes the guidelines previously defined in:
@@ -60,13 +63,24 @@ flowchart TD
 | Operational Dimension | Personal Boundary (`tupynambalucas`) | Enterprise Boundary (`tupynambalucas.dev`) |
 | :--- | :--- | :--- |
 | **Legal / Brand Entity** | Tupynambá Lucas (Individual Citizen / Architect) | `tupynambalucas.dev` (Engineering Studio & Consultancy) |
+| **Universal Demarcator** | **No Suffix**: `tupynambalucas` | **Suffix `-dev` / `.dev`**: `tupynambalucas-dev` / `tupynambalucas.dev` |
 | **Public GitHub Handle** | `github.com/tupynambalucas` | `github.com/tupynambalucas-dev` |
+| **Infisical Tenant** | Org: `tupynambalucas` (Personal, zero contractors) | Org: `tupynambalucas-dev` (Corporate, RBAC enabled) |
+| **Cloudflare Account** | Account: `tupynambalucas` (Personal homelab/hobby) | Account: `tupynambalucas.dev` (Corporate apex & tunnels) |
 | **Repository Ownership** | Personal repositories, research prototypes, dotfiles | Corporate monorepos (`platform`, `docs`, `agent-toolkit`) |
-| **Commit Authorship** | Author name: `Tupynambá Lucas Varela Rodrigues` | Organization commit signing key & corporate email |
-| **Email Standard** | Personal communications | `contato@tupynambalucas.dev`, `security@tupynambalucas.dev` |
-| **Secret Management** | Local machine user store / personal password vault | Infisical Cloud (`tupynambalucas-platform`, `tupynambalucas-agent-toolkit`)|
+| **Commit Authorship** | Author name: `Tupynambá Lucas Varela Rodrigues` | Founder Executive (`lucas@tupynambalucas.dev`) or `contato@tupynambalucas.dev` |
+| **Email Architecture** | Civil personal email (`tupynambalucas@gmail.com`) | `lucas@tupynambalucas.dev`, `contato@tupynambalucas.dev` |
+| **Secret Management** | Dedicated personal Infisical org `tupynambalucas` | Corporate Infisical org `tupynambalucas-dev` |
 | **Client Contracts / MSAs** | Personal advisory contracts / Fractional CTO | Master Services Agreements (MSAs) with `tupynambalucas.dev` |
 | **Contractor Integration** | Never: Contractors do not touch personal profile | Native: Contractors push code to `tupynambalucas-dev` PRs |
+
+### 2.2 Account-Level Isolation vs. In-Org Slug Segregation
+
+A fundamental architectural principle of this governance model is **Account-Level Segregation**:
+- **Why NOT put personal projects inside the enterprise organization?**
+  1. **Zero Blast Radius**: In platforms like Infisical and Cloudflare, members invited to an organization can view project lists, audit logs, and resource metadata. Putting personal sandboxes inside `tupynambalucas-dev` exposes founder private assets to contractor visibility or RBAC misconfiguration.
+  2. **Billing and Tax Segregation**: Corporate tooling is paid via corporate company cards/CNPJ; personal tools belong to CPF/personal accounts. Mixing them violates fiscal boundaries.
+  3. **Universal Demarcation**: By defining that `tupynambalucas` (no suffix) is personal and `tupynambalucas-dev` is corporate, all platforms reflect identical structural purity.
 
 ---
 
@@ -104,31 +118,34 @@ $$\mathbf{tupynambalucas-dev}$$
 
 ## 4. Multi-Platform Nomenclature Specifications
 
-### 4.1 Infisical Cloud Governance
+### 4.1 Infisical Cloud Governance: Dual-Tenant Architecture
 
-In Infisical, organizations manage billing and identity, while projects isolate secrets, access tokens, and RBAC boundaries.
-
-#### A. Organization Level
-- **Organization Display Name**: `tupynambalucas-dev` (or `tupynambalucas dev` if spaces are permitted by validation).
-- **Organization Slug**: `tupynambalucas-dev`.
-
-#### B. Project Level (The Anti-Hash Rule)
-*All auto-generated suffixes (e.g., `-ez7a`) must be purged.* The formula for all Infisical projects is strictly:
-$$\text{\{organization-slug\}}-\text{\{context-or-product\}}$$
+Rather than mingling personal and corporate secrets within the same organization, Infisical is split into two distinct tenant organizations, leveraging the universal `-dev` demarcator:
 
 ```mermaid
-flowchart LR
-  subgraph InfisicalTenant ["Infisical Organization: tupynambalucas-dev"]
+flowchart TD
+  subgraph InfisicalPersonal ["Personal Infisical Org: tupynambalucas (No -dev)"]
     direction TB
-    P_Platform["tupynambalucas-platform<br/>(Display: Platform Infrastructure)<br/>Scope: K8s, DBs, Tunnels, Cortex Gateway"]
-    P_Toolkit["tupynambalucas-agent-toolkit<br/>(Display: Agent Toolkit)<br/>Scope: Developer Agents, Local Fallback MCPs"]
-    P_Docs["tupynambalucas-docs<br/>(Display: Documentation Portal)<br/>Scope: Cloudflare Pages Deployments"]
-    P_Corporate["tupynambalucas-corporate<br/>(Display: Corporate Applications)<br/>Scope: Fastify API, Web Portal, Resend JWTs"]
-    P_Personal["tupynambalucas-personal<br/>(Display: Founder Personal Sandbox)<br/>Scope: Founder's private experiments, non-company tools"]
+    P_Home["homelab<br/>Scope: Personal home server, IoT, private NAS"]
+    P_Exp["experiments<br/>Scope: Personal research API keys, throwaway prototypes"]
+    P_Site["personal-site<br/>Scope: Personal portfolio tokens"]
+  end
+
+  subgraph InfisicalCorp ["Corporate Infisical Org: tupynambalucas-dev (With -dev)"]
+    direction TB
+    C_Platform["tupynambalucas-platform<br/>(Display: Platform Infrastructure)<br/>Scope: K8s Operator, DBs, Tunnels, Cortex Gateway"]
+    C_Toolkit["tupynambalucas-agent-toolkit<br/>(Display: Agent Toolkit)<br/>Scope: Developer Agent Fallback MCP Tokens"]
+    C_Docs["tupynambalucas-docs<br/>(Display: Documentation Portal)<br/>Scope: Cloudflare Pages Deployments"]
+    C_Corp["tupynambalucas-corporate<br/>(Display: Corporate Applications)<br/>Scope: Fastify API Secrets, Resend JWTs"]
   end
 ```
 
-#### C. Infisical Project Directory & Security Matrix:
+#### A. Corporate Infisical Organization (`tupynambalucas-dev`)
+- **Organization Slug**: `tupynambalucas-dev`.
+- **Display Name**: `tupynambalucas.dev` (or `tupynambalucas-dev`).
+- **Access Governance**: RBAC enabled. Elastic contractors receive scoped read-only access strictly to specific projects (e.g. `tupynambalucas-agent-toolkit`).
+- **Project Naming Formula (The Anti-Hash Rule)**:
+  $$\text{tupynambalucas}-\text{\{context-or-product\}}$$
 
 | Infisical Project Slug | Display Name | Boundary | Scope & Target Secrets | Target Consumers |
 | :--- | :--- | :--- | :--- | :--- |
@@ -136,29 +153,39 @@ flowchart LR
 | **`tupynambalucas-agent-toolkit`** | `Agent Toolkit` | Corporate | `FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`. | Local developer agents via `infisical run` / fallback. |
 | **`tupynambalucas-docs`** | `Documentation Portal` | Corporate | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. | GitHub Actions CI/CD for Cloudflare Pages. |
 | **`tupynambalucas-corporate`** | `Corporate Applications`| Corporate | `FASTIFY_JWT_SECRET`, `RESEND_API_KEY`, `CLOUDFLARE_TUNNEL_TOKEN_CORPORATE`. | Production Web and API microservices. |
-| **`tupynambalucas-personal`** | `Personal Sandbox` | Personal | Founder's personal private keys, individual home-lab tokens, personal blog APIs. | Founder only (Pessoa Física). |
+
+#### B. Personal Infisical Organization (`tupynambalucas`)
+- **Organization Slug**: `tupynambalucas` (strictly NO `-dev`).
+- **Display Name**: `Tupynambá Lucas (Personal)`.
+- **Access Governance**: Strict single-user boundary. Zero contractors, zero associates.
+- **Projects**:
+  - `homelab`: Personal homelab infrastructure, local VPNs, NAS credentials.
+  - `experiments`: Independent algorithmic experiments and personal AI testing.
+  - `personal-site`: Personal domain and portfolio deployment secrets.
 
 ---
 
-### 4.2 Cloudflare Infrastructure
+### 4.2 Cloudflare Infrastructure: Dual-Account Architecture
 
-Cloudflare fully supports dots in account names and domain zones:
+Cloudflare fully supports dots in account names and domain zones. To ensure pristine isolation between personal network tunnels and corporate production traffic:
 
-1. **Account Level**:
-   - **Enterprise Account Name**: `tupynambalucas.dev`
-   - **Personal Account Name (Optional)**: `tupynambalucas` (strictly for personal hobby domains if needed).
-2. **DNS Zones**:
-   - Primary Sovereign Zone: `tupynambalucas.dev`
-   - Subdomain Routing:
+1. **Corporate Account (`tupynambalucas.dev`)**:
+   - **Account Name**: `tupynambalucas.dev`
+   - **Sovereign DNS Apex**: `tupynambalucas.dev`
+   - **Subdomain Routing**:
      - `docs.tupynambalucas.dev` -> Corporate Docusaurus portal (Pages)
      - `web.tupynambalucas.dev` / `api.tupynambalucas.dev` -> Corporate production services
      - `mcp.tupynambalucas.dev` -> Cortex AgentGateway Ingress
-     - `*-dev.tupynambalucas.dev` -> Local development tunnels via Traefik
-3. **Zero Trust Tunnels**:
-   - `tupynambalucas-hub-dev`: Traefik platform routing (Grafana, Loki, Cortex).
-   - `tupynambalucas-corporate-dev`: Traefik corporate routing (Web, API, Docs).
-4. **Cloudflare Pages**:
-   - `tupynambalucas-docs`: Automated production builds from `docs` repository.
+     - `*-dev.tupynambalucas.dev` -> Platform development tunnels via Traefik
+   - **Zero Trust Tunnels**:
+     - `tupynambalucas-hub-dev`: Traefik platform routing (Grafana, Loki, Cortex).
+     - `tupynambalucas-corporate-dev`: Traefik corporate routing (Web, API, Docs).
+   - **Cloudflare Pages**:
+     - `tupynambalucas-docs`: Automated production builds from `docs` repository.
+
+2. **Personal Account (`tupynambalucas`)**:
+   - **Account Name**: `tupynambalucas` (strictly NO `-dev`).
+   - **Purpose**: Strictly personal homelab tunnels (e.g. personal home desktop, private homelab cluster), personal hobby domains, and personal Cloudflare Workers experiments. Zero corporate traffic routes through this account.
 
 ---
 
@@ -204,7 +231,70 @@ To ensure legal clarity and non-repudiation while preserving the founder's perso
 
 ---
 
-## 5. Contractor Onboarding & Bring-Your-Own-Token (BYOT) Workflows
+## 5. Sovereign Domain, Subdomain, and Email Architecture
+
+### 5.1 Strategic Evaluation: The `personal.tupynambalucas.dev` Dilemma
+
+A common question in founder-led engineering firms is whether to create subdomains like `personal.tupynambalucas.dev` and emails such as `contato@personal.tupynambalucas.dev`.
+
+**Architectural Verdict: REJECTED (Anti-Pattern)**.
+
+#### Why `personal.tupynambalucas.dev` is an Anti-Pattern:
+1. **Semantic Contradiction**: The address `contato@personal.tupynambalucas.dev` creates cognitive friction. "Contato" (Contact) is an impersonal, institutional inbox keyword; "personal" denotes a private individual. Combining them under a commercial domain signals amateur brand positioning and identity confusion to enterprise clients.
+2. **Email Deliverability & Spam Scoring (SPF, DKIM, DMARC)**: Deep tertiary subdomains (like `sub.domain.com`) have lower domain reputation baselines. Major mail servers (Google Workspace, Microsoft 365) apply stricter heuristics and higher spam penalties to mail sent from nested subdomains. Maintaining separate MX, SPF, DKIM, and DMARC records for a subdomain introduces unnecessary DNS fragility.
+3. **Legal & Compliance Boundary Violation**: If an individual conducts domestic civil life (banking, streaming, utility bills) on a corporate domain or subdomain, any future enterprise tax audit, investor due diligence, or corporate legal discovery would technically subpoena the corporate email system, entangling personal domestic correspondence in company legal proceedings.
+
+---
+
+### 5.2 The Sovereign Email Topology
+
+To achieve institutional prestige, pristine auditability, and personal privacy, all email communications follow a three-tier topology:
+
+```mermaid
+flowchart TD
+  subgraph CorporateInboxes ["Corporate Institutional (tupynambalucas.dev)"]
+    direction TB
+    C_Contato["contato@tupynambalucas.dev<br/>(Inbound client leads, partnerships, RFP responses)"]
+    C_Sec["security@tupynambalucas.dev<br/>(Vulnerability disclosure, compliance, CVE reporting)"]
+    C_Bill["billing@tupynambalucas.dev<br/>(Invoicing, accounts receivable/payable)"]
+  end
+
+  subgraph FounderExec ["Founder Executive Persona (tupynambalucas.dev)"]
+    direction TB
+    F_Lucas["lucas@tupynambalucas.dev<br/>(High-trust client advisory, Fractional CTO engagements, official Git signing)"]
+  end
+
+  subgraph CivilPersonal ["Physical Person / Civil Domestic Domain"]
+    direction TB
+    P_Personal["tupynambalucas@gmail.com / civil domain<br/>(Personal banking, domestic utilities, private subscriptions, non-work contacts)"]
+  end
+```
+
+1. **Corporate Institutional Tier (`@tupynambalucas.dev`)**:
+   - `contato@tupynambalucas.dev`: Inbound business inquiries, client communication, official company announcements.
+   - `security@tupynambalucas.dev`: Security audits, bug disclosures, RFC 9116 `security.txt` endpoint.
+   - `billing@tupynambalucas.dev`: SaaS subscriptions, vendor billing, client invoicing.
+2. **Founder Executive Tier (`lucas@tupynambalucas.dev`)**:
+   - Direct high-level email representing the Founder & Principal Systems Architect.
+   - Used for board-level consulting, advisory retainers, and signing official cryptographic commits for the organization.
+3. **Civil / Domestic Tier (Pessoa Física - External)**:
+   - Completely decoupled from `tupynambalucas.dev`.
+   - Utilizes `tupynambalucas@gmail.com` or a personal civil domain.
+   - Domestic utility bills, personal bank accounts, streaming services, and purely private correspondence never touch corporate servers.
+
+---
+
+### 5.3 Web Routing and Personal Portfolio Subdomain
+
+If the founder desires a dedicated personal showcase, engineering essays, or curriculum vitae hosted under the corporate brand umbrella:
+- **Canonical Subdomain**:
+  $$\mathbf{lucas.tupynambalucas.dev} \quad \text{or} \quad \mathbf{tupynambalucas.dev/founder}$$
+- **Prohibited Subdomain**: `personal.tupynambalucas.dev` (strictly prohibited).
+- **Public Profile Linkage**: The personal GitHub profile (`github.com/tupynambalucas`) lists website `https://tupynambalucas.dev` and bio affiliation with `tupynambalucas.dev`.
+
+---
+
+## 6. Contractor Onboarding & Bring-Your-Own-Token (BYOT) Workflows
 
 When an external contractor or temporary engineer joins a project:
 1. **Repository Access**: The contractor is invited to `github.com/tupynambalucas-dev` with role-based access to specific repositories (e.g. `platform` or `docs`). They **never** receive access to `github.com/tupynambalucas` (personal).
@@ -216,7 +306,7 @@ When an external contractor or temporary engineer joins a project:
 
 ---
 
-## 6. Implementation Checklist & Governance Sign-Off
+## 7. Implementation Checklist & Governance Sign-Off
 
 - [x] Standardize `# tupynambalucas.dev Platform Monorepo` in `platform/README.md`.
 - [x] Standardize `PROJECT_NAME: 'tupynambalucas.dev'` in `platform/shared/config/src/project.config.ts`.
@@ -224,6 +314,8 @@ When an external contractor or temporary engineer joins a project:
 - [x] Add root `.gitignore` and `.env.example` in `org-core`.
 - [x] Add strict validation and variables declaration in `agent-toolkit/mcp_config.json`.
 - [x] Add `.vscode` workspace configuration in `agent-toolkit`.
-- [ ] Rename Infisical project slug `tupynambalucas-core-ez7a` to `tupynambalucas-platform`.
-- [ ] Provision dedicated Infisical project `tupynambalucas-agent-toolkit` with developer fallback tokens.
-- [ ] Verify Cloudflare Account Name is set to `tupynambalucas.dev`.
+- [ ] Provision personal Infisical organization `tupynambalucas` for homelab and personal experiments.
+- [ ] Rename corporate Infisical project slug `tupynambalucas-core-ez7a` to `tupynambalucas-platform` under org `tupynambalucas-dev`.
+- [ ] Provision dedicated corporate Infisical project `tupynambalucas-agent-toolkit` with developer fallback tokens under org `tupynambalucas-dev`.
+- [ ] Verify Cloudflare Corporate Account Name is set to `tupynambalucas.dev`.
+- [ ] Verify Cloudflare Personal Account Name is set to `tupynambalucas`.
