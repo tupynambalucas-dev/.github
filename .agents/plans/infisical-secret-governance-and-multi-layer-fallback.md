@@ -64,7 +64,10 @@ flowchart TD
     { "name": "TUPYNAMBA_GATEWAY_TOKEN" },
     { "name": "FIRECRAWL_API_KEY" },
     { "name": "CONTEXT7_API_KEY" },
-    { "name": "GITHUB_TOKEN" }
+    { "name": "GITHUB_TOKEN" },
+    { "name": "INFISICAL_UNIVERSAL_AUTH_CLIENT_ID" },
+    { "name": "INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET" },
+    { "name": "INFISICAL_PROJECT_ID" }
   ]
   ```
 - **Interactive Trigger**: If neither Layer 1 (Infisical) nor Layer 2 (local `.env`) provides the required environment variables, Antigravity flags the plugin as `needs setup`.
