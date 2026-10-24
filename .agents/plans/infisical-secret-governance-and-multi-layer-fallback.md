@@ -21,7 +21,7 @@ To provide maximum flexibility across local development, temporary contractors, 
 flowchart TD
   Start["Agent / MCP Initialization"] --> CheckInfisical{"Layer 1: Infisical Session Active?<br/>(infisical login / machine identity)"}
   
-  CheckInfisical -- Yes --> InjectInfisical["Fetch secrets from Infisical Cloud<br/>(Project: tupynambalucas-agent-toolkit)<br/>Inject dynamically into RAM via infisical run"]
+  CheckInfisical -- Yes --> InjectInfisical["Fetch secrets from Infisical Cloud<br/>(Project: tupynambalucas-dev-agent-toolkit)<br/>Inject dynamically into RAM via infisical run"]
   InjectInfisical --> Ready["MCP Server Running"]
 
   CheckInfisical -- No --> CheckEnvFile{"Layer 2: Local .env File Present?<br/>(org-core/.env or workspace .env)"}
@@ -84,10 +84,10 @@ To maintain strict compliance and zero metadata leakage, Infisical Cloud is part
 flowchart TD
   subgraph TenantCorp ["Corporate Tenant: tupynambalucas-dev"]
     direction TB
-    C_Platform["tupynambalucas-platform<br/>(Display: Platform Infrastructure)<br/>Scope: Kubernetes Operator, Cluster DBs, Tunnels, In-Cluster Cortex"]
-    C_Toolkit["tupynambalucas-agent-toolkit<br/>(Display: Agent Toolkit)<br/>Scope: Developer Agent Fallback MCP Tokens (Firecrawl, Context7, GitHub)"]
-    C_Docs["tupynambalucas-docs<br/>(Display: Documentation Portal)<br/>Scope: Cloudflare Pages Deployments, Docs Analytics"]
-    C_Corp["tupynambalucas-corporate<br/>(Display: Corporate Applications)<br/>Scope: Fastify API Secrets, Production JWTs, Resend Keys"]
+    C_Platform["tupynambalucas-dev-platform<br/>(Display: Platform Infrastructure)<br/>Scope: Kubernetes Operator, Cluster DBs, Tunnels, In-Cluster Cortex"]
+    C_Toolkit["tupynambalucas-dev-agent-toolkit<br/>(Display: Agent Toolkit)<br/>Scope: Developer Agent Fallback MCP Tokens (Firecrawl, Context7, GitHub)"]
+    C_Docs["tupynambalucas-dev-docs<br/>(Display: Documentation Portal)<br/>Scope: Cloudflare Pages Deployments, Docs Analytics"]
+    C_Corp["tupynambalucas-dev-corporate<br/>(Display: Corporate Applications)<br/>Scope: Fastify API Secrets, Production JWTs, Resend Keys"]
   end
 
   subgraph TenantPers ["Personal Tenant: tupynambalucas (No -dev)"]
@@ -102,16 +102,16 @@ flowchart TD
 - **Display Name**: `tupynambalucas.dev` (or `tupynambalucas-dev`)
 - **Organization Slug**: `tupynambalucas-dev`
 - **Root Admin Email**: `admin@tupynambalucas.dev` (via Cloudflare Email Routing or Google Workspace)
-- **Access Governance**: Strict RBAC. Contractors are invited strictly at the **Project Level** (Viewer/Contributor on `tupynambalucas-agent-toolkit`). Contractors **never** receive organization-level roles.
+- **Access Governance**: Strict RBAC. Contractors are invited strictly at the **Project Level** (Viewer/Contributor on `tupynambalucas-dev-agent-toolkit`). Contractors **never** receive organization-level roles.
 
 #### Corporate Project Directory & Security Matrix:
 
 | Infisical Project Slug | Display Name | Scope & Target Secrets | Target Consumers | RBAC Policy |
 | :--- | :--- | :--- | :--- | :--- |
-| **`tupynambalucas-platform`** | `Platform Infrastructure` | `CORTEX_MCP_TOKEN`, `CLOUDFLARE_TUNNEL_TOKEN_HUB`, `GRAFANA_ADMIN_PASSWORD`, `MONGO_INITDB_ROOT_PASSWORD`, `REDIS_PASSWORD`, `PLATFORM_FIRECRAWL_KEY`. | Kubernetes Operator (`InfisicalSecret` CRD in `platform-dev`, `staging`, `prod`). | Lead Architect / DevOps only. Zero contractor access. |
-| **`tupynambalucas-agent-toolkit`** | `Agent Toolkit` | `FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`. | Local developer agents via `infisical run` / fallback. | Internal engineers & authorized contractors. |
-| **`tupynambalucas-docs`** | `Documentation Portal` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DOCS_ANALYTICS_KEY`. | GitHub Actions CI/CD for Cloudflare Pages. | CI/CD Machine Identity & Technical Writers. |
-| **`tupynambalucas-corporate`** | `Corporate Applications`| `FASTIFY_JWT_SECRET`, `RESEND_API_KEY`, `CLOUDFLARE_TUNNEL_TOKEN_CORPORATE`. | Production Web and API microservices. | Core backend team. |
+| **`tupynambalucas-dev-platform`** | `Platform Infrastructure` | `CORTEX_MCP_TOKEN`, `CLOUDFLARE_TUNNEL_TOKEN_HUB`, `GRAFANA_ADMIN_PASSWORD`, `MONGO_INITDB_ROOT_PASSWORD`, `REDIS_PASSWORD`, `PLATFORM_FIRECRAWL_KEY`. | Kubernetes Operator (`InfisicalSecret` CRD in `platform-dev`, `staging`, `prod`). | Lead Architect / DevOps only. Zero contractor access. |
+| **`tupynambalucas-dev-agent-toolkit`** | `Agent Toolkit` | `FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`. | Local developer agents via `infisical run` / fallback. | Internal engineers & authorized contractors. |
+| **`tupynambalucas-dev-docs`** | `Documentation Portal` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DOCS_ANALYTICS_KEY`. | GitHub Actions CI/CD for Cloudflare Pages. | CI/CD Machine Identity & Technical Writers. |
+| **`tupynambalucas-dev-corporate`** | `Corporate Applications`| `FASTIFY_JWT_SECRET`, `RESEND_API_KEY`, `CLOUDFLARE_TUNNEL_TOKEN_CORPORATE`. | Production Web and API microservices. | Core backend team. |
 
 ### 3.2 Personal Infisical Organization (`tupynambalucas`)
 - **Display Name**: `Tupynambá Lucas (Personal)`
@@ -131,19 +131,19 @@ flowchart TD
    - Locate the existing project `tupynambalucas-core-ez7a`.
    - Navigate to **Project Settings -> General**.
    - Change **Project Name** to: `Platform Infrastructure`.
-   - Change **Project Slug** to: `tupynambalucas-platform`.
+   - Change **Project Slug** to: `tupynambalucas-dev-platform`.
 4. **Provision the Agent Toolkit Project**:
    - In the organization project switcher, click **Create New Project**.
    - Project Name: `Agent Toolkit`.
-   - Project Slug: `tupynambalucas-agent-toolkit`.
+   - Project Slug: `tupynambalucas-dev-agent-toolkit`.
    - In the `dev` environment, add the fallback tokens:
      - `FIRECRAWL_API_KEY`: Dedicated developer pool key from Firecrawl.
      - `CONTEXT7_API_KEY`: Dedicated developer pool key from Upstash/Context7.
      - `GITHUB_TOKEN`: Organization developer PAT (scopes: `repo`, `read:org`).
      - `TUPYNAMBA_GATEWAY_TOKEN`: Bearer token for Cortex AgentGateway.
 5. **Provision Supporting Projects**:
-   - Create `tupynambalucas-docs` (Slug: `tupynambalucas-docs`).
-   - Create `tupynambalucas-corporate` (Slug: `tupynambalucas-corporate`).
+   - Create `tupynambalucas-dev-docs` (Slug: `tupynambalucas-dev-docs`).
+   - Create `tupynambalucas-dev-corporate` (Slug: `tupynambalucas-dev-corporate`).
 
 ### 4.2 Step 2: Personal Organization Provisioning
 1. In the top-left organization dropdown, click **Create Organization**.
@@ -163,13 +163,13 @@ Under no circumstances may developer fallback tokens share quotas or credentials
 
 | Variable Name | Context | Scope & Purpose | Target Infisical Project | Fallback Source Tier |
 | :--- | :--- | :--- | :--- | :--- |
-| **`FIRECRAWL_API_KEY`** | `agent-toolkit` (Fallback) | Developer web scraping & search via `firecrawl-mcp`. | `tupynambalucas-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
-| **`CONTEXT7_API_KEY`** | `agent-toolkit` (Fallback) | Framework documentation retrieval via `@upstash/context7-mcp`. | `tupynambalucas-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
-| **`GITHUB_TOKEN`** | `agent-toolkit` (Fallback) | Repository and PR analysis via `github-mcp-server-js`. | `tupynambalucas-agent-toolkit` | Developer PAT OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
-| **`TUPYNAMBA_GATEWAY_TOKEN`** | `agent-toolkit` (Gateway) | Bearer authentication against Cortex AgentGateway Ingress (`https://mcp.tupynambalucas.dev/mcp`). | `tupynambalucas-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`). |
-| **`PLATFORM_FIRECRAWL_KEY`** | `platform` (Cluster) | In-cluster Cortex vector embeddings and scheduled scraper workers. | `tupynambalucas-platform` | Kubernetes Secret via Infisical Operator (`k8s/.env`). |
-| **`PLATFORM_GITHUB_APP_TOKEN`**| `platform` (Cluster) | GitHub App credentials for CI/CD automation and deployment webhooks. | `tupynambalucas-platform` | Kubernetes Secret via Infisical Operator. |
-| **`CORTEX_MCP_TOKEN`** | `platform` (Cluster) | Internal gateway inter-service authentication token. | `tupynambalucas-platform` | Kubernetes Secret (`k8s/hub/cortex`). |
+| **`FIRECRAWL_API_KEY`** | `agent-toolkit` (Fallback) | Developer web scraping & search via `firecrawl-mcp`. | `tupynambalucas-dev-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
+| **`CONTEXT7_API_KEY`** | `agent-toolkit` (Fallback) | Framework documentation retrieval via `@upstash/context7-mcp`. | `tupynambalucas-dev-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
+| **`GITHUB_TOKEN`** | `agent-toolkit` (Fallback) | Repository and PR analysis via `github-mcp-server-js`. | `tupynambalucas-dev-agent-toolkit` | Developer PAT OR Tier 2 (`.env`) OR Tier 3 (`/plugin`). |
+| **`TUPYNAMBA_GATEWAY_TOKEN`** | `agent-toolkit` (Gateway) | Bearer authentication against Cortex AgentGateway Ingress (`https://mcp.tupynambalucas.dev/mcp`). | `tupynambalucas-dev-agent-toolkit` | Tier 1 (Infisical) OR Tier 2 (`.env`). |
+| **`PLATFORM_FIRECRAWL_KEY`** | `platform` (Cluster) | In-cluster Cortex vector embeddings and scheduled scraper workers. | `tupynambalucas-dev-platform` | Kubernetes Secret via Infisical Operator (`k8s/.env`). |
+| **`PLATFORM_GITHUB_APP_TOKEN`**| `platform` (Cluster) | GitHub App credentials for CI/CD automation and deployment webhooks. | `tupynambalucas-dev-platform` | Kubernetes Secret via Infisical Operator. |
+| **`CORTEX_MCP_TOKEN`** | `platform` (Cluster) | Internal gateway inter-service authentication token. | `tupynambalucas-dev-platform` | Kubernetes Secret (`k8s/hub/cortex`). |
 
 ---
 
@@ -284,9 +284,9 @@ An exhaustive audit of the immutable backup directory confirms zero loss of hist
 - [x] Pass `agy plugin validate agent-toolkit --strict` with 0 errors and 0 warnings.
 - [x] Add root `.gitignore` and `.env.example` to `org-core` and `agent-toolkit`.
 - [x] Standardize Monorepo dependencies (`package.json`) to `github:tupynambalucas-dev/agent-toolkit`.
-- [ ] Rename Infisical project `tupynambalucas-core-ez7a` to `tupynambalucas-platform` (Display: `Platform Infrastructure`).
-- [ ] Create corporate Infisical project `tupynambalucas-agent-toolkit` (Display: `Agent Toolkit`) and populate fallback keys.
-- [ ] Create corporate Infisical project `tupynambalucas-docs` (Display: `Documentation Portal`).
-- [ ] Create corporate Infisical project `tupynambalucas-corporate` (Display: `Corporate Applications`).
+- [ ] Rename Infisical project `tupynambalucas-core-ez7a` to `tupynambalucas-dev-platform` (Display: `Platform Infrastructure`).
+- [ ] Create corporate Infisical project `tupynambalucas-dev-agent-toolkit` (Display: `Agent Toolkit`) and populate fallback keys.
+- [ ] Create corporate Infisical project `tupynambalucas-dev-docs` (Display: `Documentation Portal`).
+- [ ] Create corporate Infisical project `tupynambalucas-dev-corporate` (Display: `Corporate Applications`).
 - [ ] Create personal Infisical organization `tupynambalucas` with clean projects (`homelab`, `experiments`, `personal-site`).
-- [ ] Verify contractor invitation protocol (Project-level Viewer on `tupynambalucas-agent-toolkit` only).
+- [ ] Verify contractor invitation protocol (Project-level Viewer on `tupynambalucas-dev-agent-toolkit` only).

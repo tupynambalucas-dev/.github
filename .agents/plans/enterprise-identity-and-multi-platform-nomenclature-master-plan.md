@@ -124,7 +124,7 @@ flowchart TD
   subgraph SlugRules ["Deterministic Slug Rules (Class B Platforms)"]
     direction TB
     R_Org["Organization Slug:<br/>Personal: 'tupynambalucas'<br/>Corporate: 'tupynambalucas-dev'"]
-    R_CorpProj["Corporate Project Slug Formula:<br/>'tupynambalucas-{subsystem}'<br/>(e.g., tupynambalucas-platform, tupynambalucas-agent-toolkit)"]
+    R_CorpProj["Corporate Project Slug Formula:<br/>'tupynambalucas-dev-{subsystem}'<br/>(e.g., tupynambalucas-dev-platform, tupynambalucas-dev-agent-toolkit)"]
     R_PersProj["Personal Project Slug Formula:<br/>'{subsystem}'<br/>(e.g., homelab, experiments, personal-site)"]
     R_Tunnel["Zero Trust Tunnel Slug Formula:<br/>'tupynambalucas-{subsystem}-dev'<br/>(e.g., tupynambalucas-hub-dev, tupynambalucas-corporate-dev)"]
   end
@@ -134,13 +134,13 @@ flowchart TD
    - Corporate: Strictly `tupynambalucas-dev` (hyphenated).
    - Personal: Strictly `tupynambalucas` (no suffix).
 2. **Corporate Project Slugs**:
-   - Formula: `tupynambalucas-{subsystem}`
-   - Rationale: In multi-tenant CLI environments (e.g. Infisical CLI where an engineer might belong to multiple organizations), project slugs must be globally unambiguous in local configs (`.infisical.json`).
+   - Formula: `tupynambalucas-dev-{subsystem}`
+   - Rationale: Reflects the parent organization slug (`tupynambalucas-dev`) precisely, maintaining full traceability and avoiding any collision with the physical person handle (`tupynambalucas`). In multi-tenant CLI environments (e.g. Infisical CLI where an engineer might belong to multiple organizations), project slugs are globally unambiguous in local configs (`.infisical.json`).
    - Standard Slugs:
-     - `tupynambalucas-platform`
-     - `tupynambalucas-agent-toolkit`
-     - `tupynambalucas-docs`
-     - `tupynambalucas-corporate`
+     - `tupynambalucas-dev-platform`
+     - `tupynambalucas-dev-agent-toolkit`
+     - `tupynambalucas-dev-docs`
+     - `tupynambalucas-dev-corporate`
 3. **Personal Project Slugs**:
    - Formula: `{subsystem}` (clean, un-prefixed).
    - Rationale: The personal organization is strictly single-tenant and never shared with contractors. Prefixing `tupynambalucas-` inside a personal-only tenant is redundant noise.
@@ -175,26 +175,26 @@ flowchart TD
 
   subgraph InfisicalCorp ["Corporate Infisical Org: tupynambalucas-dev (With -dev)"]
     direction TB
-    C_Platform["tupynambalucas-platform<br/>(Display: Platform Infrastructure)<br/>Scope: K8s Operator, DBs, Tunnels, Cortex Gateway"]
-    C_Toolkit["tupynambalucas-agent-toolkit<br/>(Display: Agent Toolkit)<br/>Scope: Developer Agent Fallback MCP Tokens"]
-    C_Docs["tupynambalucas-docs<br/>(Display: Documentation Portal)<br/>Scope: Cloudflare Pages Deployments"]
-    C_Corp["tupynambalucas-corporate<br/>(Display: Corporate Applications)<br/>Scope: Fastify API Secrets, Resend JWTs"]
+    C_Platform["tupynambalucas-dev-platform<br/>(Display: Platform Infrastructure)<br/>Scope: K8s Operator, DBs, Tunnels, Cortex Gateway"]
+    C_Toolkit["tupynambalucas-dev-agent-toolkit<br/>(Display: Agent Toolkit)<br/>Scope: Developer Agent Fallback MCP Tokens"]
+    C_Docs["tupynambalucas-dev-docs<br/>(Display: Documentation Portal)<br/>Scope: Cloudflare Pages Deployments"]
+    C_Corp["tupynambalucas-dev-corporate<br/>(Display: Corporate Applications)<br/>Scope: Fastify API Secrets, Resend JWTs"]
   end
 ```
 
 #### A. Corporate Infisical Organization (`tupynambalucas-dev`)
 - **Organization Slug**: `tupynambalucas-dev`.
 - **Display Name**: `tupynambalucas.dev` (or `tupynambalucas-dev`).
-- **Access Governance**: RBAC enabled. Elastic contractors receive scoped read-only access strictly to specific projects (e.g. `tupynambalucas-agent-toolkit`).
+- **Access Governance**: RBAC enabled. Elastic contractors receive scoped read-only access strictly to specific projects (e.g. `tupynambalucas-dev-agent-toolkit`).
 - **Project Naming Formula (The Anti-Hash Rule)**:
-  $$\text{tupynambalucas}-\text{\{context-or-product\}}$$
+  $$\text{tupynambalucas-dev}-\text{\{context-or-product\}}$$
 
 | Infisical Project Slug | Display Name | Boundary | Scope & Target Secrets | Target Consumers |
 | :--- | :--- | :--- | :--- | :--- |
-| **`tupynambalucas-platform`** | `Platform Infrastructure` | Corporate | `CORTEX_MCP_TOKEN`, `CLOUDFLARE_TUNNEL_TOKEN_HUB`, `GRAFANA_ADMIN_PASSWORD`, `MONGO_INITDB_ROOT_PASSWORD`, `REDIS_PASSWORD`. | Kubernetes Operator (`InfisicalSecret` CRD). |
-| **`tupynambalucas-agent-toolkit`** | `Agent Toolkit` | Corporate | `FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`. | Local developer agents via `infisical run` / fallback. |
-| **`tupynambalucas-docs`** | `Documentation Portal` | Corporate | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. | GitHub Actions CI/CD for Cloudflare Pages. |
-| **`tupynambalucas-corporate`** | `Corporate Applications`| Corporate | `FASTIFY_JWT_SECRET`, `RESEND_API_KEY`, `CLOUDFLARE_TUNNEL_TOKEN_CORPORATE`. | Production Web and API microservices. |
+| **`tupynambalucas-dev-platform`** | `Platform Infrastructure` | Corporate | `CORTEX_MCP_TOKEN`, `CLOUDFLARE_TUNNEL_TOKEN_HUB`, `GRAFANA_ADMIN_PASSWORD`, `MONGO_INITDB_ROOT_PASSWORD`, `REDIS_PASSWORD`. | Kubernetes Operator (`InfisicalSecret` CRD). |
+| **`tupynambalucas-dev-agent-toolkit`** | `Agent Toolkit` | Corporate | `FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`. | Local developer agents via `infisical run` / fallback. |
+| **`tupynambalucas-dev-docs`** | `Documentation Portal` | Corporate | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. | GitHub Actions CI/CD for Cloudflare Pages. |
+| **`tupynambalucas-dev-corporate`** | `Corporate Applications`| Corporate | `FASTIFY_JWT_SECRET`, `RESEND_API_KEY`, `CLOUDFLARE_TUNNEL_TOKEN_CORPORATE`. | Production Web and API microservices. |
 
 #### B. Personal Infisical Organization (`tupynambalucas`)
 - **Organization Slug**: `tupynambalucas` (strictly NO `-dev`).
@@ -211,10 +211,10 @@ flowchart TD
    - Navigate to Infisical Cloud -> Switch Organization -> **Create New Organization** (or rename current).
    - Enter Display Name: `tupynambalucas.dev` (or `tupynambalucas-dev`).
    - Enter Organization Slug: `tupynambalucas-dev`.
-   - **Rename Core Project**: Access project `tupynambalucas-core-ez7a` -> Project Settings -> General -> Rename Display Name to `Platform Infrastructure` and Slug to `tupynambalucas-platform`.
-   - **Provision Toolkit Project**: Create Project -> Display Name: `Agent Toolkit`, Slug: `tupynambalucas-agent-toolkit`. Populate fallback keys (`FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`).
-   - **Provision Supporting Projects**: Create `tupynambalucas-docs` and `tupynambalucas-corporate`.
-   - **Invite Governance**: When onboarding contractors, invite them exclusively with **Project-Level Role: Viewer / Developer** scoped to `tupynambalucas-agent-toolkit`. Never grant Organization Owner or Organization Admin.
+   - **Rename Core Project**: Access project `tupynambalucas-core-ez7a` -> Project Settings -> General -> Rename Display Name to `Platform Infrastructure` and Slug to `tupynambalucas-dev-platform`.
+   - **Provision Toolkit Project**: Create Project -> Display Name: `Agent Toolkit`, Slug: `tupynambalucas-dev-agent-toolkit`. Populate fallback keys (`FIRECRAWL_API_KEY`, `CONTEXT7_API_KEY`, `GITHUB_TOKEN`, `TUPYNAMBA_GATEWAY_TOKEN`).
+   - **Provision Supporting Projects**: Create `tupynambalucas-dev-docs` and `tupynambalucas-dev-corporate`.
+   - **Invite Governance**: When onboarding contractors, invite them exclusively with **Project-Level Role: Viewer / Developer** scoped to `tupynambalucas-dev-agent-toolkit`. Never grant Organization Owner or Organization Admin.
 
 2. **Personal Organization Setup**:
    - Navigate to Infisical Cloud -> Switch Organization -> **Create New Organization**.
@@ -241,7 +241,7 @@ Cloudflare fully supports dots in account names and domain zones. To ensure pris
      - `tupynambalucas-hub-dev`: Traefik platform routing (Grafana, Loki, Cortex).
      - `tupynambalucas-corporate-dev`: Traefik corporate routing (Web, API, Docs).
    - **Cloudflare Pages**:
-     - `tupynambalucas-docs`: Automated production builds from `docs` repository.
+     - `tupynambalucas-dev-docs`: Automated production builds from `docs` repository.
    - **Billing & Entity**: Linked to corporate credit card / PJ CNPJ.
 
 2. **Personal Account (`tupynambalucas`)**:
@@ -481,7 +481,7 @@ If the founder desires a dedicated personal showcase, engineering essays, or cur
 When an external contractor or temporary engineer joins a project:
 1. **Repository Access**: The contractor is invited to `github.com/tupynambalucas-dev` with role-based access to specific repositories (e.g. `platform` or `docs`). They **never** receive access to `github.com/tupynambalucas` (personal).
 2. **Secret Resolution Workflow (3 Cascading Layers)**:
-   - **Tier 1 (Enterprise Infisical)**: If authorized, the contractor runs `pnpm dlx @infisical/cli login` and receives scoped read-only access to `tupynambalucas-agent-toolkit`.
+   - **Tier 1 (Enterprise Infisical)**: If authorized, the contractor runs `pnpm dlx @infisical/cli login` and receives scoped read-only access to `tupynambalucas-dev-agent-toolkit`.
    - **Tier 2 (BYOT Local `.env`)**: If the contractor does not have Infisical access, they copy `.env.example` to `.env` in their local workspace and provide their own personal Firecrawl, Context7, or GitHub keys.
    - **Tier 3 (Antigravity Interactive Setup)**: If no `.env` exists, the contractor runs `/plugin agent-toolkit` in the Antigravity CLI and enters their personal keys, which are persisted locally in `~/.gemini/config/config.json`.
 3. **Pull Request Protocol**: All contractor contributions are submitted via pull requests against `develop`, requiring review and signed approval before merging.
@@ -499,8 +499,8 @@ When an external contractor or temporary engineer joins a project:
 - [x] Confirm personal GitHub username retention as `tupynambalucas` (zero modification).
 - [x] Formalize immutable corporate apex domain as `tupynambalucas.dev` (rejection of `.org`).
 - [ ] Provision personal Infisical organization `tupynambalucas` for homelab and personal experiments.
-- [ ] Rename corporate Infisical project slug `tupynambalucas-core-ez7a` to `tupynambalucas-platform` under org `tupynambalucas-dev`.
-- [ ] Provision dedicated corporate Infisical project `tupynambalucas-agent-toolkit` with developer fallback tokens under org `tupynambalucas-dev`.
+- [ ] Rename corporate Infisical project slug `tupynambalucas-core-ez7a` to `tupynambalucas-dev-platform` under org `tupynambalucas-dev`.
+- [ ] Provision dedicated corporate Infisical project `tupynambalucas-dev-agent-toolkit` with developer fallback tokens under org `tupynambalucas-dev`.
 - [ ] Verify Cloudflare Corporate Account Name is set to `tupynambalucas.dev`.
 - [ ] Verify Cloudflare Personal Account Name is set to `tupynambalucas`.
 - [ ] Configure `admin@tupynambalucas.dev` via Cloudflare Email Routing (Bootstrap) or Google Workspace (Enterprise IdP).
