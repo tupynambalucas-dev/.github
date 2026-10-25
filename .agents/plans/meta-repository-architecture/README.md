@@ -76,6 +76,10 @@ flowchart TD
    pushes, empty directories, and Hazard 5: Standalone Developer Workflow), and automated GitHub
    Actions dispatch mitigation runbooks.
 3. [Developer Workstation & GitHub Onboarding](./developer-workstation-and-github-onboarding-plan.md):
-   Practical workstation provisioning runbook, team-by-team capability matrix, Ed25519 SSH commit
-   signing configuration, GitHub CLI (`gh`) authentication flows, Infisical secret vault resolution,
-   and recursive submodule workspace setup.
+   Automated workstation bootstrapping (`bootstrap-workstation.ps1` / `.sh`), pre-flight readiness gate
+   evaluation (7 compliance gates GV1-GV7), team-by-team capability matrix, Ed25519 SSH commit signing,
+   GitHub CLI (`gh`) standard setup, and local pre-push hook enforcement.
+4. [GitHub Organization Security & Rulesets](./github-organization-security-and-rulesets-plan.md):
+   Centralized security baseline, secret scanning push protection, branch protection rulesets on
+   `main` and `develop` (mandatory commit signing, linear history, review threads), CODEOWNERS submodule
+   governance, and automated REST provisioning runbooks.

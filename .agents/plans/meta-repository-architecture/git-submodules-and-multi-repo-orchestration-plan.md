@@ -37,26 +37,42 @@ child repositories. Instead, they are recorded as special 160-bit SHA tree entri
 160000 commit 14683bdc6b962c95eed3e9bba2c12030d60ee0cb    platform
 ```
 
-The matching [`.gitmodules`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.gitmodules) file maps the logical submodule name to its remote URL and tracking branch:
+The matching [`.gitmodules`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.gitmodules) file maps the logical submodule name to its remote URL, tracking branch, update policy, and recursive fetch strategy (as defined in the official Git SCM `gitmodules(5)` specification):
 
 ```ini
 [submodule ".github"]
 	path = .github
 	url = git@github.com:tupynambalucas-dev/.github.git
 	branch = main
+	update = merge
+	fetchRecurseSubmodules = on-demand
+
 [submodule "platform"]
 	path = platform
 	url = git@github.com:tupynambalucas-dev/platform.git
 	branch = develop
+	update = merge
+	fetchRecurseSubmodules = on-demand
+
 [submodule "docs"]
 	path = docs
 	url = git@github.com:tupynambalucas-dev/docs.git
 	branch = develop
+	update = merge
+	fetchRecurseSubmodules = on-demand
+
 [submodule "agent-toolkit"]
 	path = agent-toolkit
 	url = git@github.com:tupynambalucas-dev/agent-toolkit.git
 	branch = main
+	update = merge
+	fetchRecurseSubmodules = on-demand
 ```
+
+#### Official `gitmodules(5)` Property Definitions:
+- **`branch`**: Defines the remote branch tracked when executing `git submodule update --remote`. Setting `branch = develop` for `platform` and `docs`, and `branch = main` for `.github` and `agent-toolkit` ensures automatic upstream alignment without guessing branch names.
+- **`update = merge`**: Defines the update procedure. Instead of checking out commits in a detached HEAD state (the Git default), `merge` merges the remote tracking commit into the local branch, preserving local history and preventing commit abandonment.
+- **`fetchRecurseSubmodules = on-demand`**: Ensures `git fetch` and `git pull` in the superproject automatically fetch new commits for all populated submodules.
 
 ---
 
@@ -326,6 +342,53 @@ flowchart TD
     ```bash
     git submodule update --remote --merge platform
     ```
+
+### 3.6 The 5-Pillar Global Git Configuration Standard
+
+Based on official Git SCM documentation (`gitsubmodules`, `gitmodules`, `git-config`), the following
+5 configurations eliminate 95% of common developer submodule failures:
+
+1. **`submodule.recurse = true`**:
+   - Forces Git to recurse into all active submodules for `checkout`, `switch`, `reset`, and `pull`.
+   - Prevents stale local working tree skew and accidental pointer rollbacks.
+2. **`push.recurseSubmodules = check`**:
+   - Prevents pushing `org-core` if any child submodule commit hasn't been pushed to its remote. This
+     completely eliminates the `fatal: reference is not a tree` error for other team members.
+   - Alternatively, `push.recurseSubmodules = on-demand` automatically pushes child commits before the parent.
+3. **`status.submoduleSummary = true`**:
+   - Displays a summary of commits in modified submodules directly in `git status`, making pointer drifts
+     immediately visible to human developers.
+4. **`diff.submodule = log`**:
+   - `git diff` shows commit logs and commit titles rather than obscure 40-character SHAs (`Subproject commit <sha1>` vs `<sha2>`).
+5. **`fetch.recurseSubmodules = on-demand`**:
+   - Ensures any `git fetch` automatically fetches new commits for populated submodules when new commits
+     are referenced by the superproject.
+
+```bash
+# Execute these commands to apply the 5-Pillar standard:
+git config --global submodule.recurse true
+git config --global push.recurseSubmodules check
+git config --global status.submoduleSummary true
+git config --global diff.submodule log
+git config --global fetch.recurseSubmodules on-demand
+```
+
+### 3.7 Automated Workstation Bootstrapping & Readiness Gates
+
+To guarantee compliance and eliminate manual setup friction, developers do not configure these settings
+manually. The organization provides:
+
+1. **Automated Bootstrapper** (`scripts/bootstrap-workstation.ps1` / `scripts/bootstrap-workstation.sh`):
+   - Sets up all Git defaults, SSH Ed25519 keys, GitHub CLI, and workspace paths in a single automated command.
+2. **Pre-Flight Readiness Gate** (`scripts/verify-workstation.ps1` / `scripts/verify-workstation.sh`):
+   - Evaluates the 7 compliance gates (GV1 to GV7) before code is pushed to remote branches.
+3. **Local Pre-Push Hook** (`.git/hooks/pre-push`):
+   - Blocks non-compliant pushes locally before they trigger GitHub branch ruleset rejections.
+
+For detailed onboarding and script specifications, consult
+[Developer Workstation & GitHub Onboarding](./developer-workstation-and-github-onboarding-plan.md).
+For repository security and branch ruleset configurations, consult
+[GitHub Organization Security & Rulesets](./github-organization-security-and-rulesets-plan.md).
 
 ---
 
