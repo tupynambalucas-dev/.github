@@ -125,10 +125,11 @@ their mechanics. Below are the 5 primary operational hazards and their standard 
   - Enforce the **Pointer Bumping Runbook** in `org-core`:
     ```bash
     git -C platform commit -S -m "feat(api): add healthcheck endpoint"
-    git -C platform push origin develop
-    # Stage pointer update in superproject
+    git -C platform push origin feature/api-healthcheck
+    # Once PR merges to main in platform, update superproject:
+    git submodule update --remote --merge platform
     git add platform
-    git commit -S -m "chore(submodules): bump platform to latest develop"
+    git commit -S -m "chore(submodules): bump platform to latest main"
     git push origin main
     ```
 
@@ -178,12 +179,12 @@ their mechanics. Below are the 5 primary operational hazards and their standard 
 ```mermaid
 flowchart TD
     subgraph StandaloneDev["Standalone Developer Environment"]
-        A["Dev clones platform directly"] --> B["Commits feat on develop"]
-        B --> C["git push origin develop"]
+        A["Dev clones platform directly"] --> B["Creates feature branch & commits"]
+        B --> C["git push origin feature/xyz & merges PR to main"]
     end
 
     subgraph GitHubRemote["GitHub Repositories"]
-        C --> D["platform remote: commit def5678"]
+        C --> D["platform remote: commit def5678 on main"]
         E["org-core remote: pointer still at 14683bd"]
     end
 

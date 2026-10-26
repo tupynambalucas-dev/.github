@@ -251,7 +251,7 @@ pnpm run verify:workstation
 powershell -ExecutionPolicy Bypass -File scripts/verify-workstation.ps1
 ```
 
-### The 7 Compliance Gates (GV1 to GV7):
+### The 8 Compliance Gates (GV1 to GV8):
 
 | Gate ID | Check Description | Required Value | Remediation if Failed |
 | :--- | :--- | :--- | :--- |
@@ -261,7 +261,8 @@ powershell -ExecutionPolicy Bypass -File scripts/verify-workstation.ps1
 | **GV4** | Submodule Recurse | `submodule.recurse = true` | `git config --global submodule.recurse true` |
 | **GV5** | Submodule Push Check | `push.recurseSubmodules = check` or `on-demand` | `git config --global push.recurseSubmodules check` |
 | **GV6** | GitHub CLI Auth Status | Logged in as authorized org member | `gh auth login` |
-| **GV7** | Submodule Tree Integrity | All 4 submodules populated & on tracking branch | `git submodule update --init --recursive` |
+| **GV7** | Submodule Tree Integrity | All 4 submodules populated & tracking `main` | `git submodule update --init --recursive` |
+| **GV8** | Branch Naming & Pre-Push Hook | Active `.git/hooks/pre-push` validating taxonomy | Re-run `bootstrap-workstation.ps1` |
 
 If any gate fails, the script outputs a red failure message with the exact command to fix it and exits with code `1`.
 
@@ -269,40 +270,73 @@ If any gate fails, the script outputs a red failure message with the exact comma
 
 ## 7. Workstation Scopes: Meta-Repository vs. Standalone Child Repositories
 
-### 7.1 Scenario A: Working Inside `org-core` (Multi-Root Workspace)
+Developers can work in two distinct modes depending on their functional role. Both modes are 100% supported,
+isolated, and safeguarded by automated synchronization:
 
-When developing across multiple components or managing infrastructure:
-1. Open `org-core` in VS Code / Antigravity IDE:
-   `code tupynambalucas-dev.code-workspace`
-2. All 4 child submodules appear in the explorer.
-3. Because `submodule.recurse = true` is configured:
-   - `git pull` updates both `org-core` and all child submodules simultaneously.
-   - `git checkout` switches branches seamlessly without leaving stale trees.
-4. **Pointer Bumping**: When committing in a child submodule, stage the updated pointer in `org-core`:
-   ```bash
-   git -C platform commit -S -m "feat(api): add auth endpoint"
-   git -C platform push origin develop
-   git add platform
-   git commit -S -m "chore(submodules): bump platform pointer"
-   git push origin main
-   ```
+### 7.1 Scenario A: Standalone Child Repository Workflow (Independent Workspaces)
 
-### 7.2 Scenario B: Working in Standalone Child Repositories (Independent Workspaces)
+Recommended for frontend engineers, backend service developers, and technical writers who focus on a single domain.
+Developers work exclusively inside the child repository and do **not** need to clone or interact with `org-core`:
 
-When a developer (e.g., frontend engineer or technical writer) clones ONLY `platform` or ONLY `docs`:
 ```bash
+# 1. Clone only the required child repository
 git clone git@github.com:tupynambalucas-dev/platform.git
 cd platform
-git checkout develop
+
+# 2. Create a standardized branch from main
+git switch -c feature/corporate-api-v2
+
+# 3. Develop, run tests, and document semantic version changes
+pnpm corporate:typecheck
+pnpm changeset
+
+# 4. Commit using cryptographic SSH signature (-S)
+git add .
+git commit -S -m "feat(api): implement v2 telemetry healthcheck"
+
+# 5. Push branch and open Pull Request
+git push -u origin feature/corporate-api-v2
+gh pr create --web
+
+# 6. Automated Synchronization with org-core:
+# When the PR is reviewed and squash-merged into platform:main, GitHub Actions:
+# - Triggers changesets/action@v2 to update the "Version Packages" PR.
+# - Emits a repository_dispatch event to tupynambalucas-dev/org-core.
+# - The @tupynambalucas-org-manager[bot] in org-core automatically updates the gitlink pointer.
+# The developer never needs to touch org-core!
 ```
 
-- **How this works safely**:
-  1. The developer does NOT need `org-core` locally.
-  2. The developer commits and pushes directly to `platform:develop`.
-  3. **Automated Synchronization**: The GitHub Actions workflow in `platform` emits a `repository_dispatch`
-     event to `org-core`.
-  4. The `@tupynambalucas-org-manager[bot]` in `org-core` automatically bumps the pointer in `org-core`,
-     ensuring downstream meta-repo consumers are never left out of sync.
+### 7.2 Scenario B: Umbrella Meta-Repository Workflow (Cross-Repository & Architecture)
+
+Recommended for lead architects, multi-discipline fullstack engineers, and autonomous AI agents:
+
+```bash
+# 1. Clone org-core recursively
+git clone --recursive git@github.com:tupynambalucas-dev/org-core.git
+cd org-core
+
+# 2. Open multi-root workspace in IDE
+code tupynambalucas-dev.code-workspace
+
+# 3. Synchronize all submodules to latest remote main heads
+git submodule update --remote --merge
+
+# 4. Work inside any submodule (e.g., platform)
+cd platform
+git switch -c feature/shared-auth-middleware
+# Author code, pnpm changeset, commit with -S
+git commit -S -m "feat(auth): shared middleware across services"
+git push -u origin feature/shared-auth-middleware
+gh pr create --web
+
+# 5. Local Pointer Bumping in org-core (Optional manual bump):
+# Once the PR merges in platform:main, pull the updated submodule pointer into org-core:
+cd /path/to/org-core
+git submodule update --remote --merge platform
+git add platform
+git commit -S -m "chore(submodules): bump platform to latest main"
+git push origin main
+```
 
 ---
 
