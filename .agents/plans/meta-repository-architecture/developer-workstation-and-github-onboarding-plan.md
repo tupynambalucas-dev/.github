@@ -59,28 +59,45 @@ flowchart TD
 
 ---
 
-## 2. Organization Email and Commit Identity Policy
+## 2. Lean Sovereign Email Architecture & Commit Identity Policy
 
-To guarantee strict compliance with GitHub verified commit standards and enterprise non-repudiation:
+The `tupynambalucas-dev` organization operates under a **lean, sovereign infrastructure model** that
+deliberately avoids recurring per-seat SaaS bloat (such as paid Google Workspace, Microsoft 365, or GitHub
+Enterprise Managed Users). The organization domain `tupynambalucas.dev` utilizes **Cloudflare Email Routing**
+for zero-cost administrative inbound forwarding.
 
-### 2.1 The Administrative Email (`contato@tupynambalucas.dev`)
-- **Strict Role**: The `contato@tupynambalucas.dev` address is the **Organization Root Administrative Contact**.
-- **Prohibition**: Human developers, external contractors, and team members **must NEVER author commits** using
-  `contato@tupynambalucas.dev`. Commits from developers using this address will be flagged for security audit review.
+To ensure deterministic GitHub verification without requiring the organization to maintain manual mailbox
+infrastructure or paid email suites for every developer:
 
-### 2.2 Developer Commit Email Standards (Approved Options)
+### 2.1 The Administrative Alias (`contato@tupynambalucas.dev`)
+- **Infrastructure Reality**: The address `contato@tupynambalucas.dev` is a Cloudflare Email Routing alias
+  forwarded to the founder's primary inbox.
+- **Founder Exclusive**: Because this address is verified on the founder's personal GitHub account
+  (`@tupynambalucasdev`), commits authored and signed by the founder carry the verified badge.
+- **Strict Prohibition for Other Developers**: External contributors, team members, and collaborators
+  **must NEVER author commits** using `contato@tupynambalucas.dev`. Doing so breaks individual auditability
+  and causes GitHub to flag their commits as `Unverified` (since the email is not registered on their GitHub accounts).
 
-Every developer must configure their commit identity using one of the two authorized options:
+### 2.2 Developer Commit Email Standards (Zero-Cost & Out-of-the-Box)
 
-#### Option A: Nominal Corporate Email (Preferred for Core Employees)
-- Format: `<firstname>.<lastname>@tupynambalucas.dev` or `<username>@tupynambalucas.dev` (e.g., `jane.doe@tupynambalucas.dev`).
-- Requirement: The developer must add and verify this email address in their GitHub account under
-  [GitHub Settings -> Emails](https://github.com/settings/emails).
+Developers do not need an `@tupynambalucas.dev` mailbox. Instead, they authenticate using their native GitHub identities:
 
-#### Option B: GitHub Privacy-Preserving No-Reply Email (Preferred for Contractors / Personal Accounts)
-- Format: `<id>+<username>@users.noreply.github.com` (e.g., `12345678+janedoe@users.noreply.github.com`).
-- Requirement: Retrieved directly from [GitHub Settings -> Emails -> Keep my email addresses private](https://github.com/settings/emails).
-- Benefit: Guarantees 100% verified commit badges without exposing personal email addresses publicly in git logs.
+#### Primary Standard: GitHub Privacy-Preserving No-Reply Email (Recommended for All Contributors)
+- **Format**: `<id>+<username>@users.noreply.github.com` (e.g., `12345678+janedoe@users.noreply.github.com`).
+- **How to Obtain**: Found directly in [GitHub Settings -> Emails](https://github.com/settings/emails) under *"Keep my email addresses private"*.
+- **Why it is the Industry Standard**:
+  1. **Zero Setup Cost**: Works immediately with any GitHub account (free, student, or pro) without requesting corporate email provisioning.
+  2. **100% Cryptographic Verification**: GitHub guarantees the commit receives the green `Verified` badge when signed with the developer's registered SSH key.
+  3. **Privacy Protection**: Prevents the developer's personal email from being harvested by bots crawling public Git commit graphs.
+  4. **Accountability**: Commits link directly to the developer's authenticated GitHub profile.
+
+#### Secondary Option: Developer's Primary Verified GitHub Email
+- Developers may also use their existing personal or contractor email address, provided it is verified on their
+  own GitHub profile.
+
+#### Service and Automation Identities
+- CI/CD bots and GitHub Apps use their standard GitHub App bot identities (e.g.,
+  `@tupynambalucas-org-manager[bot]` with email `tupynambalucas-org-manager[bot]@users.noreply.github.com`).
 
 ---
 

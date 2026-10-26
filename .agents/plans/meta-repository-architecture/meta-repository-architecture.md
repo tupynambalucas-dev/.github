@@ -210,6 +210,16 @@ based on repository filesystem paths:
     format = ssh
 ```
 
+> [!NOTE]
+> **Lean Sovereign Email Architecture**: The address `contato@tupynambalucas.dev` operates via Cloudflare Email
+> Routing (inbound forwarding) and is verified specifically on the founder's GitHub account (`@tupynambalucasdev`).
+> Other team members and external contributors do not require `@tupynambalucas.dev` mailboxes or paid Google
+> Workspace licenses; they configure their commit identity using their own verified GitHub email or the native
+> GitHub privacy address `<id>+<username>@users.noreply.github.com`, ensuring 100% verified cryptographic signatures
+> at zero cost. Furthermore, Git 2.36+ `hasconfig:remote.*.url` enables location-independent matching regardless
+> of where a developer clones organizational repositories. Complete details are formalized in
+> [Developer Workstation Onboarding](./developer-workstation-and-github-onboarding-plan.md).
+
 ---
 
 ## 6. Technical Specification of the Meta-Repository (`org-core/`)
