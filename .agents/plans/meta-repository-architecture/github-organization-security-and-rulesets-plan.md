@@ -144,6 +144,46 @@ Applied to `refs/heads/develop` on repositories that maintain integration branch
 
 ---
 
+### 3.3 Branch Naming Standard Ruleset: `enforce-branch-naming-standard`
+
+Applied across all organizational repositories to prevent unauthorized or unstructured branch creation:
+
+```json
+{
+  "name": "enforce-branch-naming-standard",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/*"],
+      "exclude": ["refs/heads/main", "refs/heads/develop"]
+    }
+  },
+  "rules": [
+    {
+      "type": "branch_name_pattern",
+      "parameters": {
+        "operator": "starts_with",
+        "patterns": [
+          "feature/",
+          "hotfix/",
+          "bugfix/",
+          "chore/",
+          "refactor/",
+          "docs/"
+        ]
+      }
+    }
+  ]
+}
+```
+
+#### Enforced Invariants:
+- Blocks pushes of any branch that does not follow the standardized organizational taxonomy.
+- Rejects branches created with personal handles, unstructured names (e.g., `teste`, `wip`, `patch`), or invalid delimiters.
+
+---
+
 ## 4. Submodule Governance and CODEOWNERS in `org-core`
 
 To prevent unauthorized submodule pointer updates or unintentional reversions in the meta-repository,

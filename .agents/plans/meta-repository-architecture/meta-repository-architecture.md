@@ -243,6 +243,9 @@ The meta-repository orchestrates the core ecosystem through three primary manife
 	update = merge
 ```
 
+> [!NOTE]
+> Under the standardized **GitHub Flow** architecture, all submodules converge toward tracking `branch = main`, eliminating the overhead and pointer fragmentation of maintaining dual long-lived branches (`main` and `develop`). Complete branch governance is specified in [GitHub Flow, Automated Changesets & Branch Governance](./github-flow-and-changesets-branch-governance-plan.md).
+
 ### B. Multi-Root Workspace Manifest (`tupynambalucas-dev.code-workspace`)
 Enables developers and the Antigravity IDE to inspect all four repositories in a single window:
 

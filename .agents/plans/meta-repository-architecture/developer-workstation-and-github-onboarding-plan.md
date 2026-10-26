@@ -338,6 +338,34 @@ if [ "$(git config --get commit.gpgsign)" != "true" ]; then
     exit 1
 fi
 
+# 4. Check current branch naming (GitHub Flow compliance)
+CURRENT_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
+if [ "$CURRENT_BRANCH" = "main" ]; then
+    echo "ERROR: Direct push to 'main' is forbidden. Create a feature branch and open a PR."
+    exit 1
+fi
+
+VALID_BRANCH_PATTERN="^(feature|hotfix|bugfix|chore|refactor|docs)\/[a-z0-9._-]+$"
+if [[ ! "$CURRENT_BRANCH" =~ $VALID_BRANCH_PATTERN ]] && [ "$CURRENT_BRANCH" != "develop" ] && [ -n "$CURRENT_BRANCH" ]; then
+    echo "ERROR: Branch '$CURRENT_BRANCH' violates organizational naming taxonomy."
+    echo "Allowed prefixes: feature/, hotfix/, bugfix/, chore/, refactor/, docs/"
+    exit 1
+fi
+
 echo "Pre-flight checks passed successfully. Proceeding with push."
 exit 0
 ```
+
+---
+
+## 9. Tooling Governance: Prohibition of Legacy `git-flow` CLI
+
+Developers must note that the legacy `git-flow` or `git-flow-avh` CLI tools are **formally prohibited**:
+- **Why**: `git-flow` relies on non-linear branch automations, requires a permanent `develop` branch, and bypasses cryptographic SSH commit signing during automated merge commits.
+- **Approved Toolchain**:
+  - **Native Git**: `git switch -c feature/<name>` (or `git checkout -b feature/<name>`).
+  - **GitHub CLI**: `gh pr create`, `gh pr status`, `gh pr view`.
+  - **Changesets**: `pnpm changeset` for declaring semantic release bumps.
+
+For full architectural details, consult the dedicated plan:
+[GitHub Flow, Automated Changesets & Branch Governance](./github-flow-and-changesets-branch-governance-plan.md).

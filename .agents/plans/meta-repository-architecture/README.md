@@ -23,6 +23,9 @@ governance, and developer onboarding.
   eliminating persistent plaintext `.env` credential files on disk.
 - **Worktree Coexistence (`git worktree`)**: Recommended for concurrent branch development inside child
   repositories, while `git subtree` is rejected due to commit graph bloating and history pollution.
+- **GitHub Flow & Automated Changesets Adoption**: Rejection of legacy Gitflow and the deprecated `git-flow`
+  CLI in favor of single-branch `main` delivery, `@changesets/cli` semantic release automation, PR status checks,
+  ephemeral preview deployments, and strict `branch_name_pattern` rulesets.
 
 ## Execution Status & Topology
 
@@ -81,5 +84,8 @@ flowchart TD
    GitHub CLI (`gh`) standard setup, and local pre-push hook enforcement.
 4. [GitHub Organization Security & Rulesets](./github-organization-security-and-rulesets-plan.md):
    Centralized security baseline, secret scanning push protection, branch protection rulesets on
-   `main` and `develop` (mandatory commit signing, linear history, review threads), CODEOWNERS submodule
-   governance, and automated REST provisioning runbooks.
+   `main` (mandatory commit signing, linear history, review threads, branch naming standards), CODEOWNERS
+   submodule governance, and automated REST provisioning runbooks.
+5. [GitHub Flow, Automated Changesets & Branch Governance](./github-flow-and-changesets-branch-governance-plan.md):
+   Transition from legacy Gitflow to GitHub Flow, deprecation of `git-flow` CLI, automated versioning with
+   `@changesets/cli`, ephemeral preview environments, PR-based CI quality gates, and branch naming taxonomy.

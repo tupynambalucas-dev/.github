@@ -559,3 +559,23 @@ Ensure your workstation never pushes an unpushed submodule commit pointer:
 ```bash
 git config --global push.recurseSubmodules check
 ```
+
+---
+
+## 7. Harmonization with GitHub Flow and Changesets Release Automation
+
+To resolve the friction of tracking long-lived `develop` branches across multiple submodules:
+1. **GitHub Flow Standardization**: All organizational repositories standardize on `refs/heads/main` as the
+   authoritative source of truth. Features are developed on ephemeral branches (`feature/*`, `hotfix/*`, `bugfix/*`)
+   and merged directly into `main` via audited Pull Requests.
+2. **Rejection of Gitflow**: Classical Gitflow is officially deprecated for submodule coordination. Tracking
+   both `develop` and `main` across 4 submodules creates combinatorial pointer drift and merge conflicts in
+   submodule gitlink SHAs that cannot be automatically resolved by GitHub's `libgit2` engine.
+3. **Automated Semantic Versioning**: Repositories managing multiple packages (such as `platform`) utilize
+   `@changesets/cli` and `changesets/action@v2`. Developers author declarative `.changeset/*.md` files in
+   feature branches. Upon merge to `main`, an automated `Version Packages` PR is maintained. Merging this PR
+   publishes packages, creates cryptographic Git tags, and emits a `repository_dispatch` to bump `org-core`
+   deterministically.
+
+For complete details on the branching taxonomy and Changesets lifecycle, consult:
+[GitHub Flow, Automated Changesets & Branch Governance](./github-flow-and-changesets-branch-governance-plan.md).
