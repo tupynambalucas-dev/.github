@@ -44,7 +44,7 @@ Files placed in the root of this repository act as organizational defaults. Any 
 
 ### 3. Enterprise AI Agent Governance
 
-AI agent governance, shared MCP servers, and reusable skills are authored and sovereignly maintained within the [`agent-toolkit`](https://github.com/tupynambalucas-dev/agent-toolkit) repository. The local [.agents/](./.agents/) directory within this repository preserves operational refactor plans and domain reference documents.
+AI agent governance, shared MCP servers, and reusable skills are authored and sovereignly maintained within the [`agent-mesh`](https://github.com/tupynambalucas-dev/agent-mesh) repository. The local [.agents/](./.agents/) directory within this repository preserves operational refactor plans and domain reference documents.
 
 ### 4. Developer Workstation Automation (`.vscode/`)
 
@@ -55,7 +55,7 @@ The [.vscode/](./.vscode/) directory contains workspace configurations, automate
 ## Connected Ecosystem
 
 - **Meta-Repository**: [tupynambalucas-dev/org-core](https://github.com/tupynambalucas-dev/org-core)
-- **Agent Governance**: [tupynambalucas-dev/agent-toolkit](https://github.com/tupynambalucas-dev/agent-toolkit)
+- **Agent Governance**: [tupynambalucas-dev/agent-mesh](https://github.com/tupynambalucas-dev/agent-mesh)
 - **Primary Monorepo**: [tupynambalucas-dev/platform](https://github.com/tupynambalucas-dev/platform)
 - **Documentation Portal**: [https://docs.tupynambalucas.dev](https://docs.tupynambalucas.dev) ([tupynambalucas-dev/docs](https://github.com/tupynambalucas-dev/docs))
 - **Product Repository**: [tupynambalucas-dev/tessel](https://github.com/tupynambalucas-dev/tessel)

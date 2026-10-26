@@ -5,7 +5,7 @@ This document serves as the root context router for AI agents operating in the
 
 ## Workspace Ecosystem
 
-- [agent-toolkit](../agent-toolkit/AGENTS.md): Universal AI agent governance plugin, shared MCPs, and skills.
+- [agent-mesh](../agent-mesh/AGENTS.md): Universal AI agent governance plugin, shared MCPs, and skills.
 - [platform](../platform/AGENTS.md): Core platform monorepo containing corporate products, portal, internal hub, and Kubernetes infrastructure.
 - [docs](../docs/AGENTS.md): Standalone documentation hub and technical reference archives.
 - [profile/](./profile/AGENTS.md): Public organization profile, brand copy, and vector assets.
@@ -36,7 +36,7 @@ This document serves as the root context router for AI agents operating in the
 
 ## Cross-Repository Governance Protocol
 
-- When launched in Organization Governance Scope (`--add-dir ../platform --add-dir ../docs --add-dir ../agent-toolkit`), the agent holds cross-repository operational oversight.
+- When launched in Organization Governance Scope (`--add-dir ../platform --add-dir ../docs --add-dir ../agent-mesh`), the agent holds cross-repository operational oversight.
 - The agent MUST read and adhere to each repository's local `AGENTS.md` before creating or modifying files within that repository's bounded context.
 - Each repository maintains an autonomous Git history, independent dependencies, and dedicated CI/CD pipelines.
 

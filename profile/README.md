@@ -258,7 +258,7 @@ remain robust, testable, maintainable, and horizontally scalable:
 
 - **[org-core](https://github.com/tupynambalucas-dev/org-core)**:
   Central meta-repository orchestrating all corporate repositories via Git submodules with unified context.
-- **[agent-toolkit](https://github.com/tupynambalucas-dev/agent-toolkit)**:
+- **[agent-mesh](https://github.com/tupynambalucas-dev/agent-mesh)**:
   Universal AI agent governance plugin, security guardrails, shared MCP connectors, and domain routing skills.
 - **[platform](https://github.com/tupynambalucas-dev/platform)**:
   Primary domain-driven monorepo containing corporate web products, high-throughput REST APIs,
