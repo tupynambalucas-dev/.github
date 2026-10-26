@@ -89,3 +89,7 @@ flowchart TD
 5. [GitHub Flow, Automated Changesets & Branch Governance](./github-flow-and-changesets-branch-governance-plan.md):
    Transition from legacy Gitflow to GitHub Flow, deprecation of `git-flow` CLI, automated versioning with
    `@changesets/cli`, ephemeral preview environments, PR-based CI quality gates, and branch naming taxonomy.
+6. [Architecture Implementation Roadmap & Governance Progress Tracker](./roadmap-architecture-and-governance.md):
+   Master tracking document and operational execution roadmap detailing completed milestones (identity, GitHub
+   Flow migration, Husky v9 root configuration) and upcoming implementation stages (Commitlint, Rulesets, Changesets
+   pipeline, automated submodule dispatches).
