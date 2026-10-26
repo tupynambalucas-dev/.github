@@ -158,13 +158,13 @@ Applied across all repositories via GitHub Organization Rulesets:
 Any attempt to push a branch named `teste`, `meu-branch`, or `wip` is rejected by GitHub with:
 `remote: error: GH013: Repository rule violations found for refs/heads/...`
 
-### 3.3 Enforcement Mechanism 2: Local Git Pre-Push Hook (`.git/hooks/pre-push`)
+### 3.3 Enforcement Mechanism 2: Local Pre-Push Hook via Husky (`.husky/pre-push`)
 
-Installed during workstation bootstrapping ([`bootstrap-workstation.ps1`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/scripts/bootstrap-workstation.ps1)):
+Automatically activated upon `pnpm install` via Husky v9 (see [Developer Workstation Onboarding](./developer-workstation-and-github-onboarding-plan.md)):
 
 ```bash
-#!/usr/bin/env bash
-# .git/hooks/pre-push
+#!/usr/bin/env sh
+# .husky/pre-push
 
 current_branch=$(git symbolic-ref --short HEAD 2>/dev/null || true)
 

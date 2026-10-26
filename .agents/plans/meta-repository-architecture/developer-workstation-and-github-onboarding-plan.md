@@ -1,336 +1,388 @@
-# Master Plan: Developer Workstation Provisioning, Automated Bootstrapping, and GitHub Governance Onboarding
+# Master Plan: Minimal Developer Workstation Onboarding, Husky Git Hooks, and Universal Governance
 
-This document establishes the official enterprise onboarding standard, automated workstation provisioning,
-and compliance verification framework for developers across all functional teams in `tupynambalucas-dev`.
-It integrates Git Submodule hardening, cryptographic SSH commit signing, physical namespace isolation,
-GitHub CLI automation, and Infisical secret vault workflows.
+This document serves as the **single authoritative source of truth** for developer onboarding, workstation
+provisioning, Git hooks management, and compliance verification across all repositories in `tupynambalucas-dev`.
+It consolidates and supersedes all fragmented onboarding scripts, replacing OS-specific PowerShell (`.ps1`) and
+Bash (`.sh`) bootstrap scripts with **zero-friction Husky v9 Git hooks**, a **universal Node.js setup helper**,
+and automated self-healing pre-push guardrails.
 
 ---
 
-## 1. Executive Overview and Architecture Principles
+## 1. Executive Architecture: The Minimal Setup Paradigm
 
-To reconcile developer autonomy, zero-friction setup, and enterprise multi-tenant compliance, every
-developer workstation operates under four foundational architectural principles:
+Traditional enterprise onboarding suffers from fragile OS-specific scripts (`irm ... | iex` or `curl ... | bash`),
+PowerShell execution policy restrictions, manual hook copying into `.git/hooks/`, and configuration drift. 
+
+To achieve **minimal friction with maximum compliance**, the workstation onboarding architecture is unified
+into three deterministic tiers:
 
 ```mermaid
 flowchart TD
-    subgraph Layer1 ["Layer 1: Git Protocol & Submodule Hardening"]
-        SSH["Ed25519 SSH Keypair<br/>(Signing Key & Auth Key)"]
-        GitConfig["Git includeIf Namespace Isolation<br/>(Personal vs tupynambalucas-dev)"]
-        SubmoduleRules["Git Submodule Safety Engine<br/>(submodule.recurse & push.recurseSubmodules)"]
-        SSH --> GitConfig
-        GitConfig --> SubmoduleRules
-        SubmoduleRules --> SignedCommit["Cryptographically Signed Commits (-S)<br/>Verified Badge on GitHub"]
+    subgraph Tier1 ["Tier 1: Developer Prerequisites (One-Time OS Setup)"]
+        GitBin["Git >= 2.38.0<br/>(Standard SCM Binary)"]
+        NodeBin["Node.js >= 20.0.0 & pnpm >= 9<br/>(Universal JavaScript Runtime)"]
+        SSHKey["Ed25519 SSH Keypair<br/>(~/.ssh/github_tupynambalucas_ed25519)"]
+        GitBin --> NodeBin
+        NodeBin --> SSHKey
     end
 
-    subgraph Layer2 ["Layer 2: Platform API & Operator Governance"]
-        GhCli["GitHub CLI (gh auth login)<br/>(OAuth Token in OS Keyring, Protocol: SSH)"]
-        OpRole["resolve-operator-role.js<br/>(Dynamic Domain & Team Enforcement)"]
-        GhCli --> OpRole
-        OpRole --> DevPRs["PR Creation, CODEOWNERS, CI/CD Triage"]
+    subgraph Tier2 ["Tier 2: Universal Workstation Helper (setup-workstation.mjs)"]
+        UniScript["node scripts/setup-workstation.mjs<br/>(Single Cross-Platform ESM Runner)"]
+        SSHKey --> UniScript
+        UniScript --> GitConfig["Git includeIf Namespace Isolation<br/>(~/.gitconfig-tupynambalucas-dev)"]
+        UniScript --> SubmoduleSafety["Submodule Recurse & Push Traps<br/>(submodule.recurse & push.recurseSubmodules)"]
+        UniScript --> GhConfig["GitHub CLI SSH Standard<br/>(gh auth setup-git)"]
     end
 
-    subgraph Layer3 ["Layer 3: Secret Management (Zero-Disk)"]
-        Infisical["Infisical CLI (infisical login)<br/>(RBAC Scoped by Team & Project)"]
-        Infisical --> RAMEnv["Volatile RAM Injection (infisical run)<br/>0 Plaintext Secret Files on Disk"]
-    end
-
-    subgraph Layer4 ["Layer 4: Automated Readiness Gates"]
-        Bootstrapper["bootstrap-workstation.ps1 / .sh<br/>(1-Command Zero-Friction Setup)"]
-        Verifier["verify-workstation.ps1 / .sh<br/>(7 Pre-Flight Compliance Gates)"]
-        PrePushHook[".git/hooks/pre-push<br/>(Local Push Interceptor)"]
-        Bootstrapper --> Verifier
-        Verifier --> PrePushHook
+    subgraph Tier3 ["Tier 3: In-Repo Zero-Friction Automation (Husky v9)"]
+        PnpmInstall["pnpm install<br/>(Runs 'prepare: husky' automatically)"]
+        HuskyCore["core.hooksPath = .husky<br/>(Committed to Repository)"]
+        PreCommit[".husky/pre-commit<br/>(lint-staged: Prettier, ESLint, Typecheck)"]
+        PrePush[".husky/pre-push<br/>(Self-Healing 8-Gate Compliance Validator)"]
+        
+        UniScript --> PnpmInstall
+        PnpmInstall --> HuskyCore
+        HuskyCore --> PreCommit
+        HuskyCore --> PrePush
     end
 ```
 
-1. **Cryptographic Accountability (Zero Unsigned Commits)**: All commits and annotated tags must be
-   signed using an Ed25519 SSH key (`commit.gpgsign = true`, `gpg.format = ssh`). Commits failing
-   verification are rejected at push time by organization branch rulesets on `main` and `develop`.
-2. **Defensive Submodule Configuration**: Workstations must enforce `submodule.recurse = true` and
-   `push.recurseSubmodules = check` to prevent accidental pointer rollbacks and unpushed gitlink references.
-3. **Physical Namespace Delegation (`includeIf`)**: Developers working on both personal and corporate
-   repositories on the same machine keep identities strictly isolated to prevent metadata leaks.
-4. **Automated Verification & Zero-Friction Bootstrapping**: Developers do not manually configure dozens of
-   settings; an automated bootstrapper provisions the environment, and a pre-flight readiness gate
-   guarantees compliance before any code is pushed.
+### Foundational Principles:
+1. **Zero OS-Specific Shell Scripts**: No divergent `.ps1` or `.sh` files to maintain. The setup helper is a
+   single cross-platform Node.js script (`scripts/setup-workstation.mjs`) that executes identically on
+   Windows (cmd/PowerShell), macOS, and Linux/WSL2.
+2. **Zero Manual Hook Copying**: Git hooks are tracked in version control under `.husky/`. When a developer
+   runs `pnpm install`, the standard `"prepare": "husky"` lifecycle script configures Git's native
+   `core.hooksPath` automatically.
+3. **Self-Healing Guardrails in `.husky/pre-push`**: Instead of forcing developers to remember a manual
+   verification command (`verify-workstation.ps1`), the pre-push hook intercepts pushes in real time. If any
+   setting is missing (e.g., unsigned commits, branch naming violations, or missing submodule recursion),
+   it outputs the exact 1-line remediation command.
+4. **Scope Independence**: Developers can onboard into a **Standalone Child Repository** (e.g., [`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform))
+   or the **Umbrella Meta-Repository** ([`org-core`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core))
+   with zero configuration difference.
 
 ---
 
-## 2. Team Capability and Tooling Requirement Matrix
+## 2. Team Capability and Tooling Matrix
 
-Different functional teams interact with distinct layers of the infrastructure:
-
-| Requirement / Tool | `lead-architects` | `infra-ops` | `security-managers` | `core-engineers` | `technical-writers` | `creative-team` | `contractors` |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Ed25519 SSH Signing Key** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory (scoped) |
-| **Git `includeIf` Config** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Recommended |
-| **Submodule Safety Configs**| Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Optional | Mandatory |
-| **`url.insteadOf` SSH Rewrite** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory |
-| **GitHub CLI (`gh`)** | Mandatory | Mandatory | Recommended | Recommended | Recommended | Optional | Optional |
-| **Infisical CLI (`infisical`)** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Optional | Forbidden |
-| **Permitted Governance Domain** | Domain 1, 2, 3 | Domain 1, 2 | Domain 1, 2 | Domain 1 | Domain 1 | Domain 1 | Scoped Domain 1 |
-| **Target Workspace Scope** | `org-core` | `platform` / `org-core` | All Repos | `platform` standalone / `org-core` | `docs` standalone / `org-core` | Scoped Assets | Scoped Repo |
+| Requirement / Tool | `lead-architects` | `infra-ops` | `security-managers` | `core-engineers` | `technical-writers` | `contractors` |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Node.js (>= 20) & pnpm** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory |
+| **Ed25519 SSH Signing Key** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory (scoped) |
+| **Universal Setup Helper** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory |
+| **Husky v9 Git Hooks** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory |
+| **GitHub CLI (`gh`)** | Mandatory | Mandatory | Recommended | Recommended | Recommended | Optional |
+| **Infisical CLI (`infisical`)** | Mandatory | Mandatory | Mandatory | Mandatory | Optional | Forbidden |
+| **Target Workspace Scope** | `org-core` / All | `platform` / `org-core` | All Repos | `platform` standalone | `docs` standalone | Scoped Repo |
 
 ---
 
-## 3. Fast-Track: Automated Workstation Bootstrapping (1-Command Setup)
+## 3. Fast-Track: The 2-Step Minimal Onboarding Runbook
 
-To eliminate manual configuration errors, newly onboarded developers execute the official
-automated bootstrapper script:
+### Step 1: Workstation Prerequisite Setup (Run Once per Machine)
 
-### Windows (PowerShell Runbook)
-```powershell
-# Run the automated bootstrapper from PowerShell (Run as Administrator or Developer)
-irm https://raw.githubusercontent.com/tupynambalucas-dev/org-core/main/scripts/bootstrap-workstation.ps1 | iex
-```
-
-### Linux / macOS / WSL2 (Bash Runbook)
-```bash
-curl -fsSL https://raw.githubusercontent.com/tupynambalucas-dev/org-core/main/scripts/bootstrap-workstation.sh | bash
-```
-
-### What the Bootstrapper Does Automatically:
-1. **Checks Prerequisites**: Verifies Git (`>= 2.38.0`), GitHub CLI (`>= 2.40.0`), and Node.js (`>= 20.0.0`).
-2. **Configures Global Git Defaults**:
-   - `init.defaultBranch = main`
-   - `submodule.recurse = true` (ensures checkout/pull recurses into submodules)
-   - `push.recurseSubmodules = check` (blocks pushing superproject if child commits are unpushed)
-   - `status.submoduleSummary = true` (displays commit diffs in status)
-   - `diff.submodule = log` (displays commit logs in diff)
-   - `fetch.recurseSubmodules = on-demand` (fetches new commits for submodules)
-   - `url."git@github.com:".insteadOf = https://github.com/` (transparent SSH rewrite)
-3. **Generates Ed25519 SSH Keypair**: Creates `~/.ssh/github_tupynambalucas_ed25519` if missing.
-4. **Configures Namespace Isolation (`includeIf`)**: Creates `~/.gitconfig-tupynambalucas-dev` and links it in `~/.gitconfig`.
-5. **Configures GitHub CLI**: Sets `git_protocol = ssh` and runs `gh auth setup-git`.
-6. **Installs Local Pre-Push Hooks**: Installs the compliance checker into repository `.git/hooks/`.
-
----
-
-## 4. Manual Configuration Reference (For Verification & Auditing)
-
-If manual inspection or step-by-step configuration is required, follow the specifications below:
-
-### 4.1 Global Git Configuration (`~/.gitconfig`)
-
-```ini
-[init]
-	defaultBranch = main
-
-[url "git@github.com:"]
-	insteadOf = https://github.com/
-
-[core]
-	autocrlf = true
-	fscache = true
-	symlinks = false
-
-[submodule]
-	recurse = true
-
-[push]
-	recurseSubmodules = check
-
-[status]
-	submoduleSummary = true
-
-[diff]
-	submodule = log
-
-[fetch]
-	recurseSubmodules = on-demand
-
-[gpg]
-	format = ssh
-
-[commit]
-	gpgsign = true
-
-[tag]
-	gpgsign = true
-
-# Dynamic Workspace Identity Delegation
-[includeIf "gitdir:C:/Users/tupyn/projects/organizations/tupynambalucas-dev/"]
-	path = C:/Users/tupyn/.gitconfig-tupynambalucas-dev
-
-[includeIf "gitdir:C:/Users/tupyn/projects/personal/"]
-	path = C:/Users/tupyn/.gitconfig-personal
-```
-
-> [!NOTE]
-> On Linux, macOS, and WSL2, replace `C:/Users/...` with standard POSIX paths (e.g.
-> `gitdir:~/projects/organizations/tupynambalucas-dev/` and `path = ~/.gitconfig-tupynambalucas-dev`).
-> The trailing slash `/` in `gitdir:` is mandatory.
-
-### 4.2 Corporate Git Configuration (`~/.gitconfig-tupynambalucas-dev`)
-
-```ini
-[user]
-	name = tupynambalucasdev
-	email = contato@tupynambalucas.dev
-	signingkey = C:/Users/tupyn/.ssh/github_tupynambalucas_ed25519.pub
-
-[commit]
-	gpgsign = true
-
-[tag]
-	gpgsign = true
-
-[gpg]
-	format = ssh
-```
-
-### 4.3 SSH Key Dual-Registration on GitHub
-
-GitHub distinguishes between **Authentication Keys** and **Signing Keys**:
-
-1. Open [GitHub Settings -> SSH and GPG keys](https://github.com/settings/keys).
-2. **Add as Authentication Key**:
-   - Title: `Workstation - Personal Laptop (Auth)`
-   - Key type: **Authentication Key**
-   - Paste contents of `~/.ssh/github_tupynambalucas_ed25519.pub`
-3. **Add as Signing Key**:
-   - Click **New SSH key** again
-   - Title: `Workstation - Personal Laptop (Signing)`
-   - Key type: **Signing Key**
-   - Paste the exact same public key contents (`github_tupynambalucas_ed25519.pub`)
-
-> [!IMPORTANT]
-> If the public key is not registered as a **Signing Key**, GitHub will accept your `git push`
-> over SSH but will flag every signed commit with an **Unverified** warning badge, causing organization
-> branch ruleset checks on `main` and `develop` to reject your pull requests immediately.
-
-### 4.4 GitHub CLI Standard Configuration
-
-Execute the following commands to standardize `gh`:
+Ensure Node.js (`>= 20.0.0`), pnpm (`>= 9.0.0`), and Git (`>= 2.38.0`) are installed, then generate
+an Ed25519 SSH keypair if you do not already possess one:
 
 ```bash
-# 1. Authenticate with SSH protocol
+# Generate dedicated organizational SSH keypair
+ssh-keygen -t ed25519 -C "contato@tupynambalucas.dev" -f ~/.ssh/github_tupynambalucas_ed25519
+```
+
+Register this key on [GitHub SSH and GPG Settings](https://github.com/settings/keys):
+1. Add as **Authentication Key** (type: Authentication Key).
+2. Add as **Signing Key** (type: Signing Key, using the exact same public key string).
+
+Authenticate the GitHub CLI:
+```bash
 gh auth login --git-protocol ssh --web
-
-# 2. Standardize preferences
-gh config set git_protocol ssh
-gh config set prompt enabled
-
-# 3. Setup git credential integration
-gh auth setup-git
 ```
 
----
+### Step 2: Clone and Install (Hooks Self-Activate)
 
-## 5. Phase 5: Enterprise Secrets Onboarding via Infisical
-
-Internal developers authenticate to Infisical Cloud to obtain fallback and runtime API keys:
-
-1. **Authenticate to Infisical**:
-   ```bash
-   pnpm dlx @infisical/cli login
-   ```
-2. **Verify Vault Access**:
-   Core team members test secret injection into volatile RAM:
-   ```bash
-   pnpm dlx @infisical/cli run --project=tupynambalucas-dev-agent-toolkit --env=dev -- node -e "console.log('Infisical session active')"
-   ```
-3. **Zero Plaintext Rule**: Developers must never run `infisical export > .env`. Secrets must remain
-   in volatile RAM during execution.
-
----
-
-## 6. Pre-Flight Readiness Gate: Automated Verification Script
-
-How do we guarantee that developers have the correct configurations installed on their machines
-before they can push or cause issues?
-
-Every developer workstation must pass the **7 Compliance Readiness Gates (GV1 to GV7)** evaluated by
-`verify-workstation.ps1` (or `verify-workstation.sh`):
-
+#### Path A: Standalone Child Repository (e.g., Platform / Web / API Engineer)
 ```bash
-# Run the verification gate from org-core root
-pnpm run verify:workstation
-# Or run script directly:
-powershell -ExecutionPolicy Bypass -File scripts/verify-workstation.ps1
-```
-
-### The 8 Compliance Gates (GV1 to GV8):
-
-| Gate ID | Check Description | Required Value | Remediation if Failed |
-| :--- | :--- | :--- | :--- |
-| **GV1** | Git Binary Version | `>= 2.38.0` | `winget upgrade Git.Git` / `brew upgrade git` |
-| **GV2** | SSH Signing Key Exists | `~/.ssh/github_tupynambalucas_ed25519.pub` exists | `ssh-keygen -t ed25519 ...` |
-| **GV3** | Git Signing Config | `commit.gpgsign = true`, `gpg.format = ssh` | `git config --global commit.gpgsign true` |
-| **GV4** | Submodule Recurse | `submodule.recurse = true` | `git config --global submodule.recurse true` |
-| **GV5** | Submodule Push Check | `push.recurseSubmodules = check` or `on-demand` | `git config --global push.recurseSubmodules check` |
-| **GV6** | GitHub CLI Auth Status | Logged in as authorized org member | `gh auth login` |
-| **GV7** | Submodule Tree Integrity | All 4 submodules populated & tracking `main` | `git submodule update --init --recursive` |
-| **GV8** | Branch Naming & Pre-Push Hook | Active `.git/hooks/pre-push` validating taxonomy | Re-run `bootstrap-workstation.ps1` |
-
-If any gate fails, the script outputs a red failure message with the exact command to fix it and exits with code `1`.
-
----
-
-## 7. Workstation Scopes: Meta-Repository vs. Standalone Child Repositories
-
-Developers can work in two distinct modes depending on their functional role. Both modes are 100% supported,
-isolated, and safeguarded by automated synchronization:
-
-### 7.1 Scenario A: Standalone Child Repository Workflow (Independent Workspaces)
-
-Recommended for frontend engineers, backend service developers, and technical writers who focus on a single domain.
-Developers work exclusively inside the child repository and do **not** need to clone or interact with `org-core`:
-
-```bash
-# 1. Clone only the required child repository
 git clone git@github.com:tupynambalucas-dev/platform.git
 cd platform
 
-# 2. Create a standardized branch from main
-git switch -c feature/corporate-api-v2
+# Installs dependencies AND initializes Husky Git hooks automatically via prepare
+pnpm install
 
-# 3. Develop, run tests, and document semantic version changes
-pnpm corporate:typecheck
-pnpm changeset
-
-# 4. Commit using cryptographic SSH signature (-S)
-git add .
-git commit -S -m "feat(api): implement v2 telemetry healthcheck"
-
-# 5. Push branch and open Pull Request
-git push -u origin feature/corporate-api-v2
-gh pr create --web
-
-# 6. Automated Synchronization with org-core:
-# When the PR is reviewed and squash-merged into platform:main, GitHub Actions:
-# - Triggers changesets/action@v2 to update the "Version Packages" PR.
-# - Emits a repository_dispatch event to tupynambalucas-dev/org-core.
-# - The @tupynambalucas-org-manager[bot] in org-core automatically updates the gitlink pointer.
-# The developer never needs to touch org-core!
+# Run the cross-platform setup helper to configure Git includeIf and safety flags
+node scripts/setup-workstation.mjs
 ```
 
-### 7.2 Scenario B: Umbrella Meta-Repository Workflow (Cross-Repository & Architecture)
-
-Recommended for lead architects, multi-discipline fullstack engineers, and autonomous AI agents:
-
+#### Path B: Umbrella Meta-Repository (Lead Architects & Cross-System Engineers)
 ```bash
-# 1. Clone org-core recursively
 git clone --recursive git@github.com:tupynambalucas-dev/org-core.git
 cd org-core
 
-# 2. Open multi-root workspace in IDE
-code tupynambalucas-dev.code-workspace
+pnpm install
+node scripts/setup-workstation.mjs
+```
 
-# 3. Synchronize all submodules to latest remote main heads
-git submodule update --remote --merge
+**That is all.** The developer workstation is now 100% compliant, hooks are active, and identity isolation
+is locked in.
 
-# 4. Work inside any submodule (e.g., platform)
-cd platform
-git switch -c feature/shared-auth-middleware
-# Author code, pnpm changeset, commit with -S
-git commit -S -m "feat(auth): shared middleware across services"
-git push -u origin feature/shared-auth-middleware
+---
+
+## 4. The Universal Setup Helper (`scripts/setup-workstation.mjs`)
+
+This single, cross-platform ECMAScript module replaces all prior `.ps1` and `.sh` scripts. It uses
+only Node.js standard libraries (`node:child_process`, `node:fs`, `node:path`, `node:os`) and executes
+identically across Windows, macOS, and Linux:
+
+```javascript
+#!/usr/bin/env node
+/**
+ * setup-workstation.mjs
+ * Cross-platform enterprise workstation bootstrapper for tupynambalucas-dev.
+ * Replaces OS-specific bootstrap-workstation.ps1 and .sh scripts.
+ */
+
+import { execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+
+function run(command, options = {}) {
+  try {
+    return execSync(command, { encoding: "utf8", stdio: options.silent ? "pipe" : "inherit" });
+  } catch (err) {
+    if (!options.allowFailure) {
+      console.error(`[ERROR] Command failed: ${command}`);
+      process.exit(1);
+    }
+    return null;
+  }
+}
+
+console.log("=== Configuring tupynambalucas-dev Workstation Standards ===");
+
+// 1. Configure Global Defensive Git Settings
+const gitConfigs = [
+  ["init.defaultBranch", "main"],
+  ["submodule.recurse", "true"],
+  ["push.recurseSubmodules", "check"],
+  ["status.submoduleSummary", "true"],
+  ["diff.submodule", "log"],
+  ["fetch.recurseSubmodules", "on-demand"],
+  ["url.git@github.com:.insteadOf", "https://github.com/"],
+  ["core.autocrlf", os.platform() === "win32" ? "true" : "input"],
+  ["core.fscache", "true"]
+];
+
+for (const [key, value] of gitConfigs) {
+  run(`git config --global ${key} "${value}"`);
+}
+console.log("[OK] Defensive Git submodule and protocol standards applied.");
+
+// 2. Configure Dynamic Workspace Identity Isolation (includeIf)
+const homeDir = os.homedir();
+const corporateGitConfigPath = path.join(homeDir, ".gitconfig-tupynambalucas-dev");
+const sshKeyPath = path.join(homeDir, ".ssh", "github_tupynambalucas_ed25519.pub").replace(/\\/g, "/");
+
+const corporateGitConfigContent = `[user]
+\tname = tupynambalucasdev
+\temail = contato@tupynambalucas.dev
+\tsigningkey = ${sshKeyPath}
+
+[commit]
+\tgpgsign = true
+
+[tag]
+\tgpgsign = true
+
+[gpg]
+\tformat = ssh
+`;
+
+fs.writeFileSync(corporateGitConfigPath, corporateGitConfigContent, "utf8");
+console.log(`[OK] Created corporate Git configuration at: ${corporateGitConfigPath}`);
+
+// Link includeIf in global .gitconfig
+const isWin = os.platform() === "win32";
+const orgPathPattern = isWin
+  ? "gitdir:C:/Users/tupyn/projects/organizations/tupynambalucas-dev/"
+  : "gitdir:~/projects/organizations/tupynambalucas-dev/";
+
+run(`git config --global includeIf."${orgPathPattern}".path "${corporateGitConfigPath.replace(/\\/g, "/")}"`);
+console.log(`[OK] Bound organizational namespace (${orgPathPattern}) to corporate identity.`);
+
+// 3. Configure GitHub CLI
+try {
+  run("gh config set git_protocol ssh", { silent: true });
+  run("gh config set prompt enabled", { silent: true });
+  run("gh auth setup-git", { silent: true });
+  console.log("[OK] GitHub CLI configured with SSH protocol and credential helper.");
+} catch {
+  console.warn("[WARN] GitHub CLI ('gh') not authenticated or not installed. Run 'gh auth login'.");
+}
+
+console.log("\n=== Workstation Configuration Complete ===");
+console.log("Run 'pnpm install' to ensure Husky hooks are active in your repository.");
+```
+
+---
+
+## 5. Zero-Script Git Hooks Architecture via Husky v9
+
+Instead of instructing developers to manually copy files into `.git/hooks/`, all hooks are managed
+declaratively inside `.husky/` and versioned in Git.
+
+### 5.1 Package Manifest Configuration (`package.json`)
+The root `package.json` in [`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform/package.json)
+declares the lifecycle script:
+
+```json
+{
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "catalog:",
+    "lint-staged": "catalog:"
+  }
+}
+```
+
+When any engineer executes `pnpm install`, pnpm automatically executes `husky`, which sets:
+`git config core.hooksPath .husky`
+
+### 5.2 Pre-Commit Hook: Automated Code Quality (`.husky/pre-commit`)
+Enforces formatting and linting across staged files before allowing a commit to be created:
+
+```bash
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged on modified files only
+pnpm exec lint-staged
+```
+
+### 5.3 Pre-Push Hook: Self-Healing 8-Gate Compliance Validator (`.husky/pre-push`)
+This hook intercepts `git push` and evaluates the **8 Compliance Gates (GV1 to GV8)**.
+If any gate fails, it aborts the push immediately and prints the exact remediation command:
+
+```bash
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Evaluating workstation compliance gates before push..."
+
+# GV1: Check Git Version
+GIT_VERSION=$(git --version | awk '{print $3}')
+# GV2 & GV3: Check Commit Signing
+COMMIT_SIGN=$(git config --get commit.gpgsign || echo "false")
+GPG_FORMAT=$(git config --get gpg.format || echo "")
+if [ "$COMMIT_SIGN" != "true" ] || [ "$GPG_FORMAT" != "ssh" ]; then
+    echo "[REJECTION: GV3] Cryptographic commit signing is mandatory." >&2
+    echo "Remediation: git config --global commit.gpgsign true && git config --global gpg.format ssh" >&2
+    exit 1
+fi
+
+# GV4: Check Submodule Recurse
+SUB_RECURSE=$(git config --get submodule.recurse || echo "false")
+if [ "$SUB_RECURSE" != "true" ]; then
+    echo "[REJECTION: GV4] 'submodule.recurse' must be set to 'true'." >&2
+    echo "Remediation: git config --global submodule.recurse true" >&2
+    exit 1
+fi
+
+# GV5: Check Submodule Push Trap
+PUSH_RECURSE=$(git config --get push.recurseSubmodules || echo "")
+if [ "$PUSH_RECURSE" != "check" ] && [ "$PUSH_RECURSE" != "on-demand" ]; then
+    echo "[REJECTION: GV5] 'push.recurseSubmodules' must be 'check' or 'on-demand'." >&2
+    echo "Remediation: git config --global push.recurseSubmodules check" >&2
+    exit 1
+fi
+
+# GV6: Check Target Branch (Block Direct Push to main)
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || true)
+if [ "$CURRENT_BRANCH" = "main" ]; then
+    echo "[REJECTION: GV6] Direct pushes to 'main' are strictly forbidden." >&2
+    echo "Remediation: Create a feature branch (git switch -c feature/<name>) and open a PR." >&2
+    exit 1
+fi
+
+# GV7: Check Branch Taxonomy Standard
+VALID_TAXONOMY="^(feature|hotfix|bugfix|chore|refactor|docs)\/[a-z0-9._-]+$"
+if ! echo "$CURRENT_BRANCH" | grep -Eq "$VALID_TAXONOMY"; then
+    echo "[REJECTION: GV7] Branch name '$CURRENT_BRANCH' violates organizational taxonomy." >&2
+    echo "Allowed prefixes: feature/, hotfix/, bugfix/, chore/, refactor/, docs/" >&2
+    exit 1
+fi
+
+# GV8: Submodule Tree Integrity (When operating inside org-core)
+if [ -f ".gitmodules" ]; then
+    git submodule status | while read -r status sha name branch; do
+        case "$status" in
+            U*)
+                echo "[REJECTION: GV8] Unmerged submodule conflict in $name." >&2
+                exit 1
+                ;;
+        esac
+    done
+fi
+
+echo "[SUCCESS] All compliance gates passed. Proceeding with push."
+exit 0
+```
+
+---
+
+## 6. The 8 Compliance Gates (Summary Reference)
+
+| Gate ID | Check Description | Enforced By | Automatic Remediation Command |
+| :--- | :--- | :--- | :--- |
+| **GV1** | Git Version (`>= 2.38.0`) | `.husky/pre-push` | `winget upgrade Git.Git` / `brew upgrade git` |
+| **GV2** | Ed25519 SSH Key Registered | Setup Helper | `ssh-keygen -t ed25519 -f ~/.ssh/github_tupynambalucas_ed25519` |
+| **GV3** | Cryptographic SSH Signing | `.husky/pre-push` | `git config --global commit.gpgsign true && git config --global gpg.format ssh` |
+| **GV4** | Submodule Recursion (`submodule.recurse = true`) | `.husky/pre-push` | `git config --global submodule.recurse true` |
+| **GV5** | Submodule Push Check (`push.recurseSubmodules = check`) | `.husky/pre-push` | `git config --global push.recurseSubmodules check` |
+| **GV6** | Block Direct Push to `main` | `.husky/pre-push` & Ruleset | `git switch -c feature/<description>` |
+| **GV7** | Branch Naming Taxonomy Standard | `.husky/pre-push` & Ruleset | Use prefix: `feature/`, `hotfix/`, `bugfix/`, `chore/`, `refactor/`, `docs/` |
+| **GV8** | Submodule Tree Integrity | `.husky/pre-push` | `git submodule update --init --recursive` |
+
+---
+
+## 7. Developer Daily Workflows (Quick Reference)
+
+### 7.1 Developing in a Standalone Child Repository
+```bash
+# 1. Switch to main and pull latest changes
+git switch main
+git pull
+
+# 2. Branch using standardized taxonomy
+git switch -c feature/corporate-api-telemetry
+
+# 3. Author code and declare semantic version change
+pnpm corporate:typecheck
+pnpm changeset
+
+# 4. Commit (Husky validates formatting; Git signs with SSH key)
+git add .
+git commit -S -m "feat(api): add telemetry health check endpoint"
+
+# 5. Push (Husky validates branch taxonomy and signing before transmission)
+git push -u origin feature/corporate-api-telemetry
 gh pr create --web
+```
 
-# 5. Local Pointer Bumping in org-core (Optional manual bump):
-# Once the PR merges in platform:main, pull the updated submodule pointer into org-core:
+### 7.2 Cross-Repository Development in `org-core`
+```bash
+# 1. Update superproject and all 4 child submodules in one command
+cd org-core
+git pull --recurse-submodules
+
+# 2. Work inside any submodule directory
+cd platform
+git switch -c feature/shared-auth-guard
+# ... author, pnpm changeset, commit with -S, push branch ...
+
+# 3. Pull updated submodule pointer into org-core once PR merges remotely
 cd /path/to/org-core
 git submodule update --remote --merge platform
 git add platform
@@ -340,66 +392,10 @@ git push origin main
 
 ---
 
-## 8. Local Git Pre-Push Hook Enforcement
+## 8. Cross-Document Architectural References
 
-To prevent accidental pushes of non-compliant commits before they reach GitHub ruleset rejection,
-install the pre-push hook:
-
-Create `.git/hooks/pre-push` in `org-core`:
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-echo "Running pre-flight workstation readiness gate before push..."
-
-# 1. Check submodule recursion config
-if [ "$(git config --get submodule.recurse)" != "true" ]; then
-    echo "ERROR: 'submodule.recurse' must be set to 'true'. Run: git config --global submodule.recurse true"
-    exit 1
-fi
-
-# 2. Check push.recurseSubmodules
-RECURSE_PUSH="$(git config --get push.recurseSubmodules || true)"
-if [ "$RECURSE_PUSH" != "check" ] && [ "$RECURSE_PUSH" != "on-demand" ]; then
-    echo "ERROR: 'push.recurseSubmodules' must be 'check' or 'on-demand'. Run: git config --global push.recurseSubmodules check"
-    exit 1
-fi
-
-# 3. Check commit signing
-if [ "$(git config --get commit.gpgsign)" != "true" ]; then
-    echo "ERROR: 'commit.gpgsign' must be set to 'true'. Commits must be signed."
-    exit 1
-fi
-
-# 4. Check current branch naming (GitHub Flow compliance)
-CURRENT_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
-if [ "$CURRENT_BRANCH" = "main" ]; then
-    echo "ERROR: Direct push to 'main' is forbidden. Create a feature branch and open a PR."
-    exit 1
-fi
-
-VALID_BRANCH_PATTERN="^(feature|hotfix|bugfix|chore|refactor|docs)\/[a-z0-9._-]+$"
-if [[ ! "$CURRENT_BRANCH" =~ $VALID_BRANCH_PATTERN ]] && [ "$CURRENT_BRANCH" != "develop" ] && [ -n "$CURRENT_BRANCH" ]; then
-    echo "ERROR: Branch '$CURRENT_BRANCH' violates organizational naming taxonomy."
-    echo "Allowed prefixes: feature/, hotfix/, bugfix/, chore/, refactor/, docs/"
-    exit 1
-fi
-
-echo "Pre-flight checks passed successfully. Proceeding with push."
-exit 0
-```
-
----
-
-## 9. Tooling Governance: Prohibition of Legacy `git-flow` CLI
-
-Developers must note that the legacy `git-flow` or `git-flow-avh` CLI tools are **formally prohibited**:
-- **Why**: `git-flow` relies on non-linear branch automations, requires a permanent `develop` branch, and bypasses cryptographic SSH commit signing during automated merge commits.
-- **Approved Toolchain**:
-  - **Native Git**: `git switch -c feature/<name>` (or `git checkout -b feature/<name>`).
-  - **GitHub CLI**: `gh pr create`, `gh pr status`, `gh pr view`.
-  - **Changesets**: `pnpm changeset` for declaring semantic release bumps.
-
-For full architectural details, consult the dedicated plan:
-[GitHub Flow, Automated Changesets & Branch Governance](./github-flow-and-changesets-branch-governance-plan.md).
+This master plan interfaces directly with the other specialized plans in this directory:
+- [Meta-Repository Architecture](./meta-repository-architecture.md): Specifies the multi-tenant namespace filesystem layout (`projects/personal` vs `projects/organizations`) and dynamic identity switching.
+- [Git Submodules & Multi-Repo Orchestration](./git-submodules-and-multi-repo-orchestration-plan.md): In-depth mechanics of `160000 commit` gitlink pointers, hazard mitigations, and `repository_dispatch` automation.
+- [GitHub Organization Security & Rulesets](./github-organization-security-and-rulesets-plan.md): Declarative ruleset definitions (`enforce-branch-naming-standard` and `enterprise-production-main`) enforcing remote protection.
+- [GitHub Flow & Automated Changesets](./github-flow-and-changesets-branch-governance-plan.md): Full lifecycle specification for `@changesets/cli`, ephemeral preview deployments, and PR testing gates.

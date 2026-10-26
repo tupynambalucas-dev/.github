@@ -78,10 +78,10 @@ flowchart TD
    `git worktree` and `git subtree`, operational hazards (Detached HEAD, pointer drift, out-of-order
    pushes, empty directories, and Hazard 5: Standalone Developer Workflow), and automated GitHub
    Actions dispatch mitigation runbooks.
-3. [Developer Workstation & GitHub Onboarding](./developer-workstation-and-github-onboarding-plan.md):
-   Automated workstation bootstrapping (`bootstrap-workstation.ps1` / `.sh`), pre-flight readiness gate
-   evaluation (7 compliance gates GV1-GV7), team-by-team capability matrix, Ed25519 SSH commit signing,
-   GitHub CLI (`gh`) standard setup, and local pre-push hook enforcement.
+3. [Minimal Developer Workstation Onboarding & Husky Governance](./developer-workstation-and-github-onboarding-plan.md):
+   Centralized master onboarding architecture eliminating OS-specific shell scripts in favor of Husky v9
+   Git hooks, universal Node.js setup helper (`setup-workstation.mjs`), self-healing pre-push guardrails (8 compliance
+   gates GV1-GV8), and distinct runbooks for Standalone vs Umbrella meta-repository workflows.
 4. [GitHub Organization Security & Rulesets](./github-organization-security-and-rulesets-plan.md):
    Centralized security baseline, secret scanning push protection, branch protection rulesets on
    `main` (mandatory commit signing, linear history, review threads, branch naming standards), CODEOWNERS

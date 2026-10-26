@@ -374,20 +374,20 @@ git config --global diff.submodule log
 git config --global fetch.recurseSubmodules on-demand
 ```
 
-### 3.7 Automated Workstation Bootstrapping & Readiness Gates
+### 3.7 Zero-Friction Workstation Setup & Husky Git Hooks
 
 To guarantee compliance and eliminate manual setup friction, developers do not configure these settings
-manually. The organization provides:
+manually or maintain OS-specific shell scripts. The organization provides:
 
-1. **Automated Bootstrapper** (`scripts/bootstrap-workstation.ps1` / `scripts/bootstrap-workstation.sh`):
-   - Sets up all Git defaults, SSH Ed25519 keys, GitHub CLI, and workspace paths in a single automated command.
-2. **Pre-Flight Readiness Gate** (`scripts/verify-workstation.ps1` / `scripts/verify-workstation.sh`):
-   - Evaluates the 7 compliance gates (GV1 to GV7) before code is pushed to remote branches.
-3. **Local Pre-Push Hook** (`.git/hooks/pre-push`):
-   - Blocks non-compliant pushes locally before they trigger GitHub branch ruleset rejections.
+1. **Universal Workstation Helper** (`node scripts/setup-workstation.mjs`):
+   - A single, cross-platform Node.js script setting up all Git defaults, SSH Ed25519 keys, GitHub CLI, and workspace paths.
+2. **Husky v9 Git Hooks Integration** (`core.hooksPath = .husky`):
+   - Hooks self-install upon `pnpm install` via the `"prepare": "husky"` lifecycle script without copying files.
+3. **Self-Healing Pre-Push Hook** (`.husky/pre-push`):
+   - Intercepts pushes in real time, validating the 8 compliance gates (GV1 to GV8) and printing 1-line remediations on failure.
 
-For detailed onboarding and script specifications, consult
-[Developer Workstation & GitHub Onboarding](./developer-workstation-and-github-onboarding-plan.md).
+For the definitive, centralized onboarding architecture, consult:
+[Minimal Developer Workstation Onboarding & Husky Governance](./developer-workstation-and-github-onboarding-plan.md).
 For repository security and branch ruleset configurations, consult
 [GitHub Organization Security & Rulesets](./github-organization-security-and-rulesets-plan.md).
 
