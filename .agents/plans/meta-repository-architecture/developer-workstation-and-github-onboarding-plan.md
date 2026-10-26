@@ -4,102 +4,165 @@ This document serves as the **single authoritative source of truth** for develop
 provisioning, Git hooks management, and compliance verification across all repositories in `tupynambalucas-dev`.
 It consolidates and supersedes all fragmented onboarding scripts, replacing OS-specific PowerShell (`.ps1`) and
 Bash (`.sh`) bootstrap scripts with **zero-friction Husky v9 Git hooks**, a **universal Node.js setup helper**,
-and automated self-healing pre-push guardrails.
+**URL-based Git conditional configuration (`hasconfig:remote.*.url`)**, and automated self-healing pre-push guardrails.
 
 ---
 
-## 1. Executive Architecture: The Minimal Setup Paradigm
+## 1. Executive Architecture: Enterprise Best Practices & The Out-of-the-Box Paradigm
 
-Traditional enterprise onboarding suffers from fragile OS-specific scripts (`irm ... | iex` or `curl ... | bash`),
-PowerShell execution policy restrictions, manual hook copying into `.git/hooks/`, and configuration drift. 
+Senior platform engineers and enterprise organizations (e.g., Google, Stripe, Microsoft, Shopify) reject
+fragile, path-dependent workstation scripts. If an onboarding guide instructs developers to clone into a
+hardcoded directory path (such as `C:/Users/tupyn/projects/organizations/...`), it immediately breaks for
+any developer who clones to their Desktop, `~/code`, `D:\workspace`, or `/tmp`.
 
-To achieve **minimal friction with maximum compliance**, the workstation onboarding architecture is unified
-into three deterministic tiers:
+Furthermore, forcing all developers to commit under a single shared mailbox (such as `contato@tupynambalucas.dev`)
+violates foundational security principles:
+1. **Destruction of Non-Repudiation (Auditability)**: If all developers commit as `contato@...`, `git blame`
+   and security audit logs attribute all changes to the founder/administrative account, making it impossible
+   to identify who introduced a bug, altered a contract, or leaked a token.
+2. **Failure of GitHub Cryptographic Verification**: GitHub awards the **`Verified`** badge only when the
+   commit email (`git config user.email`) matches an email address registered and verified on the GitHub account
+   owning the signing SSH key. If developer "Jane" signs with her personal SSH key but stamps the commit with
+   `contato@tupynambalucas.dev`, GitHub flags the commit as **`Unverified`**, and our organization branch rulesets
+   reject the push.
+
+To achieve **true enterprise-grade out-of-the-box onboarding**, the architecture implements four pillars:
 
 ```mermaid
 flowchart TD
-    subgraph Tier1 ["Tier 1: Developer Prerequisites (One-Time OS Setup)"]
-        GitBin["Git >= 2.38.0<br/>(Standard SCM Binary)"]
-        NodeBin["Node.js >= 20.0.0 & pnpm >= 9<br/>(Universal JavaScript Runtime)"]
-        SSHKey["Ed25519 SSH Keypair<br/>(~/.ssh/github_tupynambalucas_ed25519)"]
-        GitBin --> NodeBin
-        NodeBin --> SSHKey
+    subgraph Pillar1 ["Pillar 1: Location-Independent Remote Matching (Git 2.36+)"]
+        RemoteRule["includeIf hasconfig:remote.*.url<br/>(Matches git@github.com:tupynambalucas-dev/**)"]
+        AnyLocation["Developer Clones Anywhere<br/>(Desktop, ~/dev, D:\workspace, /tmp)"]
+        AnyLocation --> RemoteRule
+        RemoteRule --> AutoConfig["Applies Corporate Config Automatically"]
     end
 
-    subgraph Tier2 ["Tier 2: Universal Workstation Helper (setup-workstation.mjs)"]
-        UniScript["node scripts/setup-workstation.mjs<br/>(Single Cross-Platform ESM Runner)"]
-        SSHKey --> UniScript
-        UniScript --> GitConfig["Git includeIf Namespace Isolation<br/>(~/.gitconfig-tupynambalucas-dev)"]
-        UniScript --> SubmoduleSafety["Submodule Recurse & Push Traps<br/>(submodule.recurse & push.recurseSubmodules)"]
-        UniScript --> GhConfig["GitHub CLI SSH Standard<br/>(gh auth setup-git)"]
+    subgraph Pillar2 ["Pillar 2: Cryptographic Individual Identity Policy"]
+        DevUser["Developer Individual Identity<br/>(Nominal Email or GitHub No-Reply)"]
+        DevSSH["Developer Personal Ed25519 Signing Key<br/>(Added to their own GitHub profile)"]
+        DevUser --> VerifiedBadge["GitHub Verified Badge<br/>(Matches Signer + Verified Email)"]
+        DevSSH --> VerifiedBadge
     end
 
-    subgraph Tier3 ["Tier 3: In-Repo Zero-Friction Automation (Husky v9)"]
-        PnpmInstall["pnpm install<br/>(Runs 'prepare: husky' automatically)"]
-        HuskyCore["core.hooksPath = .husky<br/>(Committed to Repository)"]
-        PreCommit[".husky/pre-commit<br/>(lint-staged: Prettier, ESLint, Typecheck)"]
+    subgraph Pillar3 ["Pillar 3: In-Repo Zero-Script Automation (Husky v9)"]
+        PnpmInstall["pnpm install<br/>(Auto-triggers 'prepare: husky')"]
+        HuskyPath["core.hooksPath = .husky<br/>(Tracks inside Git repo)"]
         PrePush[".husky/pre-push<br/>(Self-Healing 8-Gate Compliance Validator)"]
-        
-        UniScript --> PnpmInstall
-        PnpmInstall --> HuskyCore
-        HuskyCore --> PreCommit
-        HuskyCore --> PrePush
+        PnpmInstall --> HuskyPath
+        HuskyPath --> PrePush
+    end
+
+    subgraph Pillar4 ["Pillar 4: Cloud & Container Environments (Horizon)"]
+        DevContainer[".devcontainer / GitHub Codespaces<br/>(1-Click Zero-Friction Hermetic Environment)"]
     end
 ```
 
-### Foundational Principles:
-1. **Zero OS-Specific Shell Scripts**: No divergent `.ps1` or `.sh` files to maintain. The setup helper is a
-   single cross-platform Node.js script (`scripts/setup-workstation.mjs`) that executes identically on
-   Windows (cmd/PowerShell), macOS, and Linux/WSL2.
-2. **Zero Manual Hook Copying**: Git hooks are tracked in version control under `.husky/`. When a developer
-   runs `pnpm install`, the standard `"prepare": "husky"` lifecycle script configures Git's native
-   `core.hooksPath` automatically.
-3. **Self-Healing Guardrails in `.husky/pre-push`**: Instead of forcing developers to remember a manual
-   verification command (`verify-workstation.ps1`), the pre-push hook intercepts pushes in real time. If any
-   setting is missing (e.g., unsigned commits, branch naming violations, or missing submodule recursion),
-   it outputs the exact 1-line remediation command.
-4. **Scope Independence**: Developers can onboard into a **Standalone Child Repository** (e.g., [`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform))
-   or the **Umbrella Meta-Repository** ([`org-core`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core))
-   with zero configuration difference.
+---
+
+## 2. Organization Email and Commit Identity Policy
+
+To guarantee strict compliance with GitHub verified commit standards and enterprise non-repudiation:
+
+### 2.1 The Administrative Email (`contato@tupynambalucas.dev`)
+- **Strict Role**: The `contato@tupynambalucas.dev` address is the **Organization Root Administrative Contact**.
+- **Prohibition**: Human developers, external contractors, and team members **must NEVER author commits** using
+  `contato@tupynambalucas.dev`. Commits from developers using this address will be flagged for security audit review.
+
+### 2.2 Developer Commit Email Standards (Approved Options)
+
+Every developer must configure their commit identity using one of the two authorized options:
+
+#### Option A: Nominal Corporate Email (Preferred for Core Employees)
+- Format: `<firstname>.<lastname>@tupynambalucas.dev` or `<username>@tupynambalucas.dev` (e.g., `jane.doe@tupynambalucas.dev`).
+- Requirement: The developer must add and verify this email address in their GitHub account under
+  [GitHub Settings -> Emails](https://github.com/settings/emails).
+
+#### Option B: GitHub Privacy-Preserving No-Reply Email (Preferred for Contractors / Personal Accounts)
+- Format: `<id>+<username>@users.noreply.github.com` (e.g., `12345678+janedoe@users.noreply.github.com`).
+- Requirement: Retrieved directly from [GitHub Settings -> Emails -> Keep my email addresses private](https://github.com/settings/emails).
+- Benefit: Guarantees 100% verified commit badges without exposing personal email addresses publicly in git logs.
 
 ---
 
-## 2. Team Capability and Tooling Matrix
+## 3. Location-Agnostic Git Configuration via `hasconfig:remote.*.url`
 
-| Requirement / Tool | `lead-architects` | `infra-ops` | `security-managers` | `core-engineers` | `technical-writers` | `contractors` |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Node.js (>= 20) & pnpm** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory |
-| **Ed25519 SSH Signing Key** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory (scoped) |
-| **Universal Setup Helper** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory |
-| **Husky v9 Git Hooks** | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory | Mandatory |
-| **GitHub CLI (`gh`)** | Mandatory | Mandatory | Recommended | Recommended | Recommended | Optional |
-| **Infisical CLI (`infisical`)** | Mandatory | Mandatory | Mandatory | Mandatory | Optional | Forbidden |
-| **Target Workspace Scope** | `org-core` / All | `platform` / `org-core` | All Repos | `platform` standalone | `docs` standalone | Scoped Repo |
+In Git 2.36+, the brittle path-dependent `gitdir:` directive is superseded by **`hasconfig:remote.*.url`**.
+This matches based on the repository's upstream remote URL rather than the local filesystem path.
+
+### How it Works in Practice
+Whether a developer clones to `C:\Users\jane\Desktop\platform`, `/home/jane/code/platform`, or `D:\repos\platform`,
+Git inspects `remote.origin.url`. If the remote belongs to `tupynambalucas-dev`, Git automatically applies the
+corporate configuration without requiring a fixed directory hierarchy:
+
+```ini
+# ~/.gitconfig (Global configuration on developer workstation)
+
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+
+[submodule]
+	recurse = true
+
+[push]
+	recurseSubmodules = check
+
+[status]
+	submoduleSummary = true
+
+[diff]
+	submodule = log
+
+[fetch]
+	recurseSubmodules = on-demand
+
+# Dynamic Remote URL Matching (Location-Independent)
+[includeIf "hasconfig:remote.*.url:git@github.com:tupynambalucas-dev/**"]
+	path = ~/.gitconfig-tupynambalucas-dev
+
+[includeIf "hasconfig:remote.*.url:https://github.com/tupynambalucas-dev/**"]
+	path = ~/.gitconfig-tupynambalucas-dev
+```
+
+And inside `~/.gitconfig-tupynambalucas-dev`:
+```ini
+# ~/.gitconfig-tupynambalucas-dev (Applied dynamically to all org repositories)
+[user]
+	name = Jane Doe
+	email = jane.doe@tupynambalucas.dev
+	signingkey = ~/.ssh/github_tupynambalucas_ed25519.pub
+
+[commit]
+	gpgsign = true
+
+[tag]
+	gpgsign = true
+
+[gpg]
+	format = ssh
+```
 
 ---
 
-## 3. Fast-Track: The 2-Step Minimal Onboarding Runbook
+## 4. Fast-Track: The 2-Step Out-of-the-Box Onboarding Runbook
 
 ### Step 1: Workstation Prerequisite Setup (Run Once per Machine)
 
-Ensure Node.js (`>= 20.0.0`), pnpm (`>= 9.0.0`), and Git (`>= 2.38.0`) are installed, then generate
-an Ed25519 SSH keypair if you do not already possess one:
-
-```bash
-# Generate dedicated organizational SSH keypair
-ssh-keygen -t ed25519 -C "contato@tupynambalucas.dev" -f ~/.ssh/github_tupynambalucas_ed25519
-```
-
-Register this key on [GitHub SSH and GPG Settings](https://github.com/settings/keys):
-1. Add as **Authentication Key** (type: Authentication Key).
-2. Add as **Signing Key** (type: Signing Key, using the exact same public key string).
-
-Authenticate the GitHub CLI:
-```bash
-gh auth login --git-protocol ssh --web
-```
+1. Ensure **Node.js** (`>= 20.0.0`), **pnpm** (`>= 9.0.0`), and **Git** (`>= 2.38.0`) are installed.
+2. Authenticate the GitHub CLI:
+   ```bash
+   gh auth login --git-protocol ssh --web
+   ```
+3. Generate an Ed25519 SSH keypair (using your verified GitHub email):
+   ```bash
+   ssh-keygen -t ed25519 -C "your-email@tupynambalucas.dev" -f ~/.ssh/github_tupynambalucas_ed25519
+   ```
+4. Register the key on [GitHub SSH Keys](https://github.com/settings/keys):
+   - Add as **Authentication Key**.
+   - Add as **Signing Key** (using the exact same public key string).
 
 ### Step 2: Clone and Install (Hooks Self-Activate)
+
+The developer clones to **any location of their choice** (Desktop, workspace, etc.):
 
 #### Path A: Standalone Child Repository (e.g., Platform / Web / API Engineer)
 ```bash
@@ -109,7 +172,7 @@ cd platform
 # Installs dependencies AND initializes Husky Git hooks automatically via prepare
 pnpm install
 
-# Run the cross-platform setup helper to configure Git includeIf and safety flags
+# Run the universal setup helper (detects identity from gh CLI and configures hasconfig rules)
 node scripts/setup-workstation.mjs
 ```
 
@@ -122,23 +185,19 @@ pnpm install
 node scripts/setup-workstation.mjs
 ```
 
-**That is all.** The developer workstation is now 100% compliant, hooks are active, and identity isolation
-is locked in.
-
 ---
 
-## 4. The Universal Setup Helper (`scripts/setup-workstation.mjs`)
+## 5. The Universal Setup Helper (`scripts/setup-workstation.mjs`)
 
-This single, cross-platform ECMAScript module replaces all prior `.ps1` and `.sh` scripts. It uses
-only Node.js standard libraries (`node:child_process`, `node:fs`, `node:path`, `node:os`) and executes
-identically across Windows, macOS, and Linux:
+This cross-platform Node.js script automatically queries the developer's identity via `gh api user`,
+writes their specific `~/.gitconfig-tupynambalucas-dev`, and binds the URL-based `hasconfig` rules:
 
 ```javascript
 #!/usr/bin/env node
 /**
  * setup-workstation.mjs
- * Cross-platform enterprise workstation bootstrapper for tupynambalucas-dev.
- * Replaces OS-specific bootstrap-workstation.ps1 and .sh scripts.
+ * Universal enterprise workstation bootstrapper for tupynambalucas-dev.
+ * Cross-platform (Windows, macOS, Linux). Requires zero shell dependencies.
  */
 
 import { execSync } from "node:child_process";
@@ -146,21 +205,43 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
-function run(command, options = {}) {
+function run(cmd, opts = {}) {
   try {
-    return execSync(command, { encoding: "utf8", stdio: options.silent ? "pipe" : "inherit" });
+    return execSync(cmd, { encoding: "utf8", stdio: opts.silent ? "pipe" : "inherit" });
   } catch (err) {
-    if (!options.allowFailure) {
-      console.error(`[ERROR] Command failed: ${command}`);
+    if (!opts.allowFailure) {
+      console.error(`[ERROR] Command failed: ${cmd}`);
       process.exit(1);
     }
     return null;
   }
 }
 
-console.log("=== Configuring tupynambalucas-dev Workstation Standards ===");
+function query(cmd) {
+  try {
+    return execSync(cmd, { encoding: "utf8", stdio: "pipe" }).trim();
+  } catch {
+    return "";
+  }
+}
 
-// 1. Configure Global Defensive Git Settings
+console.log("=== Configuring tupynambalucas-dev Enterprise Workstation Standards ===");
+
+// 1. Detect Developer Identity from GitHub CLI
+let ghUser = query("gh api user --jq .login");
+let ghName = query("gh api user --jq .name") || ghUser;
+let ghEmail = query("gh api user/public_emails --jq '.[0].email'") || query("gh api user --jq .email");
+
+if (!ghUser) {
+  console.warn("[WARN] GitHub CLI ('gh') is not authenticated. Run 'gh auth login --git-protocol ssh' first.");
+  ghUser = os.userInfo().username;
+  ghName = ghUser;
+  ghEmail = `${ghUser}@users.noreply.github.com`;
+}
+
+console.log(`[INFO] Detected Developer Persona: ${ghName} (@${ghUser}) <${ghEmail}>`);
+
+// 2. Configure Global Defensive Git Settings
 const gitConfigs = [
   ["init.defaultBranch", "main"],
   ["submodule.recurse", "true"],
@@ -178,15 +259,22 @@ for (const [key, value] of gitConfigs) {
 }
 console.log("[OK] Defensive Git submodule and protocol standards applied.");
 
-// 2. Configure Dynamic Workspace Identity Isolation (includeIf)
+// 3. Configure Dynamic Remote URL Matching (hasconfig:remote.*.url)
 const homeDir = os.homedir();
 const corporateGitConfigPath = path.join(homeDir, ".gitconfig-tupynambalucas-dev");
-const sshKeyPath = path.join(homeDir, ".ssh", "github_tupynambalucas_ed25519.pub").replace(/\\/g, "/");
 
-const corporateGitConfigContent = `[user]
-\tname = tupynambalucasdev
-\temail = contato@tupynambalucas.dev
-\tsigningkey = ${sshKeyPath}
+// Detect SSH key path (checks organizational key, fallback to default id_ed25519)
+let sshKeyPath = path.join(homeDir, ".ssh", "github_tupynambalucas_ed25519.pub");
+if (!fs.existsSync(sshKeyPath)) {
+  sshKeyPath = path.join(homeDir, ".ssh", "id_ed25519.pub");
+}
+const normalizedSshKeyPath = sshKeyPath.replace(/\\/g, "/");
+
+const corporateGitConfigContent = `# Auto-generated by setup-workstation.mjs
+[user]
+\tname = ${ghName}
+\temail = ${ghEmail}
+\tsigningkey = ${normalizedSshKeyPath}
 
 [commit]
 \tgpgsign = true
@@ -199,41 +287,37 @@ const corporateGitConfigContent = `[user]
 `;
 
 fs.writeFileSync(corporateGitConfigPath, corporateGitConfigContent, "utf8");
-console.log(`[OK] Created corporate Git configuration at: ${corporateGitConfigPath}`);
+console.log(`[OK] Generated corporate identity config at: ${corporateGitConfigPath}`);
 
-// Link includeIf in global .gitconfig
-const isWin = os.platform() === "win32";
-const orgPathPattern = isWin
-  ? "gitdir:C:/Users/tupyn/projects/organizations/tupynambalucas-dev/"
-  : "gitdir:~/projects/organizations/tupynambalucas-dev/";
+// Apply location-independent remote matching
+const normalizedConfigPath = corporateGitConfigPath.replace(/\\/g, "/");
+run(`git config --global includeIf."hasconfig:remote.*.url:git@github.com:tupynambalucas-dev/**".path "${normalizedConfigPath}"`);
+run(`git config --global includeIf."hasconfig:remote.*.url:https://github.com/tupynambalucas-dev/**".path "${normalizedConfigPath}"`);
+console.log("[OK] Bound 'hasconfig:remote.*.url' for tupynambalucas-dev (location-independent).");
 
-run(`git config --global includeIf."${orgPathPattern}".path "${corporateGitConfigPath.replace(/\\/g, "/")}"`);
-console.log(`[OK] Bound organizational namespace (${orgPathPattern}) to corporate identity.`);
-
-// 3. Configure GitHub CLI
+// 4. Configure GitHub CLI
 try {
   run("gh config set git_protocol ssh", { silent: true });
   run("gh config set prompt enabled", { silent: true });
   run("gh auth setup-git", { silent: true });
   console.log("[OK] GitHub CLI configured with SSH protocol and credential helper.");
 } catch {
-  console.warn("[WARN] GitHub CLI ('gh') not authenticated or not installed. Run 'gh auth login'.");
+  console.warn("[WARN] Could not finalize GitHub CLI settings.");
 }
 
-console.log("\n=== Workstation Configuration Complete ===");
-console.log("Run 'pnpm install' to ensure Husky hooks are active in your repository.");
+console.log("\n=== Enterprise Workstation Configuration Complete ===");
+console.log("You can now clone any organization repository anywhere on your machine.");
 ```
 
 ---
 
-## 5. Zero-Script Git Hooks Architecture via Husky v9
+## 6. Zero-Script Git Hooks Architecture via Husky v9
 
-Instead of instructing developers to manually copy files into `.git/hooks/`, all hooks are managed
-declaratively inside `.husky/` and versioned in Git.
+Git hooks are managed declaratively inside `.husky/` and versioned in Git.
 
-### 5.1 Package Manifest Configuration (`package.json`)
+### 6.1 Package Manifest Configuration (`package.json`)
 The root `package.json` in [`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform/package.json)
-declares the lifecycle script:
+declares:
 
 ```json
 {
@@ -247,21 +331,10 @@ declares the lifecycle script:
 }
 ```
 
-When any engineer executes `pnpm install`, pnpm automatically executes `husky`, which sets:
+When any engineer executes `pnpm install`, pnpm executes `husky`, which sets:
 `git config core.hooksPath .husky`
 
-### 5.2 Pre-Commit Hook: Automated Code Quality (`.husky/pre-commit`)
-Enforces formatting and linting across staged files before allowing a commit to be created:
-
-```bash
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-# Run lint-staged on modified files only
-pnpm exec lint-staged
-```
-
-### 5.3 Pre-Push Hook: Self-Healing 8-Gate Compliance Validator (`.husky/pre-push`)
+### 6.2 Pre-Push Hook: Self-Healing 8-Gate Compliance Validator (`.husky/pre-push`)
 This hook intercepts `git push` and evaluates the **8 Compliance Gates (GV1 to GV8)**.
 If any gate fails, it aborts the push immediately and prints the exact remediation command:
 
@@ -273,6 +346,7 @@ echo "Evaluating workstation compliance gates before push..."
 
 # GV1: Check Git Version
 GIT_VERSION=$(git --version | awk '{print $3}')
+
 # GV2 & GV3: Check Commit Signing
 COMMIT_SIGN=$(git config --get commit.gpgsign || echo "false")
 GPG_FORMAT=$(git config --get gpg.format || echo "")
@@ -332,7 +406,7 @@ exit 0
 
 ---
 
-## 6. The 8 Compliance Gates (Summary Reference)
+## 7. The 8 Compliance Gates (Summary Reference)
 
 | Gate ID | Check Description | Enforced By | Automatic Remediation Command |
 | :--- | :--- | :--- | :--- |
@@ -347,55 +421,20 @@ exit 0
 
 ---
 
-## 7. Developer Daily Workflows (Quick Reference)
+## 8. Horizon: Dev Containers (`.devcontainer`) for 1-Click Onboarding
 
-### 7.1 Developing in a Standalone Child Repository
-```bash
-# 1. Switch to main and pull latest changes
-git switch main
-git pull
-
-# 2. Branch using standardized taxonomy
-git switch -c feature/corporate-api-telemetry
-
-# 3. Author code and declare semantic version change
-pnpm corporate:typecheck
-pnpm changeset
-
-# 4. Commit (Husky validates formatting; Git signs with SSH key)
-git add .
-git commit -S -m "feat(api): add telemetry health check endpoint"
-
-# 5. Push (Husky validates branch taxonomy and signing before transmission)
-git push -u origin feature/corporate-api-telemetry
-gh pr create --web
-```
-
-### 7.2 Cross-Repository Development in `org-core`
-```bash
-# 1. Update superproject and all 4 child submodules in one command
-cd org-core
-git pull --recurse-submodules
-
-# 2. Work inside any submodule directory
-cd platform
-git switch -c feature/shared-auth-guard
-# ... author, pnpm changeset, commit with -S, push branch ...
-
-# 3. Pull updated submodule pointer into org-core once PR merges remotely
-cd /path/to/org-core
-git submodule update --remote --merge platform
-git add platform
-git commit -S -m "chore(submodules): bump platform to latest main"
-git push origin main
-```
+For developers or contractors who want **zero machine setup**, repositories can optionally include a
+`.devcontainer/devcontainer.json` file.
+- **How it works**: Opening the project in VS Code prompts: *"Reopen in Container"*.
+- **Features**: Docker launches an ephemeral container with Node.js, pnpm, Git, and all extensions pre-installed.
+- **SSH Forwarding**: The host machine's SSH Agent automatically forwards the developer's Ed25519 signing key
+  into the container, achieving zero-friction local development without touching host system configurations.
 
 ---
 
-## 8. Cross-Document Architectural References
+## 9. Cross-Document Architectural References
 
-This master plan interfaces directly with the other specialized plans in this directory:
-- [Meta-Repository Architecture](./meta-repository-architecture.md): Specifies the multi-tenant namespace filesystem layout (`projects/personal` vs `projects/organizations`) and dynamic identity switching.
-- [Git Submodules & Multi-Repo Orchestration](./git-submodules-and-multi-repo-orchestration-plan.md): In-depth mechanics of `160000 commit` gitlink pointers, hazard mitigations, and `repository_dispatch` automation.
-- [GitHub Organization Security & Rulesets](./github-organization-security-and-rulesets-plan.md): Declarative ruleset definitions (`enforce-branch-naming-standard` and `enterprise-production-main`) enforcing remote protection.
-- [GitHub Flow & Automated Changesets](./github-flow-and-changesets-branch-governance-plan.md): Full lifecycle specification for `@changesets/cli`, ephemeral preview deployments, and PR testing gates.
+- [Meta-Repository Architecture](./meta-repository-architecture.md): Topology of the 4-tier organization and namespace isolation.
+- [Git Submodules & Multi-Repo Orchestration](./git-submodules-and-multi-repo-orchestration-plan.md): Deep-dive into `160000 commit` gitlink mechanics and hazard prevention.
+- [GitHub Organization Security & Rulesets](./github-organization-security-and-rulesets-plan.md): Remote enforcement of branch naming and signed commits on GitHub Enterprise.
+- [GitHub Flow & Automated Changesets](./github-flow-and-changesets-branch-governance-plan.md): Specification for `@changesets/cli` semantic releases and PR quality gates.
