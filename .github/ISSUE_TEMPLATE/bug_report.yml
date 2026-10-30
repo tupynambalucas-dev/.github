@@ -1,0 +1,54 @@
+name: Bug Report
+description: Report a reproducible defect, regression, or unexpected runtime behavior.
+title: "fix(<scope>): <short imperative description>"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue. Do **not** include secrets, API keys, or private credentials in any field below. For security vulnerabilities, follow our [Security Policy](https://github.com/tupynambalucas-dev/.github/blob/main/SECURITY.md).
+
+  - type: input
+    id: component
+    attributes:
+      label: Affected Package, Service, or Subsystem
+      description: Specify the package (`@tupynambalucas-dev/*`), service, or directory path affected.
+      placeholder: "@tupynambalucas-dev/mcp-github"
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current Behavior
+      description: Clear technical description of the defect observed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: Describe the deterministic behavior expected according to specifications.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal Reproduction Steps
+      description: Numbered steps, commands, or minimal code snippet reproducing the issue.
+      value: |
+        1. 
+        2. 
+        3. 
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment & Logs
+      description: OS, Node.js version, pnpm version, and sanitized error stack traces.
+      render: text
+    validations:
+      required: false

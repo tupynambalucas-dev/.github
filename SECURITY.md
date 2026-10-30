@@ -1,59 +1,53 @@
 # Security Policy
 
-Tupynambá Lucas treats system security and cryptographic integrity as first-class architectural
-priorities. We appreciate the responsible disclosure of any security vulnerability found within
-our software, repositories, and cloud-native services.
+`tupynambalucas-dev` treats system security, secret hygiene, and cryptographic provenance as first-class architectural invariants. We welcome responsible disclosure of security vulnerabilities across any repository, package, or cloud-native service in our ecosystem.
 
 ---
 
 ## Supported Versions
 
-Security patches and vulnerability updates are actively maintained on the latest stable releases:
+Security patches and dependency remediations are actively maintained on the latest `main` branch heads and current `1.x.x` package releases:
 
-| Project / Component               | Supported Version | Status             |
-| :-------------------------------- | :---------------- | :----------------- |
-| `tupynambalucas` Monorepo (Main)  | `latest` (`main`) | Actively Supported |
-| `corporate/services/api` (Fastify)| `5.x`             | Actively Supported |
-| `corporate/services/web` (React)  | `19.x`            | Actively Supported |
-| `.agents` Custom Plugins          | `latest` (`main`) | Actively Supported |
+| Repository / Package Scope | Supported Version | Status |
+| :--- | :--- | :--- |
+| `tupynambalucas-dev/org-core` | `main` (latest) | Actively Supported |
+| `tupynambalucas-dev/platform` | `main` (latest) | Actively Supported |
+| `tupynambalucas-dev/agent-mesh` (`@tupynambalucas-dev/mcp-*`, `plugin-*`) | `1.x.x` (`main`) | Actively Supported |
+| `tupynambalucas-dev/docs` | `main` (latest) | Actively Supported |
+| `tupynambalucas-dev/.github` | `main` (latest) | Actively Supported |
+| `< 1.0.0` (Legacy Pre-Release Packages) | `< 1.0.0` | Unsupported |
 
 ---
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability or potential threat in any organization repository or
-deployed service:
+If you identify a security vulnerability or credential exposure across any `@tupynambalucas-dev` repository or deployed endpoint:
 
-1. **Do NOT open a public GitHub issue**. Publicly disclosing security flaws puts our infrastructure
-   and users at risk.
-2. Submit your findings directly via private email to:
-   - **Primary**: [security@tupynambalucas.dev](mailto:security@tupynambalucas.dev)
-   - **Alternative**: [contato@tupynambalucas.dev](mailto:contato@tupynambalucas.dev)
-3. Please include the following details in your report:
-   - Description of the vulnerability and attack vector.
-   - Affected repository, component, or URL endpoint.
-   - Step-by-step reproduction instructions or proof-of-concept (PoC).
-   - Potential impact assessment.
+1. **Do NOT open a public GitHub issue or pull request.** Public disclosure prior to remediation puts infrastructure and users at risk.
+2. Report the finding privately via GitHub Security Advisories on the affected repository or via email:
+   - **Primary Security Contact**: [security@tupynambalucas.dev](mailto:security@tupynambalucas.dev)
+   - **Secondary Governance Contact**: [contato@tupynambalucas.dev](mailto:contato@tupynambalucas.dev)
+3. Include the following technical details in your report:
+   - Affected repository, package (`@tupynambalucas-dev/*`), or service endpoint.
+   - Vulnerability classification and attack vector description.
+   - Deterministic reproduction steps or minimal proof-of-concept (PoC).
+   - Estimated impact and scope.
 
 ---
 
 ## Response Commitments
 
-The Tupynambá Lucas security team adheres to the following response timeline:
+The `tupynambalucas-dev` security team adheres to the following disclosure SLAs:
 
 - **Initial Acknowledgement**: Within 24 hours of receipt.
-- **Triage and Impact Assessment**: Within 72 hours.
-- **Remediation & Patching**: Delivered based on CVSS severity (critical vulnerabilities patched
-  within 7 days).
-- **Public Disclosure**: Coordinated with the reporter after remediation is deployed.
+- **Triage and Severity Assessment**: Within 72 hours.
+- **Remediation and Patching**: Prioritized by CVSS severity (critical vulnerabilities patched within 7 days).
+- **Coordinated Disclosure**: Published jointly with the reporter after patches are verified in production.
 
 ---
 
 ## Security Architecture Principles
 
-- **Zero Secrets in Source**: Master secrets, database credentials, and API tokens are
-  managed strictly via Infisical and Bitnami Sealed Secrets. Commits containing secrets fail
-  pre-receive gates.
-- **Cryptographic Provenance**: Commits are strictly verified through SSH key signatures.
-- **Zero Trust Ingress**: External ingress terminates at Cloudflare edge with strict TLS 1.3
-  and WAF controls.
+- **Zero Secrets in Source**: Credentials, machine identities, and tokens are managed exclusively via Infisical Universal Auth and synchronized into Kubernetes via `InfisicalSecret` custom resources. Secret Scanning push protection blocks credential leaks at the Git edge.
+- **Cryptographic Provenance**: All commits and release tags require verified `ed25519` SSH signatures enforced by organization rulesets.
+- **Zero-Trust Edge Ingress**: Public traffic terminates at Cloudflare Zero Trust tunnels and WAF policies with strict TLS 1.3 enforcement.

@@ -2,7 +2,7 @@
 
 ## 1. Executive Summary and Problem Statement
 
-When operating an AI-driven, multi-repository ecosystem comprised of a meta-repository ([`org-core`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core)), specialized monorepos ([`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform), [`docs`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/docs)), and an autonomous tooling package ([`agent-toolkit`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-toolkit)), secret management must reconcile four fundamental operational realities:
+When operating an AI-driven, multi-repository ecosystem comprised of a meta-repository ([`org-core`](https://github.com/tupynambalucas-dev/org-core)), specialized monorepos ([`platform`](https://github.com/tupynambalucas-dev/platform), [`docs`](https://github.com/tupynambalucas-dev/docs)), and an autonomous tooling package ([`agent-toolkit`](https://github.com/tupynambalucas-dev/agent-mesh)), secret management must reconcile four fundamental operational realities:
 
 1. **Zero-Disk Security & Centralized Enterprise Auditing**: Corporate secrets must never be committed in plaintext to version control or hardcoded in configuration files.
 2. **On-Demand Developer Autonomy & Bring-Your-Own-Token (BYOT)**: External contractors or temporary collaborators may not have access to corporate Infisical projects or may wish to supply their own personal API keys for scraping and search without administrative barriers.
@@ -58,7 +58,7 @@ flowchart TD
 - **Bring-Your-Own-Token (BYOT) Advantage**: Temporary contractors without Infisical access copy `.env.example` to `.env` and supply their own personal Firecrawl, Context7, or GitHub keys. No corporate credentials are shared.
 
 ### 2.3 Layer 3: Interactive Antigravity Setup (`/plugin agent-toolkit` / Zero-Env BYOT)
-- **Execution Mechanism**: Declared in [`agent-toolkit/mcp_config.json`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-toolkit/mcp_config.json) under `variables`:
+- **Execution Mechanism**: Declared in [`agent-toolkit/mcp_config.json`](https://github.com/tupynambalucas-dev/agent-mesh) under `variables`:
   ```json
   "variables": [
     { "name": "TUPYNAMBA_GATEWAY_TOKEN" },
@@ -124,7 +124,7 @@ flowchart TD
 
 #### A. Does `docs` GitHub Workflow Really Need Infisical?
 **Verdict: No. It is an anti-pattern for static documentation.**
-- The [`docs`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/docs) repository builds a static Docusaurus site and deploys it to Cloudflare Pages.
+- The [`docs`](https://github.com/tupynambalucas-dev/docs) repository builds a static Docusaurus site and deploys it to Cloudflare Pages.
 - It requires exactly two credentials: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 - Forcing the GitHub Actions workflow in `docs` to invoke an Infisical CLI or action adds:
   1. **Build Latency**: 15 to 30 seconds added to every commit run to spin up, authenticate, and query Infisical Cloud.
@@ -137,7 +137,7 @@ flowchart TD
 #### B. The Folder Strategy for CI/CD Secrets in Infisical
 If the organization decides to audit and rotate all deployment credentials through Infisical as the Single Source of Truth:
 - **Never create separate projects for individual workflows or repositories**.
-- Instead, place them inside [`tupynambalucas-dev-platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform) under the folder `/ci-cd` (or `/github-actions`).
+- Instead, place them inside [`tupynambalucas-dev-platform`](https://github.com/tupynambalucas-dev/platform) under the folder `/ci-cd` (or `/github-actions`).
 - **Use Infisical's Native GitHub Integration (Push Sync)**:
   - Infisical Cloud connects directly to the GitHub Organization `tupynambalucas-dev`.
   - Infisical automatically pushes secrets from `/ci-cd` to GitHub Organization Secrets.
@@ -210,7 +210,7 @@ In accordance with 12-Factor App principles, environment variables use their can
 
 ## 6. The `agent-toolkit` Universal Plugin Architecture
 
-The dedicated submodule repository [`agent-toolkit`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-toolkit) serves as the sovereign agent governance package.
+The dedicated submodule repository [`agent-toolkit`](https://github.com/tupynambalucas-dev/agent-mesh) serves as the sovereign agent governance package.
 
 ### 6.1 Package Identity and Canonical Layout
 - **NPM Package**: `@tupynambalucas-dev/agent-toolkit`

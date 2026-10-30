@@ -1,79 +1,107 @@
-# Contributing to Tupynambá Lucas Projects
+# Contributing to Tupynamba Lucas Projects
 
-Thank you for your interest in contributing to Tupynambá Lucas repositories. We maintain rigorous
-engineering standards across our monorepo and auxiliary packages to guarantee security, stability,
-and deterministic delivery.
+Thank you for your interest in contributing to `@tupynambalucas-dev` repositories. We maintain strict engineering standards across our umbrella meta-repository, domain monorepos, and published packages to guarantee cryptographic provenance, security, and deterministic delivery.
 
 ---
 
-## Code of Conduct
+## Code of Conduct and Licensing
 
-All contributors and maintainers are expected to abide by our
-[Code of Conduct](./CODE_OF_CONDUCT.md). Please read it prior to engaging with our community.
+- **Code of Conduct**: All contributors and maintainers are bound by our [Code of Conduct](./CODE_OF_CONDUCT.md) (Contributor Covenant v2.1).
+- **Contribution Licensing**: Unless explicitly stated otherwise by a repository-specific license, all public `@tupynambalucas-dev` repositories, packages, and plugins are licensed under the [Apache License 2.0](./LICENSE) (`Copyright (c) 2026 tupynambalucas.dev`). Per Section 5 of Apache-2.0, any contribution intentionally submitted for inclusion is licensed under the same terms without additional conditions.
+
+---
+
+## Prerequisites
+
+- **Git**: `>= 2.36` configured with `ed25519` SSH commit and tag signing.
+- **Node.js**: `>= 22.x` LTS.
+- **pnpm**: `>= 10.x` (managed via Corepack).
+- **Infisical CLI**: Required for zero-plaintext runtime secret injection (`dev` environment).
+- **Docker & k3d / Skaffold v4**: Required only when working on Kubernetes cluster workloads in `tupynambalucas-dev/platform`.
 
 ---
 
 ## Development Workflow and Git Standards
 
-### 1. Branch Safety and Naming Conventions
+### 1. Single-Branch GitHub Flow & Branch Naming Taxonomy
 
-Direct commits to protected branches (`main`, `develop`) are strictly prohibited by
-repository rulesets. All changes must be authored on isolated branches adhering to the
-following naming pattern:
+All repositories across `tupynambalucas-dev` enforce **Single-Branch GitHub Flow** anchored on `main` (long-lived `develop` branches and `git-flow` CLI workflows are deprecated). Direct human pushes to `main` are blocked by repository rulesets.
 
-- `feat/<feature-name>`: New capabilities or functional additions.
-- `fix/<issue-name>`: Bug fixes and defect resolutions.
-- `chore/<task-name>`: Maintenance, dependency updates, and configuration tasks.
-- `refactor/<scope-name>`: Code restructuring without feature alteration.
-- `docs/<subject-name>`: Documentation, guides, and architectural plans.
+Create short-lived branches off `main` using `<type>/<kebab-slug>` matching our Conventional Commit types:
 
-### 2. Mandatory SSH Commit Signing
+- `feat/<slug>`: New capabilities, endpoints, packages, or user-facing features.
+- `fix/<slug>`: Bug fixes and defect resolutions.
+- `docs/<slug>`: Documentation updates, Diataxis articles, and architectural specifications.
+- `chore/<slug>`: Maintenance, dependency bumps, submodule updates, and workspace tasks.
+- `refactor/<slug>`: Internal code restructuring without external behavioral changes.
+- `ci/<slug>`: GitHub Actions workflows, composite actions, and pipeline automation.
+- `perf/<slug>`: Measurable runtime or build performance optimizations.
+- `test/<slug>`: Unit, integration, or end-to-end test additions and corrections.
+- `build/<slug>`: Bundler, TypeScript, Turborepo, or container build configuration changes.
+- `style/<slug>`: Formatting or whitespace adjustments with zero semantic impact.
+- `revert/<slug>`: Controlled rollback of a previously merged commit.
+- `hotfix/<slug>`: Urgent production defect or security remediation targeting `main`.
 
-Every commit submitted to an organization repository MUST be cryptographically signed using SSH
-or GPG keys. Unsigned commits will fail pre-receive and branch ruleset gates.
+### 2. Mandatory Cryptographic SSH Commit Signing
 
-Configure Git to sign commits via SSH:
+Every Git commit and annotated tag submitted to an organization repository MUST carry a verified cryptographic signature:
+
+- **Developers & Local AI Agents**: Sign using an `ed25519` SSH key (`git commit -S -m "..."`, `git tag -s vX.Y.Z -m "..."`).
+- **CI / Automated Workflows**: Create commits exclusively via a GitHub App installation token invoking GitHub's GraphQL `createCommitOnBranch` mutation (automatically GPG-signed by GitHub `web-flow`). Unsigned CLI commits are rejected by `required_signatures` rulesets.
 
 ```bash
 git config --global gpg.format ssh
 git config --global user.signingkey ~/.ssh/id_ed25519.pub
 git config --global commit.gpgsign true
+git config --global tag.gpgSign true
 ```
 
-### 3. Conventional Commits Specification
+### 3. Conventional Commits v1.0.0
 
-Commit messages must comply with the Conventional Commits specification:
+Commit messages and Pull Request titles MUST conform strictly to the [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) specification and `@commitlint/config-conventional`:
 
 ```text
-<type>(<optional scope>): <description>
+<type>[optional (<scope>)][!]: <description>
 
 [optional body]
 
 [optional footer(s)]
 ```
 
-- Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`,
-  `ci`, `chore`, `revert`.
-- Description must start in lowercase and not end with a period.
-- Maximum line length for headers is 100 characters.
+- **Permitted types**: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+- **Subject formatting**: Start `<description>` in lowercase, use imperative mood (`add`, `fix`, `align`, not `added` or `fixes`), and omit trailing periods.
+- **Header length**: Aim for `<= 72` characters for optimal Git log readability; headers MUST NOT exceed `100` characters (enforced by `@commitlint/config-conventional`).
+- **Breaking changes**: Append `!` before `:` (e.g., `feat(api)!: remove legacy v1 transport`) and/or include a `BREAKING CHANGE: <explanation>` footer.
 
-### 4. Code Quality and Testing Gates
+### 4. Versioning and Package Releases (Changesets)
 
-Before opening a pull request, ensure your local changes pass all automated validation gates:
+- **Published Package Monorepos (`tupynambalucas-dev/agent-mesh`)**: Pull Requests introducing user-facing or API changes to `@tupynambalucas-dev/mcp-*` or `@tupynambalucas-dev/plugin-*` packages MUST include a changeset file generated via `pnpm changeset` (`baseBranch: "main"`).
+- **Application, Infrastructure & Portal Repositories (`platform`, `docs`, `.github`, `org-core`)**: Deploy continuously from `main` without synthetic Changesets files.
 
-- **Type Checking**: TypeScript strict mode validation with zero errors.
-- **Linting & Formatting**: Clean passes under Biome/ESLint and Prettier.
-- **Unit Tests**: Full test suite execution with passing assertions.
-- **Zero Emojis**: Documentation, commit messages, and PR titles must not contain emojis.
+### 5. Submodule Pointer Governance (`org-core`)
+
+When modifying repositories mounted as Git submodules inside [`tupynambalucas-dev/org-core`](https://github.com/tupynambalucas-dev/org-core) (`.github`, `agent-mesh`, `platform`, `docs`), execute changes **bottom-up**:
+
+1. Branch, commit (`-S`), open a Pull Request, and merge into `main` inside the child repository first.
+2. Never record unpushed or feature-branch commit SHAs as submodule gitlinks in `org-core`.
+3. Advance the `160000` gitlink pointer in `org-core` via a `chore/bump-submodules` Pull Request targeting `main` (or via post-merge GitHub App GraphQL automation).
+
+### 6. Quality and Compliance Gates
+
+Before opening a Pull Request, verify that all local checks pass:
+
+- **Type Checking**: Strict TypeScript project-reference validation (`pnpm typecheck`) with zero errors.
+- **Linting & Formatting**: Clean passes under ESLint and Prettier (2-space indentation, 100-character line width, LF line endings).
+- **Automated Tests**: Full unit and integration test suite execution (`pnpm test`) where applicable.
+- **Secret Hygiene**: Zero plaintext credentials, tokens, private keys, or `.env` files staged in Git.
+- **Zero-Emoji Invariant**: Zero emojis across code comments, documentation, commit messages, PR titles, and PR descriptions.
 
 ---
 
 ## Pull Request Process
 
-1. Fork or branch from the canonical repository.
-2. Verify that local unit tests, linting, and formatting checks pass.
-3. Push your branch and open a Pull Request targeting `develop` (for application code) or `main`
-   (for configuration repositories).
-4. Provide a clear summary of changes, motivation, and test verification evidence.
-5. All pull requests require at least one approving review and green CI checks before merging.
-6. Merges enforce linear history via Squash and Merge or Rebase and Merge.
+1. Create a branch off `main` using an approved `<type>/<slug>` prefix.
+2. Author atomic, SSH-signed Conventional Commits (`git commit -S`) and verify local quality gates.
+3. Push your branch (`git push -u origin <branch>`) and open a Pull Request targeting `main` following the organization Pull Request template.
+4. Resolve all review threads and ensure required status checks pass.
+5. Merge using linear history enforcement (**Squash and Merge** or **Rebase and Merge**; merge commits are disabled by the `enterprise-production-main` ruleset).

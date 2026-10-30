@@ -2,10 +2,11 @@
   "safety-gate-scripts": {
     "PreToolUse": [
       {
-        "matcher": "write_to_file",
+        "matcher": "write_file|write_to_file",
         "hooks": [
           {
-            "command": "node scripts/prevent-root-scripts.js",
+            "type": "command",
+            "command": "node -e \"const fs=require('fs'),path=require('path'),{ pathToFileURL }=require('url');const p=fs.existsSync('.agents/scripts/prevent-root-scripts.js')?path.resolve('.agents/scripts/prevent-root-scripts.js'):path.resolve('scripts/prevent-root-scripts.js');import(pathToFileURL(p).href);\"",
             "timeout": 5
           }
         ]

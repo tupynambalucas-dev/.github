@@ -37,7 +37,7 @@ child repositories. Instead, they are recorded as special 160-bit SHA tree entri
 160000 commit 14683bdc6b962c95eed3e9bba2c12030d60ee0cb    platform
 ```
 
-The matching [`.gitmodules`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.gitmodules) file maps the logical submodule name to its remote URL, tracking branch, update policy, and recursive fetch strategy (as defined in the official Git SCM `gitmodules(5)` specification):
+The matching [`.gitmodules`](https://github.com/tupynambalucas-dev/org-core/blob/main/.gitmodules) file maps the logical submodule name to its remote URL, tracking branch, update policy, and recursive fetch strategy (as defined in the official Git SCM `gitmodules(5)` specification):
 
 ```ini
 [submodule ".github"]
@@ -80,7 +80,7 @@ The matching [`.gitmodules`](file:///C:/Users/tupyn/projects/organizations/tupyn
 
 1. **Autonomous CI/CD Lifecycles & Zero Blast Radius**:
    - Each child repository runs its own focused CI/CD pipeline.
-   - An MDX documentation edit in [`docs`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/docs) deploys immediately to Cloudflare Pages in under 60 seconds without triggering continuous integration tests, container builds, or Kubernetes linting in [`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform).
+   - An MDX documentation edit in [`docs`](https://github.com/tupynambalucas-dev/docs) deploys immediately to Cloudflare Pages in under 60 seconds without triggering continuous integration tests, container builds, or Kubernetes linting in [`platform`](https://github.com/tupynambalucas-dev/platform).
 2. **Granular RBAC and Secret Segregation**:
    - GitHub permissions are enforced at the repository boundary.
    - Members of `@technical-writers` hold `maintain` rights on `docs`, while retaining read-only (`pull`) rights on `platform`. In a traditional monorepo, restricting write access to specific subdirectories requires expensive third-party tools or complex CODEOWNERS rulesets that fail to protect Actions secrets.
@@ -438,8 +438,8 @@ execution**:
   - Submodule relative gitdir paths (`gitdir: ../.git/modules/platform`) fail or corrupt when
     relocated outside the primary umbrella hierarchy.
 - **The Recommended Pattern (Child Worktrees)**:
-  - When an engineer or AI agent needs to work on multiple branches in [`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform)
-    or [`docs`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/docs), create the worktree **inside that specific child repository**:
+  - When an engineer or AI agent needs to work on multiple branches in [`platform`](https://github.com/tupynambalucas-dev/platform)
+    or [`docs`](https://github.com/tupynambalucas-dev/docs), create the worktree **inside that specific child repository**:
     ```bash
     cd platform
     # Create an isolated worktree for an agent task

@@ -5,10 +5,10 @@
 Prior to this architectural migration, the AI agent infrastructure across the `tupynambalucas-dev` organization suffered from severe configuration drift, triple file redundancy, and security vulnerabilities:
 1. **Uncontrolled Redundancy**: Identical copies of skills (`agent-router-expert`, `markdown-expert`, `plugin-expert`, `skill-expert`) and plugins (`cortex`, `cortex-fallback`, `github-organization`, `secrets-expert`) were copied across `.github/.agents`, `platform/.agents`, and `docs/.agents`.
 2. **Credential Hygiene Violations**: Plaintext API tokens and hardcoded secrets were committed directly into local `mcp_config.json` files.
-3. **Fragile Monorepo Discovery**: When working from the meta-repository root ([`org-core`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core)), the agent runtime only recognized root-level tools; specialized skills like `docusaurus-expert` (in `docs`) and `k8s-expert` (in `platform`) were invisible without code duplication.
+3. **Fragile Monorepo Discovery**: When working from the meta-repository root ([`org-core`](https://github.com/tupynambalucas-dev/org-core)), the agent runtime only recognized root-level tools; specialized skills like `docusaurus-expert` (in `docs`) and `k8s-expert` (in `platform`) were invisible without code duplication.
 
 This migration established a unified, enterprise-grade agent foundation:
-- Consolidating all shared agent tooling into an independent, universal repository: [`agent-toolkit`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-toolkit) (`git@github.com:tupynambalucas-dev/agent-toolkit.git`).
+- Consolidating all shared agent tooling into an independent, universal repository: [`agent-toolkit`](https://github.com/tupynambalucas-dev/agent-mesh) (`git@github.com:tupynambalucas-dev/agent-toolkit.git`).
 - Publishing the tooling as an enterprise package: `@tupynambalucas-dev/agent-toolkit@1.0.0` on GitHub Packages and direct Git distribution.
 - Implementing **Approach A (Meta-Repository Configuration Manifests)** in `org-core`, making all child skills globally available at root without duplicating files.
 - Purging all redundant files and plaintext secrets, supported by a 100% verified immutable backup.
@@ -70,7 +70,7 @@ flowchart TD
 
 To solve the child skill discovery problem when running agents from the meta-repository root, `org-core` implements **Approach A** using root configuration manifests:
 
-### 4.1 Root Skills Manifest ([`org-core/.agents/skills.json`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.agents/skills.json))
+### 4.1 Root Skills Manifest ([`org-core/.agents/skills.json`](https://github.com/tupynambalucas-dev/org-core/blob/main/.agents/skills.json))
 ```json
 {
   "entries": [
@@ -81,7 +81,7 @@ To solve the child skill discovery problem when running agents from the meta-rep
 ```
 *Result*: The agent runtime directly exposes `/docusaurus-expert` (from `docs`) and any platform skills directly at root.
 
-### 4.2 Root Plugins Manifest ([`org-core/.agents/plugins.json`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.agents/plugins.json))
+### 4.2 Root Plugins Manifest ([`org-core/.agents/plugins.json`](https://github.com/tupynambalucas-dev/org-core/blob/main/.agents/plugins.json))
 ```json
 {
   "entries": [

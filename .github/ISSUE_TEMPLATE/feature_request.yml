@@ -1,0 +1,41 @@
+name: Feature Proposal
+description: Propose a new capability, architectural enhancement, or developer tool improvement.
+title: "feat(<scope>): <short imperative description>"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Submit structured architectural or functional proposals aligned with `tupynambalucas-dev` engineering standards.
+
+  - type: input
+    id: target-scope
+    attributes:
+      label: Target Repository or Package Scope
+      description: Identify the bounded context, package (`@tupynambalucas-dev/*`), or subsystem.
+      placeholder: "agent-mesh / @tupynambalucas-dev/plugin-repo"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-statement
+    attributes:
+      label: Problem Statement & Motivation
+      description: What operational friction, architectural limitation, or capability gap does this address?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-design
+    attributes:
+      label: Proposed Solution & Technical Design
+      description: Outline APIs, schemas, configuration contracts, or workflow changes proposed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Other approaches evaluated and trade-offs behind the chosen design.
+    validations:
+      required: false

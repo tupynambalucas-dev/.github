@@ -1,43 +1,41 @@
 # ---------------------------------------------------------------- #
-#  GLOBAL MONOREPO GITIGNORE
+#  ORGANIZATION GOVERNANCE REPOSITORY GITIGNORE
 # ---------------------------------------------------------------- #
 
-# --- Dependências & Gerenciadores de Pacote ---
+# --- Dependencies & Package Managers ---
 node_modules/
 .pnpm-store/
 .vscode-test/
 
-# --- GitHub ---
+# --- GitHub Disabled Workflows ---
 .github/workflows/disabled/
-# Nota: Em ambientes profissionais, o package-lock.json DEVE ser comitado
-# para garantir builds reprodutíveis. Removi a linha que o ignorava.
 
-# --- Builds e Compilação (Frontend, Backend & Shared) ---
+# --- Build & Compilation Outputs ---
 dist/
 build/
 out/
 coverage/
 *.tsbuildinfo
 .eslintcache
-# --- Arquivos (Frontend) ---
 
-# --- Ambiente e Segredos (CRÍTICO) ---
-# Ignores all env files (any name/suffix variation)
+# --- Environment & Secrets (CRITICAL) ---
+# Ignore all .env files across any prefix or suffix variation
 .env
 *.env.*
 .env.*
-# Exceptions: Keep example/template files tracked
+# Keep example/template files tracked
 !*.env.example*
 !.env.example
 !.env.*.example
 
-# Chaves e Certificados
+# --- Private Keys & Certificates ---
 mongo-keyfile
 *.p12
 *.pem
 *.key
-REGULATIONS_AND_GUIDELINES_STRATEGY.md
-# --- Logs e Diagnósticos ---
+gha-creds-*.json
+
+# --- Logs & Diagnostics ---
 logs/
 *.log
 npm-debug.log*
@@ -46,26 +44,21 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-# --- IDEs e Editores ---
+# --- IDEs & Editors ---
 .idea/
 *.swp
 *.swo
 *.swn
 
-# --- Sistema Operacional ---
+# --- Operating System ---
 .DS_Store
 Thumbs.db
 ehthumbs.db
-gha-creds-*.json
 
-# Turborepo
+# --- Turborepo & Local Runtime ---
 .turbo
-
-# --- Persistent runtime ---
 data/
-logs/
 
-
-
+# --- Local Backups ---
 *-backup/
 tupynambalucas-backup/

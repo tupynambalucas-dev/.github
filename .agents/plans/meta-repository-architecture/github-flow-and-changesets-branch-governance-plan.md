@@ -9,11 +9,11 @@ gates, and deprecates legacy Gitflow tooling in favor of native Git and the GitH
 
 ## 1. Executive Summary and Paradigm Shift
 
-Operating an umbrella meta-repository ([`org-core`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core))
-with sovereign child submodules ([`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform),
-[`docs`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/docs),
-[`agent-toolkit`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-toolkit),
-and [`.github`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github))
+Operating an umbrella meta-repository ([`org-core`](https://github.com/tupynambalucas-dev/org-core))
+with sovereign child submodules ([`platform`](https://github.com/tupynambalucas-dev/platform),
+[`docs`](https://github.com/tupynambalucas-dev/docs),
+[`agent-toolkit`](https://github.com/tupynambalucas-dev/agent-mesh),
+and [`.github`](https://github.com/tupynambalucas-dev/.github))
 requires a branching model optimized for continuous integration and deterministic submodule pointer tracking.
 
 ```mermaid
@@ -239,7 +239,7 @@ Depending on the operational sensitivity of the application:
 
 ## 5. Automated Semantic Versioning with Changesets (`@changesets/cli`)
 
-The [`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform) workspace
+The [`platform`](https://github.com/tupynambalucas-dev/platform) workspace
 manages multi-package releases via `@changesets/cli` and `changesets/action@v2`.
 
 ### 5.1 The 4-Step Release Lifecycle
@@ -287,7 +287,7 @@ When ready to publish a new release:
 ## 6. Harmonization with `org-core` and Submodules
 
 By standardizing all repositories on **GitHub Flow (`main`)**:
-1. **Simplified `.gitmodules`**: All submodule entries in [`.gitmodules`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.gitmodules)
+1. **Simplified `.gitmodules`**: All submodule entries in [`.gitmodules`](https://github.com/tupynambalucas-dev/org-core/blob/main/.gitmodules)
    track `branch = main`, eliminating branch fragmentation.
 2. **Automated Submodule Synchronization**: When the `Version Packages` PR or an approved feature merges into
    `main` on `platform`, its GitHub Actions workflow emits a `repository_dispatch` event:
