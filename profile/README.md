@@ -208,7 +208,7 @@ We enforce software engineering rigor across our entire organization:
   unit tests, type-checks, and linter gates prior to merging into protected branches.
 - **Role-Based Access Control (RBAC)**: Administrative privileges partitioned across specialized
   teams adhering to the principle of least privilege.
-- **Zero Secrets in Code**: Runtime secrets managed via Infisical and Sealed Secrets for GitOps;
+- **Zero Secrets in Code**: Runtime secrets managed via Infisical and `InfisicalSecret` CRDs for GitOps;
   CI/CD credentials strictly isolated to GitHub Secrets.
 
 ---

@@ -1,49 +1,58 @@
-# tupynambalucas-dev .github AI Context & Router
+# tupynambalucas-dev .github Agent Context
 
-This document serves as the root context router for AI agents operating in the
-`tupynambalucas-dev/.github` organization governance repository and cross-repository ecosystem.
+This document serves as the sovereign root context router (Layer 1) for AI agents operating in the
+`tupynambalucas-dev/.github` organization governance repository.
 
-## Workspace Ecosystem
+## Navigation
 
-- [agent-mesh](../agent-mesh/AGENTS.md): Universal AI agent governance plugin, shared MCPs, and skills.
-- [platform](../platform/AGENTS.md): Core platform monorepo containing corporate products, portal, internal hub, and Kubernetes infrastructure.
-- [docs](../docs/AGENTS.md): Standalone documentation hub and technical reference archives.
-- [profile/](./profile/AGENTS.md): Public organization profile, brand copy, and vector assets.
-- [.agents/](./.agents/AGENTS.md): Organization-level operational plans and legacy reference archives.
-- [.vscode/](./.vscode/README.md): Developer workstation tooling, tasks, and terminal profiles.
-- [tupynambalucas-dev.code-workspace](./tupynambalucas-dev.code-workspace): Canonical multi-root workspace definition.
+- [README.md](./README.md): Repository overview, directory layout, and ecosystem architecture.
+- [profile/](./profile/AGENTS.md): Public organization profile (`github.com/tupynambalucas-dev`), brand copy, and official SVG assets.
+- [.agents/](./.agents/AGENTS.md): Architectural master plans, corporate reference archives, lifecycle hooks, and agent utility scripts.
+- [.vscode/](./.vscode/README.md): Shared IDE workspace settings, automated tasks, and recommended extensions.
+- [templates/](./templates/README.md): Exportable IDE workstation profile templates (`tupynambalucas-dev.code-profile`).
+- [references/](./references/README.md): Extracted upstream GitHub technical reference covering `.github` and `.github-private` governance capabilities.
 
-## Governance Standards
+## Organization Community Health Defaults
 
-- [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md): Organization-wide standard of conduct.
-- [CONTRIBUTING.md](./CONTRIBUTING.md): Organization contribution process and Git standards.
-- [SECURITY.md](./SECURITY.md): Vulnerability reporting policy and security SLA.
-- [SUPPORT.md](./SUPPORT.md): Official support channels and documentation resources.
-- [LICENSE](./LICENSE): Repository licensing terms.
+- [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md): Organization-wide Contributor Covenant v2.1 standard of conduct.
+- [CONTRIBUTING.md](./CONTRIBUTING.md): GitHub Flow branch conventions, SSH commit signing, and pull request gates.
+- [SECURITY.md](./SECURITY.md): Vulnerability disclosure policy, supported versions matrix, and security SLAs.
+- [SUPPORT.md](./SUPPORT.md): Official documentation portal, issue tracking, and corporate inquiry channels.
+- [LICENSE](./LICENSE): Organization default licensing terms (`Apache-2.0`).
+- [.github/](./.github/PULL_REQUEST_TEMPLATE.md): Default Pull Request template, YAML Issue Forms (`ISSUE_TEMPLATE/`), and `CODEOWNERS`.
 
-## Global Guardrails
+## Scoped Guardrails
 
-- MUST maintain a strict senior, objective, and technical tone in all communications and docs.
+- MUST maintain a strict senior, objective, and technical tone across all communications and documentation.
 - MUST avoid preambles, introductory chatter, conversational filler, or conclusion summaries.
 - MUST conduct all conversational chat responses in Brazilian Portuguese (pt-BR).
-- MUST write all code, configuration, technical documentation, commit messages, and Markdown in English (en-US).
-- MUST NOT use emojis in any conversational response, chat message, document, or README.
-- MUST NOT use placeholders (e.g., TODO, TBD).
-- MUST sign all Git commits with SSH: `git commit -S -m "..."`.
-- MUST use relative paths for all Markdown links. Absolute filesystem paths are forbidden.
+- MUST write all code, configuration files, commit messages, and technical Markdown documentation in English (en-US).
+- MUST NOT use emojis anywhere in chat responses, code comments, commit messages, PR descriptions, or documentation (Zero-Emoji Invariant).
+- MUST NOT use placeholders (e.g., `TODO`, `TBD`).
+- MUST sign all Git commits and annotated tags with SSH: `git commit -S -m "..."`.
+- MUST adhere strictly to Conventional Commits v1.0.0 (`<type>(<scope>): <description>`).
+- MUST use relative paths for all internal Markdown links. Absolute filesystem paths (`C:/...`, `file:///...`) are strictly forbidden.
 - MUST format all files according to Prettier standards (2-space indent, max 100-character line width).
-- MUST hardcode the concrete organization name and domain (`tupynambalucas-dev`, `tupynambalucas.dev`).
+- MUST hardcode concrete organization identifiers (`tupynambalucas-dev`, `tupynambalucas.dev`).
+- **Context Routing**: When working within a nested bounded context (`profile/`, `.agents/`), agents MUST read the corresponding local `AGENTS.md` before modifying files.
 
-## Cross-Repository Governance Protocol
+## Umbrella Meta-Repository Alignment
 
-- When launched in Organization Governance Scope (`--add-dir ../platform --add-dir ../docs --add-dir ../agent-mesh`), the agent holds cross-repository operational oversight.
-- The agent MUST read and adhere to each repository's local `AGENTS.md` before creating or modifying files within that repository's bounded context.
-- Each repository maintains an autonomous Git history, independent dependencies, and dedicated CI/CD pipelines.
+Cross-repository orchestration and the canonical multi-root workspace (`tupynambalucas-dev.code-workspace`) are managed by the `tupynambalucas-dev/org-core` umbrella meta-repository. When mounted as a Git submodule inside `org-core`, this repository adheres to the parent cross-repository context defined in `org-core/AGENTS.md`. When cloned independently as a standalone repository, this document serves as the self-sovereign root context.
 
 ## Required Skills
 
-When performing documentation tasks in this repository, agents MUST activate the appropriate skill by name:
+Agents operating in this repository MUST autonomously engage the corresponding domain skills provided by `tupynambalucas-dev/agent-mesh`:
 
-- **`agent-router-expert`**: Active when creating, updating, or reviewing any `AGENTS.md` file anywhere in the ecosystem.
-- **`markdown-expert`**: Active when creating, updating, or reviewing any `README.md`, `.md` skill file, or general Markdown document.
-- **`github-org-manager`**: Active when configuring organization teams, rulesets, or permissions.
+- **Atelier Plugin (`@tupynambalucas-dev/plugin-atelier`)**:
+  - **`router-architect`**: Authoring, auditing, or updating hierarchical `AGENTS.md` context routers.
+  - **`hook-architect`**: Authoring or validating Antigravity lifecycle hooks (`hooks.json`).
+- **Repository Governance Plugin (`@tupynambalucas-dev/plugin-repo`)**:
+  - **`readme-architect`**: Authoring or auditing `README.md` files, recursive directory navigation, and the AGENTS-README co-existence invariant.
+  - **`community-health-architect`**: Authoring or auditing `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, and `SUPPORT.md`.
+  - **`license-architect`**: Auditing `LICENSE` files, copyright headers, and SPDX compliance.
+- **GitHub Governance Plugins (`@tupynambalucas-dev/plugin-github-org`, `@tupynambalucas-dev/plugin-github-flow`)**:
+  - **`github-org-operator`**: Managing organization RBAC, teams, and repository provisioning.
+  - **`github-ruleset-operator`**: Defining, auditing, and enforcing branch and tag protection rulesets.
+  - **`github-security-auditor`**: Auditing Dependabot, Secret Scanning, and Code Scanning alerts.
+  - **`github-flow-operator`**: Executing Git branching, SSH-signed Conventional Commits, and pull request workflows.

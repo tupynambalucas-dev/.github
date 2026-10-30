@@ -8,11 +8,11 @@ push protection, cryptographic commit verification, and automated audit runbooks
 
 ## 1. Executive Summary and Threat Model
 
-Operating an umbrella meta-repository ([`org-core`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core))
-with autonomous child submodules ([`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform),
-[`docs`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/docs),
-[`agent-toolkit`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-toolkit),
-and [`.github`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github))
+Operating an umbrella meta-repository ([`org-core`](https://github.com/tupynambalucas-dev/org-core))
+with autonomous child submodules ([`platform`](https://github.com/tupynambalucas-dev/platform),
+[`docs`](https://github.com/tupynambalucas-dev/docs),
+[`agent-toolkit`](https://github.com/tupynambalucas-dev/agent-mesh),
+and [`.github`](https://github.com/tupynambalucas-dev/.github))
 requires centralized security enforcement at the GitHub platform layer to counter five primary threat vectors:
 
 1. **Unverified Commits and Identity Spoofing**: Commits authored without cryptographic signatures

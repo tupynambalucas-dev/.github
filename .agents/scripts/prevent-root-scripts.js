@@ -9,8 +9,8 @@ try {
   const args = payload.toolCall?.args || {};
   const workspacePaths = payload.workspacePaths || [];
 
-  if (toolName === 'write_to_file') {
-    const targetFile = args.TargetFile;
+  if (toolName === 'write_file' || toolName === 'write_to_file') {
+    const targetFile = args.Path || args.TargetFile;
     if (targetFile && workspacePaths.length > 0) {
       // Check against all known workspace paths
       for (const wp of workspacePaths) {

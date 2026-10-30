@@ -22,8 +22,8 @@ As modern software engineering organizations evolve toward AI-driven platform en
 
 ### 1.2 Purpose of this Master Plan
 This document establishes the **Single Source of Truth (SSOT)** for all branding, nomenclature, identity governance, and infrastructure asset naming across the organization. It consolidates, formalizes, and harmonizes the guidelines previously defined across earlier strategy documents (including the consolidated `company-nomenclature-and-branding-strategy.md` and related drafts), working in tandem with:
-- [`personal-github-profile-strategy.md`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github/.agents/plans/personal-github-profile-strategy.md) (Individual career portfolio & identity)
-- [`infisical-secret-governance-and-multi-layer-fallback.md`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/.github/.agents/plans/infisical-secret-governance-and-multi-layer-fallback.md) (Infisical dual-tenant setup, token segregation, and agent fallback)
+- [`personal-github-profile-strategy.md`](./personal-github-profile-strategy.md) (Individual career portfolio & identity)
+- [`infisical-secret-governance-and-multi-layer-fallback.md`](./infisical-secret-governance-and-multi-layer-fallback.md) (Infisical dual-tenant setup, token segregation, and agent fallback)
 
 ---
 
@@ -198,7 +198,7 @@ flowchart TD
 
 > [!IMPORTANT]
 > **GitHub Actions & Documentation Deploy Boundary**:
-> The static documentation portal ([`docs`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/docs)) does **NOT** use Infisical directly in its CI/CD workflows. Querying Infisical during static site compilation adds 15–30s build delays and introduces an unnecessary single point of failure. Instead, `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are defined as native **GitHub Organization Secrets** (or managed via Cloudflare Pages native Git integration). If centralized rotation in Infisical is desired, use Infisical's native GitHub Integration (push sync from `/ci-cd` to GitHub Org Secrets), keeping workflows fast and native.
+> The static documentation portal ([`docs`](https://github.com/tupynambalucas-dev/docs)) does **NOT** use Infisical directly in its CI/CD workflows. Querying Infisical during static site compilation adds 15–30s build delays and introduces an unnecessary single point of failure. Instead, `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are defined as native **GitHub Organization Secrets** (or managed via Cloudflare Pages native Git integration). If centralized rotation in Infisical is desired, use Infisical's native GitHub Integration (push sync from `/ci-cd` to GitHub Org Secrets), keeping workflows fast and native.
 
 #### B. Personal Infisical Organization (`tupynambalucas`)
 - **Organization Slug**: `tupynambalucas` (strictly NO `-dev`).

@@ -1,35 +1,37 @@
-# AI Agents Configuration Hub
+# Organization Agent Plans, References, and Hooks (`.agents/`)
 
-The `.agents/` directory is the Bounded Context for AI behavior customization, tool integration, and knowledge routing within the workspace.
+Bounded context inside `tupynambalucas-dev/.github` preserving cross-repository architectural plans, corporate governance reference archives, local lifecycle safety hooks, and agent-executed utility scripts.
 
-This directory is natively supported by the **Antigravity (AGY)** agent architecture and uses Domain-Driven Design (DDD) to encapsulate AI capabilities and constraints.
+---
 
-## Architecture
+## 1. Overview
 
-Our AI configuration is split into distinct logical units based on their lifecycle and injection behavior:
+Following the migration of reusable AI plugins, MCP servers, rules, and modular skills to [`tupynambalucas-dev/agent-mesh`](https://github.com/tupynambalucas-dev/agent-mesh), this `.agents/` directory serves strictly as the organization-level archive for architectural blueprints and repository-local safety hooks.
 
-### `plugins/`
+---
 
-Namespaced bundles that package Skills, Rules, Hooks, and MCP Server Configurations into a single deployable unit. For example, the `cortex` plugin encapsulates the `agentgateway` MCP server connection alongside rules that teach the AI how to automatically use `firecrawl` and `context7` when requested. The `cortex-fallback` plugin provides local `pnpm`-driven instances of these same MCP servers for when the primary gateway infrastructure is offline.
+## 2. Directory Navigation
 
-### `rules/`
+| Subsystem / File | Documentation / Target | Description |
+| :--- | :--- | :--- |
+| **Context Router** | [AGENTS.md](./AGENTS.md) | Bounded context instructions and operational guardrails for AI agents. |
+| **Architectural Plans** | [plans/README.md](./plans/README.md) | Master architectural specifications, meta-repository runbooks, and governance plans. |
+| **Reference Archives** | [references/README.md](./references/README.md) | Corporate GitHub/GitLab governance guides and Cloudflare Agents technical references. |
+| **Lifecycle Hooks** | [hooks.json](./hooks.json) | Antigravity `PreToolUse` hook enforcing the root script ban across workspaces. |
+| **Utility Scripts** | [scripts/prevent-root-scripts.js](./scripts/prevent-root-scripts.js) | Node.js enforcement handler invoked by `hooks.json` plus maintenance helpers (`fix.cjs`, `split-yamls.cjs`). |
 
-Guidelines and constraints that the AI must follow. These markdown files are automatically discovered and injected into the agent's context based on directory hierarchy or specific trigger conditions (e.g., enforcing TypeScript strictness or naming conventions).
+---
 
-### `skills/`
+## 3. Operational Boundaries
 
-On-demand, progressive-disclosure markdown files that teach the agent complex multi-step workflows, runbooks, and expert personas (e.g., `agent-router-expert`, `markdown-expert`). Skills are only fully loaded into the context window when explicitly requested or triggered.
+1. **No Local Plugins or Skills**: Author all reusable `SKILL.md` workflows, `rules/AGENTS.md` mandates, and MCP configurations inside [`tupynambalucas-dev/agent-mesh`](https://github.com/tupynambalucas-dev/agent-mesh).
+2. **Root Script Gate**: `hooks.json` intercepts `write_file` and `write_to_file` operations targeting `.js`, `.cjs`, `.mjs`, `.ts`, `.py`, `.sh`, `.ps1`, or `.bat` files at workspace roots unless explicitly allowlisted as standard tool configurations (`eslint.config.*`, `prettier.config.*`, `vite.config.*`, etc.).
+3. **Relative Link Discipline**: All internal links across `plans/` and `references/` must remain relative and portable across operating systems.
 
-### `scripts/`
+---
 
-Agent-authored utility scripts (Node.js, Bash, Python) meant for repository manipulation and version-controlled automation tasks.
+## 4. Navigation
 
-### `plans/`
-
-Temporary, markdown-based plan artifacts outlining execution steps for complex tasks. These files track the progress of long-running refactors across the monorepo.
-
-## Contribution Guidelines
-
-1. **Self-Contained Logic**: Skills and Plugins must be 100% self-contained. Do not create relative links pointing to temporary plans or other transient context.
-2. **Portability and Decoupling**: All skills, rules, and plugins must remain completely decoupled from specific host workspace names, domains, or internal folder paths so that the entire `.agents/` directory can be transferred to any project out-of-the-box.
-3. **No Root Scripts**: Never place utility or scratch scripts in the root directory. Save permanent scripts to `scripts/` or use the isolated `.gemini/brain/scratch/` directory for transient execution.
+- [Repository Root README](../README.md)
+- [Architectural Plans Index](./plans/README.md)
+- [Reference Archives Index](./references/README.md)

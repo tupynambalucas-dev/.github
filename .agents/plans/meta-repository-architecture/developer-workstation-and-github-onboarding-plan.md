@@ -333,7 +333,7 @@ console.log("You can now clone any organization repository anywhere on your mach
 Git hooks are managed declaratively inside `.husky/` and versioned in Git.
 
 ### 6.1 Package Manifest Configuration (`package.json`)
-The root `package.json` in [`platform`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/platform/package.json)
+The root `package.json` in [`platform`](https://github.com/tupynambalucas-dev/platform/blob/main/package.json)
 declares:
 
 ```json

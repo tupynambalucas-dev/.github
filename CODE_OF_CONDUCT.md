@@ -59,7 +59,7 @@ the organization in public spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported directly
-to the organization leadership at [contato@tupynambalucas.dev](mailto:contato@tupynambalucas.dev).
+to the organization leadership at [security@tupynambalucas.dev](mailto:security@tupynambalucas.dev) or [contato@tupynambalucas.dev](mailto:contato@tupynambalucas.dev).
 All complaints will be reviewed and investigated promptly and fairly.
 
 The leadership team is obligated to respect the privacy and security of the reporter
