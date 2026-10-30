@@ -16,6 +16,7 @@ Thank you for your interest in contributing to `@tupynambalucas-dev` repositorie
 - **Git**: `>= 2.36` configured with `ed25519` SSH commit and tag signing.
 - **Node.js**: `>= 22.x` LTS.
 - **pnpm**: `>= 10.x` (managed via Corepack).
+- **Mani**: Multi-repository orchestrator (`scoop install mani` or binary in PATH).
 - **Infisical CLI**: Required for zero-plaintext runtime secret injection (`dev` environment).
 - **Docker & k3d / Skaffold v4**: Required only when working on Kubernetes cluster workloads in `tupynambalucas-dev/platform`.
 
@@ -32,7 +33,7 @@ Create short-lived branches off `main` using `<type>/<kebab-slug>` matching our 
 - `feat/<slug>`: New capabilities, endpoints, packages, or user-facing features.
 - `fix/<slug>`: Bug fixes and defect resolutions.
 - `docs/<slug>`: Documentation updates, Diataxis articles, and architectural specifications.
-- `chore/<slug>`: Maintenance, dependency bumps, submodule updates, and workspace tasks.
+- `chore/<slug>`: Maintenance, dependency bumps, workspace tasks, and manifest updates.
 - `refactor/<slug>`: Internal code restructuring without external behavioral changes.
 - `ci/<slug>`: GitHub Actions workflows, composite actions, and pipeline automation.
 - `perf/<slug>`: Measurable runtime or build performance optimizations.
@@ -78,13 +79,13 @@ Commit messages and Pull Request titles MUST conform strictly to the [Convention
 - **Published Package Monorepos (`tupynambalucas-dev/agent-mesh`)**: Pull Requests introducing user-facing or API changes to `@tupynambalucas-dev/mcp-*` or `@tupynambalucas-dev/plugin-*` packages MUST include a changeset file generated via `pnpm changeset` (`baseBranch: "main"`).
 - **Application, Infrastructure & Portal Repositories (`platform`, `docs`, `.github`, `org-core`)**: Deploy continuously from `main` without synthetic Changesets files.
 
-### 5. Submodule Pointer Governance (`org-core`)
+### 5. Multi-Repository Orchestration (`org-core`)
 
-When modifying repositories mounted as Git submodules inside [`tupynambalucas-dev/org-core`](https://github.com/tupynambalucas-dev/org-core) (`.github`, `agent-mesh`, `platform`, `docs`), execute changes **bottom-up**:
+The umbrella meta-repository [`tupynambalucas-dev/org-core`](https://github.com/tupynambalucas-dev/org-core) coordinates sovereign repositories (`.github`, `agent-mesh`, `platform`, `docs`) via [Mani](https://manicli.com) and multi-root IDE workspaces:
 
-1. Branch, commit (`-S`), open a Pull Request, and merge into `main` inside the child repository first.
-2. Never record unpushed or feature-branch commit SHAs as submodule gitlinks in `org-core`.
-3. Advance the `160000` gitlink pointer in `org-core` via a `chore/bump-submodules` Pull Request targeting `main` (or via post-merge GitHub App GraphQL automation).
+1. Each repository is a 100% autonomous Git repository with its own native `.git` directory, branches, and remotes. Git submodules and fragile `160000` commit gitlinks have been eliminated.
+2. Developers create feature branches (`feat/<slug>`, `fix/<slug>`) directly inside each target repository, commit with SSH signatures, and open Pull Requests against `main`.
+3. Daily multi-repository operations (status checks, pulling, fetching) are executed seamlessly using `mani run status`, `mani run pull`, or `mani run fetch`.
 
 ### 6. Quality and Compliance Gates
 

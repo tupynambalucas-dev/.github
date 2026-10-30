@@ -38,7 +38,7 @@ This document serves as the sovereign root context router (Layer 1) for AI agent
 
 ## Umbrella Meta-Repository Alignment
 
-Cross-repository orchestration and the canonical multi-root workspace (`tupynambalucas-dev.code-workspace`) are managed by the `tupynambalucas-dev/org-core` umbrella meta-repository. When mounted as a Git submodule inside `org-core`, this repository adheres to the parent cross-repository context defined in `org-core/AGENTS.md`. When cloned independently as a standalone repository, this document serves as the self-sovereign root context.
+Cross-repository orchestration and the canonical multi-root workspace (`tupynambalucas-dev.code-workspace`) are managed by the `tupynambalucas-dev/org-core` umbrella meta-repository via [Mani](https://manicli.com). When opened as part of the `org-core` multi-root workspace, this repository operates as an autonomous sovereign repository while adhering to the cross-repository context defined in `org-core/AGENTS.md`.
 
 ## Required Skills
 
