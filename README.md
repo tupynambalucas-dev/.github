@@ -76,7 +76,7 @@ Files placed at the root of this repository act as organization-wide defaults on
 
 ### C. Meta-Repository and Agent Mesh Separation of Concerns
 
-- **Multi-Root Workspace Orchestration**: Cross-repository submodule orchestration and the canonical multi-root workspace (`tupynambalucas-dev.code-workspace`) are provided by the [`tupynambalucas-dev/org-core`](https://github.com/tupynambalucas-dev/org-core) umbrella meta-repository.
+- **Multi-Root Workspace Orchestration**: Cross-repository multi-root IDE workspaces and multi-repository task execution are orchestrated via [Mani](https://manicli.com) in [`tupynambalucas-dev/org-core`](https://github.com/tupynambalucas-dev/org-core).
 - **Reusable Agent Capabilities**: Domain plugins (`@tupynambalucas-dev/plugin-*`), dual-transport MCP servers (`@tupynambalucas-dev/mcp-*`), active domain rules, and modular skills are maintained in [`tupynambalucas-dev/agent-mesh`](https://github.com/tupynambalucas-dev/agent-mesh). The local [.agents/](./.agents/README.md) directory in this repository is strictly scoped to architectural decision records, reference guides, and local repository hooks.
 
 ---
@@ -85,7 +85,7 @@ Files placed at the root of this repository act as organization-wide defaults on
 
 | Repository / Portal | Location | Role |
 | :--- | :--- | :--- |
-| **Umbrella Meta-Repository** | [tupynambalucas-dev/org-core](https://github.com/tupynambalucas-dev/org-core) | Unified Git submodule orchestrator and canonical multi-root IDE workspace. |
+| **Umbrella Meta-Repository** | [tupynambalucas-dev/org-core](https://github.com/tupynambalucas-dev/org-core) | Multi-repository Mani orchestrator and canonical multi-root IDE workspace. |
 | **Enterprise Agent Mesh** | [tupynambalucas-dev/agent-mesh](https://github.com/tupynambalucas-dev/agent-mesh) | Domain plugins, modular AI skills, active rules, and shared MCP servers. |
 | **Core Platform Monorepo** | [tupynambalucas-dev/platform](https://github.com/tupynambalucas-dev/platform) | Corporate web/API services, Cortex AI gateway, internal hub, and Kubernetes GitOps manifests. |
 | **Documentation Hub** | [tupynambalucas-dev/docs](https://github.com/tupynambalucas-dev/docs) | Sovereign Docusaurus v3 documentation portal ([docs.tupynambalucas.dev](https://docs.tupynambalucas.dev)). |
