@@ -1,11 +1,16 @@
 {
+  "search.useIgnoreFiles": false,
+  "search.useGlobalIgnoreFiles": false,
+  "search.useParentIgnoreFiles": false,
   "files.exclude": {
+    "**/.github": false,
     "**/.git": true,
     "**/.eslintcache": false,
     "**/node_modules": false,
     "**/dist": true
   },
   "search.exclude": {
+    "**/.github": false,
     "**/node_modules": true,
     "**/dist": true,
     "**/build": true,
