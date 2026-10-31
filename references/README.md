@@ -23,6 +23,7 @@ GitHub reserves two special repository names at the organization (and enterprise
 | [default-community-health-and-templates.md](./default-community-health-and-templates.md) | Exhaustive specification of all supported default Community Health files, Issue Forms, Pull Request templates, Discussion Category forms, directory precedence rules, and critical non-inherited files (`LICENSE`, `CODEOWNERS`, `dependabot.yml`). |
 | [actions-workflows-and-ci-governance.md](./actions-workflows-and-ci-governance.md) | Technical reference for Organization Starter Workflows (`workflow-templates/`, `.properties.json`, `$default-branch`), Reusable Workflows (`workflow_call`), runner billing, `GITHUB_TOKEN` permission monotonicity, and concurrency rules. |
 | [ai-agents-and-enterprise-governance.md](./ai-agents-and-enterprise-governance.md) | Reference for Organization and Enterprise Custom Agents (`/agents/`), server-managed Copilot settings (`copilot/managed-settings.json`), plugin marketplace controls, ruleset protection, and strategic domain boundaries within `tupynambalucas-dev`. |
+| [org-ecosystem-architecture-and-portfolio-governance.md](./org-ecosystem-architecture-and-portfolio-governance.md) | Technical blueprint for the dual meta-repository architecture separating Enterprise Foundation (`org-core`) from Portfolio Solutions & Services (`org-ecosystem`), namespace layout (`commercial/`, `internal/`, `oss/`), and Mani tag-based partial synchronization for independent monorepos (`omnichannel`, `tessel`). |
 
 ---
 
