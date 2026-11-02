@@ -2,19 +2,24 @@
 
 ## Executive Summary
 
-This architectural plan defines the enterprise standard for `.github` directory structures across all repositories within the `tupynambalucas-dev` organization (`.github`, `agent-mesh`, `platform`, `docs`, and `gh-tl`). It establishes clear rules governing GitHub native organizational inheritance, repository-level overrides, workflow structures, and code ownership. Furthermore, it defines the plugin expansion strategy within `agent-mesh`, adding the `github-standards-architect` skill to `@tupynambalucas-dev/plugin-repo` to programmatically govern, scaffold, and audit `.github` structures across the organization.
+This architectural plan defines the enterprise standard for `.github` directory structures across all repositories within the `tupynambalucas-dev` organization (`.github`, `agent-mesh`, `platform`, `docs`, and `gh-tl`). It establishes clear rules governing GitHub native organizational inheritance, repository-level overrides, workflow structures, and code ownership. 
+
+Furthermore, this plan provides an exhaustive operational analysis of the package release lifecycle in `agent-mesh`: the relationship between [`publish-packages.js`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-mesh/scripts/publish-packages.js), `@changesets/cli`, and pnpm native release management (`pnpm version -r`), as well as the governance model for renaming, deprecating, and deleting legacy packages on GitHub Packages.
+
+Finally, it defines the plugin expansion strategy within `agent-mesh`, adding the `github-standards-architect` skill to `@tupynambalucas-dev/plugin-repo` to programmatically govern, scaffold, and audit `.github` structures across the organization.
 
 ---
 
-## 1. Deep Dive: Package Publishing Script (`publish-packages.js`)
+## 1. Deep Dive: Package Release Management & Registry Governance
 
-### 1.1 Purpose and Architectural Rationale
+### 1.1 Purpose and Architecture of `publish-packages.js`
 
 The script [`agent-mesh/scripts/publish-packages.js`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-mesh/scripts/publish-packages.js) is an idempotent publishing controller designed for monorepos distributing multiple packages to GitHub Packages (`npm.pkg.github.com`).
 
 ```
                     +------------------------------------+
-                    |  agent-mesh/scripts/publish.yml    |
+                    |  agent-mesh/.github/workflows/     |
+                    |            publish.yml             |
                     +-----------------+------------------+
                                       |
                                       v
@@ -39,28 +44,129 @@ The script [`agent-mesh/scripts/publish-packages.js`](file:///C:/Users/tupyn/pro
    Exit code 0                                         Auth via NODE_AUTH_TOKEN
 ```
 
-### 1.2 Key Mechanics
+#### Key Operational Mechanics:
+1. **Topological Order Execution**: Publishes shared MCP core servers first (`mcp/packages/*`), followed by plugin distributions (`plugins/packages/*`), ensuring downstream dependencies exist in the registry before consuming packages are published.
+2. **Pre-flight Existence Verification**: Queries `npm view <packageName>@<version> version --registry=https://npm.pkg.github.com`. If the version exists, it cleanly skips.
+3. **Prevention of CI Pipeline Crashes**: GitHub Packages strictly rejects republishing an existing semantic version with HTTP 403 / 409 conflict errors. In a monorepo where only one package was bumped (e.g. `plugin-web` bumped to `1.0.1` while `plugin-repo` remains `1.0.0`), a naive `pnpm -r publish` fails the entire CI pipeline when encountering the unchanged packages. `publish-packages.js` guarantees idempotency.
+4. **Authentication via `NODE_AUTH_TOKEN`**: Consumes `process.env.NODE_AUTH_TOKEN`, supplied in CI by `secrets.GITHUB_TOKEN` with `packages: write` permissions.
 
-1. **Topological Order Execution**:
-   Publishes shared MCP core servers first (`mcp/packages/*`), followed by plugin distributions (`plugins/packages/*`), ensuring downstream dependencies exist in the registry before consuming packages are published.
+---
 
-2. **Pre-flight Existence Verification**:
-   Before invoking `pnpm publish`, the script runs:
-   ```bash
-   npm view <packageName>@<version> version --registry=https://npm.pkg.github.com
-   ```
-   - If the version already exists in the GitHub Packages registry, the script logs `Skipping <pkg>@<ver> (already published)` and exits cleanly.
-   - If the version does not exist, it proceeds to publish.
+### 1.2 Relationship Between `publish-packages.js` and `.changeset`
 
-3. **Prevention of CI Pipeline Crashes**:
-   GitHub Packages strictly rejects republishing an existing semantic version with HTTP 403 / 409 conflict errors. In a monorepo where only one package was bumped (e.g. `plugin-web` bumped to `1.0.1` while `plugin-repo` remains `1.0.0`), a naive `pnpm -r publish` fails the entire CI pipeline when encountering the unchanged packages. `publish-packages.js` guarantees idempotency.
+Currently in `agent-mesh`, there is an **architectural disconnect** between `.changeset` and `publish-packages.js`:
 
-4. **Authentication (`NODE_AUTH_TOKEN`)**:
-   Consumes `process.env.NODE_AUTH_TOKEN`, supplied in CI by `secrets.GITHUB_TOKEN` with `packages: write` permissions, mapped through `.npmrc`:
-   ```ini
-   @tupynambalucas-dev:registry=https://npm.pkg.github.com
-   //npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
-   ```
+```
+Current Disconnected State:
+[Developer edits package.json manually] ---> [git push main] ---> [publish.yml] ---> [publish-packages.js]
+                                                                        |
+[.changeset/config.json exists, but is unused in CI] <-----------------+ (Disconnected)
+```
+
+#### How They Influence Each Other Architecturally:
+- **`.changeset` (Version & Changelog Intent)**:
+  - `.changeset` is responsible for **capturing change intent during development**.
+  - When developers create features or bugfixes, they generate a markdown file (e.g., `.changeset/calm-cats-resolve.md`) specifying which packages are affected, whether the bump is `major`, `minor`, or `patch`, and the summary message.
+  - When release time arrives, the versioning engine consumes these intents, bumps `package.json` across packages, updates internal dependency ranges (`updateInternalDependencies: patch`), and writes `CHANGELOG.md`.
+- **`publish-packages.js` (Registry Delivery Execution)**:
+  - `publish-packages.js` operates **downstream** of versioning. It does not decide versions; it delivers already-bumped packages to GitHub Packages safely without failing on unchanged packages.
+- **The Ideal Interaction**:
+  - In an automated enterprise pipeline, Changesets or pnpm native release management orchestrates the version bumps and changelogs, while `publish-packages.js` (or native `pnpm publish -r`) executes the final registry push.
+
+---
+
+### 1.3 pnpm Native Release Management (`pnpm version -r`) vs. Changesets
+
+Based on official documentation (`https://pnpm.io/versioning`), pnpm (v10+) includes **native release management** that directly consumes the `.changeset/` format without requiring `@changesets/cli`:
+
+```
+pnpm Native Release Architecture:
+1. Development:  pnpm change          --> Generates .changeset/<slug>.md
+2. Validation:   pnpm change status   --> Previews planned bumps and affected dependents
+3. Release:      pnpm version -r      --> Bumps versions, resolves dependencies, writes ledger
+4. Delivery:     pnpm publish -r      --> Publishes to npm / GitHub Packages
+```
+
+#### Key Capabilities of pnpm Native Release Management:
+1. **The Ledger (`.changeset/ledger.yaml`)**:
+   `pnpm version -r` records consumed intents in a committed, append-only file (`.changeset/ledger.yaml`). An intent file is deleted only once every project it names has released. This makes cherry-picks and merge-backs between release branches completely safe.
+2. **First Release Registry Detection**:
+   When a new package debuts, `pnpm version -r` queries the registry. If the package has never been published, it publishes the initial manifest version verbatim rather than advancing it immediately.
+3. **Fixed Groups & Epics (`pnpm-workspace.yaml`)**:
+   Enables locking packages to shared versions (`versioning.fixed`) or binding major versions to a lead package (`versioning.epics`).
+4. **CI Drift Prevention**:
+   Running `pnpm change check` in CI catches unauthorized version drift before code merges into `main`.
+
+#### Comparative Evaluation:
+
+| Criterion | `@changesets/cli` + Action | pnpm Native (`pnpm version -r`) | `semantic-release` (Monorepo) |
+| :--- | :--- | :--- | :--- |
+| **Monorepo Cohesion** | High (Industry standard) | Native (Zero extra dependencies) | Low (Brittle in monorepos) |
+| **Automated PR Flow** | Yes (`changesets/action` creates Version PR) | Manual or requires custom GH Action | Yes (Fully automated on branch) |
+| **Git Ledger / Cherry-picks** | No (Intents deleted immediately) | Yes (`ledger.yaml` prevents duplicate runs) | No |
+| **GitHub Packages Idempotency**| Requires custom publish script | Built-in registry verification | Requires registry plugins |
+| **Enterprise Fit** | Ideal for team PR collaboration | Ideal for lean CI/CD and Turborepo | Fragile with multi-package changes |
+
+---
+
+### 1.4 Governance of Renamed, Deprecated, and Deleted Packages
+
+During the evolution of `agent-mesh`, several packages were renamed (e.g. `@tupynambalucas-dev/agent-toolkit` renamed to `@tupynambalucas-dev/agent-mesh`, and experimental plugins like `plugin-git-flow` replaced by `plugin-github-flow`). These historical artifacts remain visible in the GitHub Packages registry.
+
+#### 1.4.1 Can the Publish Workflow Automatically Delete Packages?
+**NO.** Running automated package deletion inside `publish.yml` is an anti-pattern and poses severe supply-chain risks:
+1. **Safety Hazard**: If a build fails, a filter is misconfigured, or a branch temporarily excludes a package, an automated deletion script would wipe production registry packages.
+2. **Permission Barrier**: In GitHub Actions, the default `GITHUB_TOKEN` only has `packages: write` (and `contents: read`). Deleting packages requires administrative permissions and the `delete:packages` scope, which `GITHUB_TOKEN` does not possess.
+3. **The 5,000 Download Hard Boundary**: GitHub REST API permanently blocks deleting any public package where any version has more than 5,000 downloads (to prevent "left-pad" breaking changes).
+
+#### 1.4.2 Official GitHub Packages REST API Capabilities
+GitHub provides explicit REST endpoints for package lifecycle management:
+
+- **List Organization Packages**:
+  ```http
+  GET /orgs/{org}/packages?package_type=npm
+  Accept: application/vnd.github+json
+  ```
+- **Delete an Entire Package**:
+  ```http
+  DELETE /orgs/{org}/packages/npm/{package_name}
+  Accept: application/vnd.github+json
+  ```
+  *Requirements*: Token with `read:packages` and `delete:packages` scopes; admin role in the organization. Returns `204 No Content`.
+- **Restore a Deleted Package**:
+  ```http
+  POST /orgs/{org}/packages/npm/{package_name}/restore
+  ```
+  *Capability*: Can restore deleted packages within 30 days of deletion.
+
+#### 1.4.3 Two-Tier Enterprise Strategy: Deletion vs. Deprecation
+
+```
+                               Package Governance Decision
+                                            |
+                    +-----------------------+-----------------------+
+                    |                                               |
+                    v                                               v
+       [Internal Ghost Packages]                        [Publicly Consumed Packages]
+       - 0 external downloads                           - Active external consumers
+       - Renamed during early dev                       - Downstream dependency locks
+                    |                                               |
+                    v                                               v
+        [Hard Deletion via API]                         [Supply Chain Deprecation]
+        DELETE /orgs/{org}/packages/npm/...             npm deprecate <pkg> "Renamed..."
+```
+
+1. **Tier 1: Administrative Hard Deletion for Internal Ghost Packages**:
+   - For internal packages that were renamed and have no active downstream consumers (such as old test plugins or `agent-toolkit`), hard deletion via the GitHub REST API is safe, eliminates catalog clutter, and removes security surface area.
+   - **Operational Mechanism**: Executed via an administrative maintenance script [`scripts/manage-legacy-packages.js`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-mesh/scripts/) invoked manually or through an admin workflow (`admin-packages.yml` with `workflow_dispatch`), authenticated with an administrative token.
+
+2. **Tier 2: Supply-Chain Deprecation (`npm deprecate`)**:
+   - For packages that have external consumers, hard deletion breaks downstream package manager locks (`ERR_PNPM_FETCH_404`).
+   - The enterprise standard is to deprecate the package:
+     ```bash
+     npm deprecate @tupynambalucas-dev/<old-package> "Package renamed to @tupynambalucas-dev/<new-package>. Please update your package.json dependencies."
+     ```
+   - This keeps existing locks functional while issuing visual warnings in npm/pnpm CLI on install and marking the package as deprecated in the GitHub Packages UI.
 
 ---
 
@@ -155,7 +261,8 @@ Currently:
 │   └── workflows/                  # Mandatory: CI, CD, Security, CodeQL
 │       ├── ci.yml
 │       ├── codeql.yml
-│       └── publish.yml
+│       ├── publish.yml
+│       └── admin-packages.yml      # Optional: Administrative package maintenance
 ├── LICENSE                         # Mandatory: Local Apache-2.0 license
 ├── README.md                       # Mandatory: Root architectural overview
 └── AGENTS.md                       # Mandatory: Root context router
@@ -226,7 +333,6 @@ updates:
 ```
 
 ### 4.3 Standard Reusable Composite Action (`.github/actions/setup-pnpm-env/action.yml`)
-Standardizes pnpm store caching, Node version resolution, and lockfile validation across monorepos:
 ```yaml
 name: "Setup Node.js & pnpm"
 description: "Configures Node.js, pnpm binary, and global virtual store caching"
@@ -239,7 +345,7 @@ inputs:
   pnpm-version:
     description: "pnpm package manager version"
     required: false
-    default: "9"
+    default: "10.33.2"
 
 runs:
   using: "composite"
@@ -296,25 +402,10 @@ description: Audits, scaffolds, and standardizes .github directories, CODEOWNERS
 ```
 
 #### Responsibilities:
-1. **Audit Organization Repositories**:
-   Scans `.github` folders across `.github`, `agent-mesh`, `platform`, `docs`, and `gh-tl`. Identifies missing `CODEOWNERS`, redundant/shadowing `ISSUE_TEMPLATE` files, and outdated workflow configurations.
-2. **Scaffold Canonical Files**:
-   Generates standard `.github/CODEOWNERS`, `.github/dependabot.yml`, and `.github/actions/setup-pnpm-env/action.yml`.
-3. **Enforce Shadowing Isolation**:
-   Removes redundant local issue templates from child monorepos to ensure seamless inheritance of the organization-level YAML issue forms in `tupynambalucas-dev/.github`.
-4. **Synchronize Composite Actions**:
-   Provides uniform Node/pnpm caching across all monorepos, reducing CI runtimes and cache misses.
-
-### 5.3 Modifications to Existing Files in `plugin-repo`
-
-1. **`agent-mesh/plugins/packages/repo/package.json`**:
-   No new dependencies required; leverages standard node filesystem utilities.
-2. **`agent-mesh/plugins/packages/repo/plugin.json`**:
-   Add `github-standards-architect` to the plugin manifest `skills` list.
-3. **`agent-mesh/plugins/packages/repo/rules/AGENTS.md`**:
-   Add rule item specifying autonomous enforcement of `.github` directory taxonomy and mandatory local `CODEOWNERS`.
-4. **`agent-mesh/plugins/packages/repo/README.md`**:
-   Document the new skill in the skills table and usage examples.
+1. **Audit Organization Repositories**: Scans `.github` folders across `.github`, `agent-mesh`, `platform`, `docs`, and `gh-tl`. Identifies missing `CODEOWNERS`, redundant/shadowing `ISSUE_TEMPLATE` files, and outdated workflow configurations.
+2. **Scaffold Canonical Files**: Generates standard `.github/CODEOWNERS`, `.github/dependabot.yml`, and `.github/actions/setup-pnpm-env/action.yml`.
+3. **Enforce Shadowing Isolation**: Removes redundant local issue templates from child monorepos to ensure seamless inheritance of the organization-level YAML issue forms in `tupynambalucas-dev/.github`.
+4. **Synchronize Composite Actions**: Provides uniform Node/pnpm caching across all monorepos, reducing CI runtimes and cache misses.
 
 ---
 
@@ -341,6 +432,7 @@ description: Audits, scaffolds, and standardizes .github directories, CODEOWNERS
 +-----------------------------------------------------------------------------------+
 | Milestone 3: CI/CD Pipeline Modernization                                         |
 | - Update agent-mesh/.github/workflows/ci.yml to use composite action              |
+| - Author admin-packages.js maintenance tool for legacy package cleanup             |
 | - Verify clean run across all monorepos                                           |
 +-----------------------------------------------------------------------------------+
 ```
@@ -353,3 +445,4 @@ description: Audits, scaffolds, and standardizes .github directories, CODEOWNERS
 2. **Commit Signature Compliance**: All commits and tags signed via SSH (`git commit -S`).
 3. **Code Ownership Verification**: Running `gh codeowners verify` (or checking GitHub PR reviews) automatically assigns `@tupynambalucas-dev/core-maintainers` on all files across all 5 repositories.
 4. **Template Inheritance Verification**: Visiting the `/issues/new/choose` endpoint on any repository displays the global YAML forms from `tupynambalucas-dev/.github` without shadow suppression.
+5. **Registry Idempotency**: Running release workflows never produces HTTP 403 / 409 conflict errors on unmodified monorepo packages.
