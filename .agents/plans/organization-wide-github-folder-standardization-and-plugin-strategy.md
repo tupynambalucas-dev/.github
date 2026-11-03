@@ -420,41 +420,45 @@ description: Audits, scaffolds, and standardizes .github directories, CODEOWNERS
 
 ---
 
-## 6. Execution Roadmap & Milestones
+## 6. Execution Roadmap & Status
 
-```
+`
 +-----------------------------------------------------------------------------------+
-| Milestone 1: Zero-Script Transition & Plugin Extension                            |
-| - Replace publish-packages.js with native pnpm -r publish in agent-mesh           |
-| - Implement skills/github-standards-architect/SKILL.md in plugin-repo           |
-| - Update plugin.json, rules/AGENTS.md, and README.md in plugin-repo               |
-| - Validate with pnpm typecheck and tests                                          |
+| Milestone 1: Zero-Script Transition & Plugin Extension [COMPLETED]                |
+| - Replaced publish-packages.js with native pnpm -r publish in agent-mesh          |
+| - Implemented skills/github-standards-architect/SKILL.md in plugin-repo           |
+| - Updated plugin.json, rules/AGENTS.md (Rule 7), and README.md in plugin-repo     |
+| - Validated with pnpm typecheck and full Turbo builds                             |
 +-----------------------------------------+-----------------------------------------+
                                           |
                                           v
 +-----------------------------------------------------------------------------------+
-| Milestone 2: Immediate Repository Alignment                                      |
-| - agent-mesh: Add .github/CODEOWNERS and .github/actions/setup-pnpm-env            |
-| - docs: Add .github/CODEOWNERS                                                    |
-| - gh-tl: Add .github/CODEOWNERS                                                   |
-| - platform: Align .github/ISSUE_TEMPLATE/ to eliminate shadowing                  |
+| Milestone 2: Workflow Composite Action Modularization [COMPLETED]                 |
+| - Standardized .github/actions/setup-pnpm-env/action.yml (runtime & cache)       |
+| - Standardized .github/actions/validate-plugins/action.yml (manifest validation)  |
+| - Standardized .github/actions/build-mcp/action.yml (Turborepo parallel build)    |
+| - Added .github/CODEOWNERS and .github/dependabot.yml                             |
+| - Cleaned root .npmrc eliminating  warnings and secrets         |
 +-----------------------------------------+-----------------------------------------+
                                           |
                                           v
 +-----------------------------------------------------------------------------------+
-| Milestone 3: CI/CD Pipeline Modernization                                         |
-| - Update agent-mesh/.github/workflows/publish.yml to use native pnpm & composite  |
-| - Add administrative admin-packages.yml workflow for legacy package purging      |
-| - Verify clean run across all monorepos                                           |
+| Milestone 3: CI/CD Pipeline Modernization & Package Admin [COMPLETED]             |
+| - Refactored ci.yml and publish.yml to consume modular composite actions          |
+| - Added strict concurrency cancellation groups and least-privilege permissions    |
+| - Implemented admin-packages.yml with multi-page pagination in manage-packages.js |
+| - Validated 100% passing checks across CodeQL, Actions, and Verification CI       |
 +-----------------------------------------------------------------------------------+
-```
+`
 
 ---
 
 ## 7. Verification & Compliance Criteria
 
 1. **Zero-Emoji Compliance**: No emoji icons anywhere in documentation, configs, or commit logs.
-2. **Commit Signature Compliance**: All commits and tags signed via SSH (`git commit -S`).
-3. **Code Ownership Verification**: Running `gh codeowners verify` (or checking GitHub PR reviews) automatically assigns `@tupynambalucas-dev/core-maintainers` on all files across all 5 repositories.
-4. **Template Inheritance Verification**: Visiting the `/issues/new/choose` endpoint on any repository displays the global YAML forms from `tupynambalucas-dev/.github` without shadow suppression.
-5. **Registry Idempotency**: Running release workflows never produces HTTP 403 / 409 conflict errors on unmodified monorepo packages.
+2. **Commit Signature Compliance**: All commits and tags signed via SSH (git commit -S).
+3. **Composite Action Modularity**: Inline shell/node scripts replaced with dedicated composite actions under .github/actions/*.
+4. **Clean .npmrc Architecture**: Zero plaintext tokens or environment variables in repository .npmrc.
+5. **Code Ownership Verification**: .github/CODEOWNERS assigns @tupynambalucas-dev/core-maintainers on all files.
+6. **Template Inheritance Verification**: Zero local ISSUE_TEMPLATE/ directories shadowing organizational forms.
+7. **Registry Idempotency**: Native pnpm -r publish skips unchanged packages cleanly with zero script overhead.
