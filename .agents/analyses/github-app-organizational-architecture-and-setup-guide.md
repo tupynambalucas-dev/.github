@@ -16,9 +16,11 @@ This guide provides the authoritative architectural blueprint for establishing s
 1. Conceptual foundation on what GitHub Apps are mechanically, explaining why they operate as pure permission/identity vehicles and do not require server code or hosting infrastructure.
 2. A deep dive into GitHub App Webhooks: push vs pull architecture, why webhooks are unnecessary for outbound machine identities, and the operational hazards of activating webhooks without an active listener.
 3. Multi-repository topology analysis across `org-core` (`agent-mesh`, `.github`, `gh-tl`, `platform`, `docs`) establishing a strict Two-Tier App model (`tupynambalucas-org-manager` and `tupynambalucas-ci-bot`) under the Principle of Least Privilege (PoLP).
-4. The architectural boundary between human developer workstation configuration (`gh-tl`) and machine automation under the Dual-Verification Standard.
-5. An exhaustive, didactic, screen-by-screen and checkbox-by-checkbox manual setup walkthrough for creating both apps via GitHub's web interface.
-6. Concrete runbooks for generating private keys, installing the apps on the organization, capturing the Installation ID, enrolling secrets into Infisical and GitHub Organization Secrets, and consuming them inside GitHub Actions workflows.
+4. Near-Total Organizational Freedom specification for `tupynambalucas-org-manager`, detailing how to pre-configure organization-level roles and repository permissions directly on functional teams rather than individual developers.
+5. The architectural boundary between human developer workstation configuration (`gh-tl`) and machine automation under the Dual-Verification Standard.
+6. Strict Operator Authority Guard governing [`@tupynambalucas-dev/plugin-github-org`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-mesh/plugins/packages/github-org), ensuring only organization owners and top-tier administrative teams can execute high-privilege operations.
+7. An exhaustive, didactic, screen-by-screen and checkbox-by-checkbox manual setup walkthrough for creating both apps via GitHub's web interface.
+8. Concrete runbooks for generating private keys, installing the apps on the organization, capturing the Installation ID, enrolling secrets into Infisical and GitHub Organization Secrets, and consuming them inside GitHub Actions workflows.
 
 ---
 
@@ -207,35 +209,41 @@ Applying the **Principle of Least Privilege (PoLP)** and **Role-Based Separation
 ```mermaid
 classDiagram
     class TupynambaOrgManager {
-        +Tier 1: Sovereign Governance & Security
-        +Organization Administration: Read & write
-        +Organization Rulesets: Read & write
-        +Organization Members: Read & write
-        +Packages: Read & write (Purge & Admin)
-        +Secret Scanning & Dependabot: Read & write
-        +Administration: Read & write
-        Scope: Admin workflows, MCP security tools
+        +Tier 1: Sovereign Governance & Near-Total Freedom
+        +Organization Administration: Read and write
+        +Organization Members: Read and write (Teams & Roles)
+        +Organization Rulesets: Read and write
+        +Organization Custom Properties: Read and write
+        +Organization Secrets & Variables: Read and write
+        +Organization Personal Access Tokens: Read and write
+        +Organization Self-Hosted Runners: Read and write
+        +Organization Packages: Read and write (Purge & Admin)
+        +Security Advisories & Audits: Read and write
+        +Repository Creation & Administration: Read and write
+        Scope: Admin workflows, MCP security tools, Org RBAC
     }
 
     class TupynambaCiBot {
         +Tier 2: Routine CI/CD & Delivery
-        +Contents: Read & write (Commit & Tag)
-        +Pull Requests: Read & write
-        +Issues: Read & write
+        +Contents: Read and write (Commit & Tag)
+        +Pull Requests: Read and write
+        +Issues: Read and write
         +Actions: Read-only
-        +Packages: Read & write (Publish tarballs only)
-        +Commit Statuses: Read & write
+        +Packages: Read and write (Publish tarballs only)
+        +Commit Statuses: Read and write
         Scope: Daily workflows, Renovate, Docusaurus, gh-tl
     }
 ```
 
-#### App 1: `tupynambalucas-org-manager` (Tier 1 - High Privilege)
+#### App 1: `tupynambalucas-org-manager` (Tier 1 - High Privilege & Near-Total Freedom)
 - **Primary Persona**: `@tupynambalucas-org-manager[bot]`
 - **Scope of Action**:
+  - Sovereign organization-level administration, team provisioning, and member management.
+  - Pre-defining organization-level roles directly onto functional teams (`PUT /orgs/{org}/organization-roles/teams/{team_slug}/{role_id}`).
+  - Designating official Security Manager teams across all repositories (`PUT /orgs/{org}/security-managers/teams/{team_slug}`).
+  - Assigning pre-defined repository RBAC permissions to teams across all monorepos (`PUT /orgs/{org}/teams/{team_slug}/repos/{owner}/{repo}`).
   - Administrative deletion and cleanup of packages on `npm.pkg.github.com` via `admin-packages.yml`.
-  - Organization-level ruleset and branch protection configuration.
-  - Security audit automation (triaging Secret Scanning and Dependabot alerts via `@tupynambalucas-dev/mcp-github`).
-  - Organization membership and team management via `github-org-operator`.
+  - Managing organization secrets, variables, fine-grained PAT requests, and repository rulesets.
 - **Usage Context**: Restricted to administrative workflow runs (`workflow_dispatch`), MCP security tools, and emergency governance scripts.
 
 #### App 2: `tupynambalucas-ci-bot` (Tier 2 - Operational Delivery)
@@ -250,7 +258,80 @@ classDiagram
 
 ---
 
-### 5.3 Human Developer Identity (`gh-tl`) vs Machine Identity (GitHub Apps): The Dual-Verification Standard
+### 5.3 Near-Total Organizational Freedom: Pre-Configuring Roles Directly on Teams
+
+A critical requirement of our organization model is that we do not want developers or administrators to manually configure permissions user-by-user or repository-by-repository. Instead, **functional teams must be first-class security principals endowed with pre-defined organization roles and pre-defined repository permissions**.
+
+```mermaid
+flowchart TD
+    subgraph OrgRolesLayer ["1. Organization Roles (Enterprise Team Binding)"]
+        direction TB
+        OR1["Role: Organization Security Manager"]
+        OR2["Role: Organization Ruleset Auditor"]
+        OR3["Role: Organization Package Purger"]
+    end
+
+    subgraph TeamsLayer ["2. Functional Teams (agent-mesh/plugins/packages/github-org)"]
+        direction TB
+        T1["Team: 'lead-architects'"]
+        T2["Team: 'security-managers'"]
+        T3["Team: 'infra-ops'"]
+        T4["Team: 'core-engineers'"]
+    end
+
+    subgraph ReposLayer ["3. Repository RBAC (All org-core Monorepos)"]
+        direction TB
+        R1["org-core"]
+        R2["agent-mesh"]
+        R3["platform"]
+        R4[".github"]
+        R5["docs"]
+    end
+
+    %% Organization Role to Team Bindings
+    OR1 -- "PUT /orgs/{org}/security-managers/teams/security-managers" --> T2
+    OR2 -- "PUT /orgs/{org}/organization-roles/teams/lead-architects/{role_id}" --> T1
+    OR3 -- "PUT /orgs/{org}/organization-roles/teams/lead-architects/{role_id}" --> T1
+
+    %% Team to Repository Bindings
+    T1 -- "admin / maintain" --> ReposLayer
+    T2 -- "pull + security read" --> ReposLayer
+    T3 -- "maintain" --> ReposLayer
+    T4 -- "push / write" --> ReposLayer
+```
+
+#### How `tupynambalucas-org-manager` Executes Team Role Bindings:
+1. **Assigning Organization Roles to Teams**:
+   - Calling `PUT /orgs/{org}/organization-roles/teams/{team_slug}/{role_id}` assigns an organization-level role directly to a team.
+   - Any engineer assigned to `lead-architects` or `infra-ops` automatically inherits that organization role without individual user role grants.
+2. **Assigning Security Manager Authority**:
+   - Calling `PUT /orgs/{org}/security-managers/teams/{team_slug}` designates a team as an official Security Manager, granting its members read access to all private repositories and full access to Secret Scanning, Dependabot, and CodeQL alerts organization-wide.
+3. **Pre-Defining Repository Permissions**:
+   - Calling `PUT /orgs/{org}/teams/{team_slug}/repos/{owner}/{repo}` binds the team to repositories with pre-configured access levels (`admin`, `maintain`, `push`, `pull`).
+   - New repositories provisioned by the bot automatically inherit these team mappings.
+
+---
+
+### 5.4 Operator Authority Guard for `@tupynambalucas-dev/plugin-github-org`
+
+Because `tupynambalucas-org-manager` holds near-total organizational authority, access to invoke [`@tupynambalucas-dev/plugin-github-org`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-mesh/plugins/packages/github-org) (`github-org-operator`, `github-app-operator`, `github-ruleset-operator`, `github-security-auditor`) must be strictly governed:
+
+```mermaid
+flowchart TD
+    Invoker["Developer / AI Agent initiates Operation"] --> Gate{"Evaluate Operator Authority"}
+    Gate -- "Organization Owner (@tupynambalucas-dev)" --> Permit["EXECUTE: Mint Token & Execute Org Mutation"]
+    Gate -- "Team 'lead-architects' / 'core-maintainers'" --> Permit
+    Gate -- "Standard Member / Unauthorized Team" --> Reject["REJECT: 403 Forbidden (Strict Authority Guard)"]
+```
+
+#### Governing Rules:
+1. **Repository/Organization Owner Exclusivity**: The organization owner (`tupynambalucas-dev`) retains sovereign, unrestricted authority to trigger all operations.
+2. **Near-Maximal Administrative Teams**: In automated environments, only callers belonging to `lead-architects` or `core-maintainers` are authorized to invoke `github-org-operator`.
+3. **Cryptographic Boundary**: The App private key (`.pem`) is never exposed in plain text, never saved to developer machines, and is accessible solely via Infisical Cloud Vault and GitHub Actions Organization Secrets.
+
+---
+
+### 5.5 Human Developer Identity (`gh-tl`) vs Machine Identity (GitHub Apps): The Dual-Verification Standard
 
 The enterprise architecture enforces a strict boundary between human workstations and cloud automation:
 
@@ -298,7 +379,7 @@ This section provides the authoritative, exhaustive runbook for manually registe
 
 ---
 
-### 6.2 Step-by-Step Walkthrough for App 1: `tupynambalucas-org-manager` (Tier 1)
+### 6.2 Step-by-Step Walkthrough for App 1: `tupynambalucas-org-manager` (Tier 1 - Near-Total Freedom)
 
 Follow each field sequentially:
 
@@ -306,7 +387,7 @@ Follow each field sequentially:
 - **GitHub App name**: `tupynambalucas-org-manager`  
   *(Must be unique across all of GitHub, maximum 34 characters).*
 - **Description**:  
-  `Sovereign organizational governance, security auditing, and package administration operator.`
+  `Sovereign organizational governance, security auditing, package administration, and RBAC team operator.`
 - **Homepage URL**:  
   `https://docs.tupynambalucas.dev`
 
@@ -337,23 +418,26 @@ Click each dropdown and configure the exact values below:
 | Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
 | **Actions** | **Read and write** | Needed to trigger, cancel, or re-run workflows via API. |
-| **Administration** | **Read and write** | Needed to manage repository settings and branch rules. |
-| **Checks** | **Read and write** | Needed to create and update status checks. |
+| **Administration** | **Read and write** | Needed to manage repository settings, branch protections, and repo rules. |
+| **Checks** | **Read and write** | Needed to create and update status checks and automated annotations. |
 | **Code scanning alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` security audits. |
 | **Commit statuses** | **Read and write** | Needed to publish build status markers on commits. |
-| **Contents** | **Read and write** | Needed for reading files, committing changes, creating tags. |
-| **Custom properties** | **No access** | Not required for current operations. |
+| **Contents** | **Read and write** | Needed for reading files, committing changes, creating tags (`v1.0.0`). |
+| **Custom properties** | **Read and write** | **Allows reading and setting repository-specific custom property values.** |
 | **Dependabot alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` vulnerability triage. |
 | **Deployments** | **No access** | Not currently used. |
 | **Discussions** | **No access** | Not currently used. |
-| **Environments** | **Read and write** | Needed for managing deployment environment rules. |
+| **Environments** | **Read and write** | Needed for managing deployment environment rules and approvals. |
 | **Issues** | **Read and write** | Needed to open governance issues and automated notices. |
 | **Metadata** | **Read-only (Mandatory)** | Automatically set by GitHub; allows reading repository names. |
 | **Packages** | **Read and write** | **CRITICAL: Grants REST API rights to list and delete package versions.** |
 | **Pages** | **No access** | Not currently used (docs hosted via static platform). |
-| **Pull requests** | **Read and write** | Needed to inspect, comment, and manage pull requests. |
-| **Repository security advisories** | **Read and write** | Needed to audit repository CVE status. |
+| **Pull requests** | **Read and write** | Needed to inspect, comment, approve, and manage pull requests. |
+| **Repository creation** | **Read and write** | **Allows the bot to create new repositories in the organization.** |
+| **Repository security advisories** | **Read and write** | Needed to audit repository CVE status and manage security disclosures. |
 | **Secret scanning alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` secret audits. |
+| **Secrets** | **Read and write** | **Allows managing repository-level encrypted secrets for GitHub Actions.** |
+| **Variables** | **Read and write** | **Allows managing repository-level configuration variables.** |
 | **Webhooks** | **No access** | Not managing repository-level webhooks. |
 | **Workflows** | **Read and write** | Needed to update workflow files in `.github/workflows/`. |
 
@@ -364,13 +448,18 @@ Click each dropdown and configure the exact values below:
 
 | Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
-| **Administration** | **Read and write** | Allows organization-level settings management. |
-| **Custom organization roles** | **Read-only** | Allows inspecting organizational role templates. |
-| **Custom properties** | **No access** | Not required. |
-| **Members** | **Read and write** | Allows managing team rosters and collaborator invitations. |
-| **Organization rulesets** | **Read and write** | **CRITICAL: Needed for `@tupynambalucas-dev/mcp-github` to audit/enforce rulesets.** |
+| **Administration** | **Read and write** | **Allows organization-level settings, security managers, and Actions policies.** |
+| **Custom organization roles** | **Read-only** | **Allows listing organization roles to retrieve IDs for team assignment.** |
+| **Custom properties** | **Read and write** | **Allows defining org property schemas and bulk assigning values to repos.** |
+| **Members** | **Read and write** | **MASTER RBAC: Allows creating teams, updating teams, setting team repo access, and assigning organization roles directly to teams.** |
+| **Organization rulesets** | **Read and write** | **CRITICAL: Needed to create and enforce org-wide branch and tag protection policies.** |
 | **Organization security advisories** | **Read and write** | Needed for organization-wide security posture audits. |
 | **Packages** | **Read and write** | **CRITICAL: Needed for organization-level package administrative operations.** |
+| **Personal access tokens** | **Read and write** | **Allows auditing and revoking fine-grained personal access tokens.** |
+| **Personal access token requests** | **Read and write** | **Allows approving or rejecting fine-grained PAT requests.** |
+| **Secrets** | **Read and write** | **Allows managing organization-wide secrets for Actions and Dependabot.** |
+| **Self-hosted runners** | **Read and write** | **Allows managing organization runner groups and runner registrations.** |
+| **Variables** | **Read and write** | **Allows managing organization-wide configuration variables.** |
 | **Webhooks** | **No access** | Not managing organization-level webhooks. |
 
 *(All other organization permissions not listed above should remain **No access**).*
@@ -637,8 +726,39 @@ Use this checklist during manual setup:
    - [ ] Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
    - [ ] Enter Name: `tupynambalucas-org-manager` and Homepage URL: `https://docs.tupynambalucas.dev`.
    - [ ] Uncheck **Active** under Webhook.
-   - [ ] Configure Repository Permissions (Packages: Read & write, Administration: Read & write, Actions: Read & write, Contents: Read & write, Workflows: Read & write, Secret scanning: Read & write, Dependabot: Read & write).
-   - [ ] Configure Organization Permissions (Administration: Read & write, Members: Read & write, Organization rulesets: Read & write, Packages: Read & write).
+   - [ ] Configure Repository Permissions:
+     - [ ] Actions: `Read and write`
+     - [ ] Administration: `Read and write`
+     - [ ] Checks: `Read and write`
+     - [ ] Code scanning alerts: `Read and write`
+     - [ ] Commit statuses: `Read and write`
+     - [ ] Contents: `Read and write`
+     - [ ] Custom properties: `Read and write`
+     - [ ] Dependabot alerts: `Read and write`
+     - [ ] Environments: `Read and write`
+     - [ ] Issues: `Read and write`
+     - [ ] Metadata: `Read-only`
+     - [ ] Packages: `Read and write`
+     - [ ] Pull requests: `Read and write`
+     - [ ] Repository creation: `Read and write`
+     - [ ] Repository security advisories: `Read and write`
+     - [ ] Secret scanning alerts: `Read and write`
+     - [ ] Secrets: `Read and write`
+     - [ ] Variables: `Read and write`
+     - [ ] Workflows: `Read and write`
+   - [ ] Configure Organization Permissions:
+     - [ ] Administration: `Read and write`
+     - [ ] Custom organization roles: `Read-only`
+     - [ ] Custom properties: `Read and write`
+     - [ ] Members: `Read and write` (Enables team creation and org-role assignments)
+     - [ ] Organization rulesets: `Read and write`
+     - [ ] Organization security advisories: `Read and write`
+     - [ ] Packages: `Read and write`
+     - [ ] Personal access tokens: `Read and write`
+     - [ ] Personal access token requests: `Read and write`
+     - [ ] Secrets: `Read and write`
+     - [ ] Self-hosted runners: `Read and write`
+     - [ ] Variables: `Read and write`
    - [ ] Select **Only on this account** and click **Create GitHub App**.
 2. [ ] **Capture Credentials & Generate Key**:
    - [ ] Note numeric **App ID**.
