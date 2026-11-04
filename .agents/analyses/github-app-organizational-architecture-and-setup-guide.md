@@ -12,22 +12,23 @@ In modern cloud-native engineering organizations, managing access to source code
 
 Relying on human developer credentials—such as Personal Access Tokens (Classic or Fine-Grained)—introduces catastrophic operational risks: credential leakage, lack of centralized rotation, attribution pollution in Git histories, hard rate limit exhaustion, and immediate pipeline failures when developers rotate passwords or leave the organization.
 
-This guide provides the authoritative architectural blueprint for establishing sovereign **GitHub Apps** as first-class machine identities across the `tupynambalucas-dev` organization. It examines:
-1. What GitHub Apps are mechanically and whether they require server code or function purely as permission/identity vehicles.
-2. The multi-repository topology of `org-core` (`agent-mesh`, `.github`, `gh-tl`, `platform`, `docs`) and how many apps are required to satisfy the Principle of Least Privilege (PoLP).
-3. The relationship between human developer workstation configuration (`gh-tl`) and machine identities (GitHub Apps) under the Dual-Verification Standard.
-4. An exhaustive, didactic, field-by-field breakdown of every single option in GitHub's App registration portal.
-5. Concrete runbooks for automated provisioning via GitHub App Manifests, Infisical Cloud Vault enrollment, and GitHub Actions workflow consumption.
+This guide provides the authoritative architectural blueprint for establishing sovereign **GitHub Apps** as first-class machine identities across the `tupynambalucas-dev` organization. It provides:
+1. Conceptual foundation on what GitHub Apps are mechanically, explaining why they operate as pure permission/identity vehicles and do not require server code or hosting infrastructure.
+2. A deep dive into GitHub App Webhooks: push vs pull architecture, why webhooks are unnecessary for outbound machine identities, and the operational hazards of activating webhooks without an active listener.
+3. Multi-repository topology analysis across `org-core` (`agent-mesh`, `.github`, `gh-tl`, `platform`, `docs`) establishing a strict Two-Tier App model (`tupynambalucas-org-manager` and `tupynambalucas-ci-bot`) under the Principle of Least Privilege (PoLP).
+4. The architectural boundary between human developer workstation configuration (`gh-tl`) and machine automation under the Dual-Verification Standard.
+5. An exhaustive, didactic, screen-by-screen and checkbox-by-checkbox manual setup walkthrough for creating both apps via GitHub's web interface.
+6. Concrete runbooks for generating private keys, installing the apps on the organization, capturing the Installation ID, enrolling secrets into Infisical and GitHub Organization Secrets, and consuming them inside GitHub Actions workflows.
 
 ---
 
 ## 2. Core Conceptual Fundamentals: How GitHub Apps Work
 
 ### 2.1 What is a GitHub App?
-A **GitHub App** is a dedicated, first-class machine identity registered within GitHub. Unlike a user account, a GitHub App:
-- Is owned directly by the organization (`tupynambalucas-dev`), not by an individual human.
+A **GitHub App** is a dedicated, first-class machine identity registered within GitHub. Unlike a personal user account, a GitHub App:
+- Is owned directly by the organization (`tupynambalucas-dev`), not tied to any individual developer.
 - Does not consume a paid GitHub seat.
-- Has dedicated, separate API rate limits (5,000 to 15,000 requests per hour).
+- Has dedicated, separate API rate limits (5,000 to 15,000 requests per hour depending on organization plan).
 - Issues temporary, cryptographically bounded tokens on demand.
 - Signs its own Git commits with GitHub's green `Verified` badge under its official bot persona (`[bot]`).
 
@@ -56,13 +57,13 @@ flowchart TD
 ```
 
 1. **Headless Machine Identity (Zero-Code Mode)**:
-   - **When to use**: CI/CD pipelines (GitHub Actions), local CLI tools, automated release publishers (`pnpm publish`), package purgers (`admin-packages.yml`), and MCP servers (`@tupynambalucas-dev/mcp-github`).
-   - **How it works**: The app exists purely as an authentication and permission principal. It has **No Webhook URL** (`Active: false`), **No callback server**, and **No hosting cost**. GitHub Actions or local runners sign a JSON Web Token (JWT) using the app's RSA private key (`.pem`), exchange it with GitHub for a 60-minute ephemeral **Installation Access Token (IAT)**, and execute operations.
+   - **Operational Purpose**: CI/CD pipelines (GitHub Actions), local CLI tools, automated release publishers (`pnpm publish`), package purgers (`admin-packages.yml`), and MCP servers (`@tupynambalucas-dev/mcp-github`).
+   - **How it works**: The app exists purely as an authentication and permission principal. It has **No Webhook URL** (`Active: false`), **No callback server**, and **No hosting cost**. GitHub Actions runners or local developer environments sign a JSON Web Token (JWT) using the app's RSA private key (`.pem`), exchange it with GitHub for a 60-minute ephemeral **Installation Access Token (IAT)**, and execute operations.
 2. **Event-Driven Service (Code-Backed Mode)**:
-   - **When to use**: Continuous background daemons that must react in real time to events (e.g. an issue comment triggering a Kubernetes agent pod, or a custom pull request gatekeeper).
+   - **Operational Purpose**: Continuous background daemons that must react in real time to events (e.g. an issue comment triggering a Kubernetes agent pod, or a custom pull request gatekeeper).
    - **How it works**: Requires a public HTTP endpoint (`Webhook URL`) running a server (e.g. Express, Probot, or Go) to receive and verify webhook payloads signed with a shared secret.
 
-For our current organization requirements, our GitHub Apps operate predominantly in **Mode 1 (Headless Machine Identity)**, providing sovereign credentials with zero infrastructure overhead.
+For our organizational requirements, our GitHub Apps operate in **Mode 1 (Headless Machine Identity)**, providing sovereign credentials with zero infrastructure overhead.
 
 ### 2.3 The Three Authentication Tokens of GitHub Apps
 
@@ -76,7 +77,81 @@ GitHub Apps support three distinct token flows:
 
 ---
 
-## 3. Comparative Analysis: GitHub App vs Other Token Types
+## 3. Webhooks Deep Dive: Push vs. Pull Architecture & Inactive Discipline
+
+### 3.1 Architectural Paradigms: Push (Webhooks) vs Pull (API Tokens)
+
+Understanding whether an organization requires webhooks comes down to the direction of event dispatching:
+
+```mermaid
+flowchart LR
+    subgraph PushModel ["Push Model: Event-Driven Webhooks"]
+        P1["Developer Pushes Code"] --> P2["GitHub Engine"]
+        P2 -- "HTTP POST (JSON Payload)" --> P3["24/7 Web Server (K8s Ingress)"]
+        P3 --> P4["Verify HMAC SHA-256"]
+        P4 --> P5["Process Event Asynchronously"]
+    end
+
+    subgraph PullModel ["Pull Model: Outbound Machine Identity (Our Stack)"]
+        Q1["GitHub Actions Workflow / MCP Server"] --> Q2["actions/create-github-app-token"]
+        Q2 -- "POST /app/installations/{id}/access_tokens" --> Q3["GitHub API"]
+        Q3 -- "Ephemeral 60-min Token" --> Q4["Runner / Agent"]
+        Q4 -- "Outbound REST / GraphQL Calls" --> Q3
+    end
+```
+
+- **Push Model (Webhooks)**: GitHub actively initiates an outbound HTTP `POST` request to an external server whenever a subscribed repository or organization event occurs. The external server must acknowledge the request with an HTTP 2xx status within 10 seconds.
+- **Pull / On-Demand Model (API Tokens)**: Our internal automation tools (GitHub Actions workflows or MCP servers) initiate outbound HTTPS requests to GitHub's REST/GraphQL API using an ephemeral token. GitHub never calls our infrastructure; our infrastructure calls GitHub.
+
+### 3.2 Do We Need Webhooks for Our GitHub Apps?
+
+> [!IMPORTANT]
+> **NO, we DO NOT need webhooks for our GitHub Apps.**
+> When registering the apps in GitHub, the **Webhook Active checkbox MUST BE UNCHECKED (Inactive)**.
+
+Here is the exhaustive technical rationale:
+
+1. **GitHub Actions Executes on GitHub Infrastructure**:
+   - Our CI/CD workflows (`publish.yml`, `admin-packages.yml`, `ci.yml`, `release.yml`, `renovate.yml`) are triggered internally by GitHub's native workflow engine via triggers like `on: push`, `on: pull_request`, `on: schedule`, or `on: workflow_dispatch`.
+   - Workflows do not need an external webhook to wake them up. They generate the GitHub App token inline using the official action `actions/create-github-app-token`.
+2. **MCP Agents Execute on Local Developer or Runner Prompts**:
+   - Our MCP server (`@tupynambalucas-dev/mcp-github`) operates on demand when an AI agent requests a tool invocation (such as `list_rulesets`, `list_secret_scanning_alerts`, or `get_repo_info`).
+   - The MCP server uses the App ID and Private Key to mint an Installation Access Token and execute outbound queries. It never receives inbound webhook events.
+3. **Zero Hosting Requirement**:
+   - By leaving webhooks inactive, we eliminate the need to run, monitor, patch, and maintain a publicly reachable HTTP server, domain name, SSL certificate, or Kubernetes ingress controller.
+
+### 3.3 Operational Hazards of Leaving Webhooks Active Without a Listener
+
+If an administrator mistakenly checks **Active** on the Webhook configuration without providing an active, 24/7 web server:
+
+1. **100% Delivery Failures & Red Alarms**:
+   - Every single Git push, commit, pull request, or issue created in any repository across the organization will cause GitHub to dispatch an HTTP POST request to the Webhook URL.
+   - If the URL is blank, invalid, or pointing to an inactive host, GitHub records a delivery failure.
+   - GitHub displays persistent red warning banners in the GitHub App settings dashboard indicating that deliveries are failing.
+2. **Resource Waste & Retry Throttling**:
+   - GitHub implements automatic retry loops with exponential backoff for failed deliveries, consuming unnecessary outbound queue resources and polluting GitHub audit logs.
+3. **Security Ingress Liability**:
+   - Activating a webhook requires exposing an endpoint to the public internet, necessitating HMAC-SHA256 signature verification (`X-Hub-Signature-256`), replay attack protection, rate limiting, and DDoS mitigation.
+
+### 3.4 Future Scenarios: When and How Webhooks Would Be Activated
+
+Webhooks would only be activated if the organization chooses to deploy an event-driven bot daemon in the future:
+
+- **Scenario 1: Reactive Kubernetes ChatOps Bot**: An automated agent daemon running in `platform/k8s` that continuously listens for issue or PR comments (e.g. `/deploy staging`, `/run-benchmark`, `/review-a11y`) and acts immediately upon receipt.
+- **Scenario 2: Real-Time Organization Audit Sink**: An audit daemon that intercepts `repository.created` or `member.added` events to enforce instant compliance policies before any code is committed.
+
+If such a service is deployed in the future:
+1. Navigate to `GitHub -> Organization Settings -> Developer settings -> GitHub Apps -> Edit`.
+2. Check **Active**.
+3. Set **Webhook URL** to the production ingress endpoint (e.g. `https://api.tupynambalucas.dev/webhooks/github`).
+4. Generate a 64-character high-entropy secret, set **Webhook secret**, and record it in Infisical.
+5. Subscribe only to specific, required events.
+
+For our current requirements, **keeping Webhook Inactive is strictly mandatory**.
+
+---
+
+## 4. Comparative Analysis: GitHub App vs Other Token Types
 
 | Architectural Vector | Personal Access Token (Classic) | Fine-Grained Personal Access Token | Default `GITHUB_TOKEN` | GitHub App (`Installation Token`) |
 | :--- | :--- | :--- | :--- | :--- |
@@ -91,9 +166,9 @@ GitHub Apps support three distinct token flows:
 
 ---
 
-## 4. Multi-Repository Topology & App Strategy for `tupynambalucas-dev`
+## 5. Multi-Repository Topology & Two-Tier App Strategy
 
-### 4.1 Meta-Repository Analysis (`org-core`)
+### 5.1 Meta-Repository Analysis (`org-core`)
 
 Our umbrella meta-repository coordinates five distinct repositories:
 
@@ -109,8 +184,8 @@ graph TD
 
 1. **`agent-mesh`**:
    - Compiles and publishes 17 internal packages (7 MCP servers + 10 domain plugins) to `npm.pkg.github.com`.
-   - Administers package registry versions (listing, purging obsolete packages).
-   - Hosts `@tupynambalucas-dev/mcp-github`, which interrogates GitHub Security APIs (Secret Scanning, Dependabot), repository rulesets, and pull requests.
+   - Administers package registry versions (listing, purging obsolete packages via REST API).
+   - Hosts `@tupynambalucas-dev/mcp-github`, interrogating GitHub Security APIs (Secret Scanning, Dependabot), repository rulesets, and pull requests.
 2. **`.github`**:
    - Manages organization-level configurations, community health files, issue/PR templates, and organization rulesets.
 3. **`gh-tl`**:
@@ -121,9 +196,9 @@ graph TD
    - Executes Renovate Bot for automated dependency updates (`platform/.github/workflows/renovate.yml`).
    - Hosts Kubernetes GitOps manifests (`k8s/`).
 5. **`docs`**:
-   - Documentation hub powered by Docusaurus v3 and Crowdin localization actions.
+   - Sovereign documentation hub powered by Docusaurus v3 and Crowdin localization actions.
 
-### 4.2 How Many Apps Should We Create?
+### 5.2 How Many Apps Should We Create? (The Two-Tier Architecture)
 
 Creating a single monolithic app with full administrative privileges across all operations introduces severe security blast radius concerns. If a regular CI runner executing a third-party dependency build were compromised, having an installation token with organizational administrative rights could compromise the entire organization.
 
@@ -133,23 +208,23 @@ Applying the **Principle of Least Privilege (PoLP)** and **Role-Based Separation
 classDiagram
     class TupynambaOrgManager {
         +Tier 1: Sovereign Governance & Security
-        +Organization Administration: Write
-        +Organization Rulesets: Write
-        +Organization Members: Write
-        +Packages: Write (Admin & Delete)
-        +Secret Scanning & Dependabot: Write
-        +Administration: Write
+        +Organization Administration: Read & write
+        +Organization Rulesets: Read & write
+        +Organization Members: Read & write
+        +Packages: Read & write (Purge & Admin)
+        +Secret Scanning & Dependabot: Read & write
+        +Administration: Read & write
         Scope: Admin workflows, MCP security tools
     }
 
     class TupynambaCiBot {
         +Tier 2: Routine CI/CD & Delivery
-        +Contents: Write (Commit & Tag)
-        +Pull Requests: Write
-        +Issues: Write
-        +Actions: Read
-        +Packages: Write (Publish tarballs only)
-        +Commit Statuses: Write
+        +Contents: Read & write (Commit & Tag)
+        +Pull Requests: Read & write
+        +Issues: Read & write
+        +Actions: Read-only
+        +Packages: Read & write (Publish tarballs only)
+        +Commit Statuses: Read & write
         Scope: Daily workflows, Renovate, Docusaurus, gh-tl
     }
 ```
@@ -175,11 +250,9 @@ classDiagram
 
 ---
 
-### 4.3 Human Developer Identity (`gh-tl`) vs Machine Identity (GitHub Apps): The Dual-Verification Standard
+### 5.3 Human Developer Identity (`gh-tl`) vs Machine Identity (GitHub Apps): The Dual-Verification Standard
 
-A common architectural question is whether developer CLI extensions (such as `gh-tl`) should consume a GitHub App.
-
-The enterprise architecture enforces a strict, intentional boundary:
+The enterprise architecture enforces a strict boundary between human workstations and cloud automation:
 
 ```mermaid
 flowchart LR
@@ -202,135 +275,244 @@ flowchart LR
 
 #### Why `gh-tl` Operates Exclusively on the Developer's Personal Session:
 1. **User Scope Isolation**: When a developer runs `gh tl onboard`, the goal is to register an authentication key (`POST /user/keys`) and an SSH signing key (`POST /user/ssh_signing_keys`) on that **individual human's personal GitHub account**. A GitHub App installation token represents the organization or bot, not the human user, and intentionally lacks permission to modify arbitrary personal user profiles.
-2. **Native SDK Inheritance**: `gh-tl` uses `github.com/cli/go-gh/v2/pkg/api` (`api.DefaultRESTClient()`), which natively and seamlessly consumes the developer's existing `gh auth login` token. No external credentials, tokens, or app configurations are required.
+2. **Native SDK Inheritance**: `gh-tl` uses `github.com/cli/go-gh/v2/pkg/api` (`api.DefaultRESTClient()`), which natively consumes the developer's existing `gh auth login` token.
 3. **Zero Private Key Sprawl**: Distributing an organizational GitHub App's private key (`.pem`) to developer laptops is a critical security vulnerability. Developer machines must never hold bot master keys.
 
-#### Where GitHub Apps and `gh-tl` Intersect:
-1. **Automated Cross-Platform Releases**: The `gh-tl` repository releases precompiled binaries for Windows, Linux, and macOS via `gh-tl/.github/workflows/release.yml`. When release tags are generated by automation, the **Tier 2 App (`tupynambalucas-ci-bot`)** provides the installation token to publish release assets and generate attestations.
-2. **Dual-Verification Compliance**: Every commit in the organization is guaranteed to be cryptographically verified:
-   - Human commits: Signed with local SSH Ed25519 keys provisioned by `gh-tl onboard`.
-   - Bot/Agent commits: Signed by GitHub's bot authority using GitHub App installation tokens.
-   - Result: 100% `Verified` green commit badges across all 5 repositories with zero credential leakage.
+#### Dual-Verification Compliance Result:
+- Human commits: Signed with local SSH Ed25519 keys provisioned by `gh-tl onboard`.
+- Bot/Agent commits: Signed by GitHub's bot authority using GitHub App installation tokens.
+- Result: 100% `Verified` green commit badges across all 5 repositories with zero credential leakage.
 
 ---
 
-## 5. Didactic Field-by-Field Registration Reference
+## 6. Manual GitHub Web UI Creation Walkthrough (Screen-by-Screen & Field-by-Field)
 
-When navigating to `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`, GitHub presents a comprehensive set of configuration inputs. Below is the authoritative specification for every option.
+This section provides the authoritative, exhaustive runbook for manually registering both GitHub Apps directly through the GitHub Web UI.
 
-### 5.1 App Metadata
+### 6.1 Accessing the Registration Interface
 
-| Field Name | Expected Value (`org-manager`) | Expected Value (`ci-bot`) | Technical Rationale |
-| :--- | :--- | :--- | :--- |
-| **GitHub App name** | `tupynambalucas-org-manager` | `tupynambalucas-ci-bot` | Maximum 34 characters. This name identifies the bot in commit histories, PR comments, and audit logs. |
-| **Description** | `Sovereign organizational governance, security auditing, and package administration operator.` | `Autonomous CI/CD delivery bot for releases, dependency updates, and automated workflows.` | Displayed in GitHub settings and installation manifests. |
-| **Homepage URL** | `https://docs.tupynambalucas.dev` | `https://docs.tupynambalucas.dev` | Canonical public URL representing the owning organization. |
+1. Open your desktop browser and log in with your administrative account.
+2. Navigate directly to the organization app creation portal:
+   `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`
+   *(Alternative navigation: Click your profile picture -> **Your organizations** -> click **tupynambalucas-dev** -> **Settings** -> left sidebar **Developer settings** -> **GitHub Apps** -> click **New GitHub App**).*
 
 ---
 
-### 5.2 Identifying & Authorizing Users (User-to-Server Flow)
+### 6.2 Step-by-Step Walkthrough for App 1: `tupynambalucas-org-manager` (Tier 1)
 
-These options govern interactive OAuth authorization (logging users into a website via GitHub).
+Follow each field sequentially:
 
-| Option | Recommended Setting | Deep Technical Explanation |
+#### Step 1: App Metadata
+- **GitHub App name**: `tupynambalucas-org-manager`  
+  *(Must be unique across all of GitHub, maximum 34 characters).*
+- **Description**:  
+  `Sovereign organizational governance, security auditing, and package administration operator.`
+- **Homepage URL**:  
+  `https://docs.tupynambalucas.dev`
+
+#### Step 2: Identifying and Authorizing Users (User-to-Server)
+- **Callback URL**: *Leave completely empty*  
+  *(Not used for headless server-to-server operations).*
+- **Allow wildcard matching**: **UNCHECKED**
+- **Expire user authorization tokens**: **CHECKED**  
+  *(Enforces secure 8-hour expiry if OAuth is ever invoked).*
+- **Request user authorization (OAuth) during installation**: **UNCHECKED**  
+  *(Prevents confusing user login prompts during organization installation).*
+- **Enable Device Flow**: **UNCHECKED**
+
+#### Step 3: Post Installation
+- **Setup URL**: *Leave completely empty*
+- **Redirect on update**: **UNCHECKED**
+
+#### Step 4: Webhook Configuration
+- **Active**: **UNCHECKED (Desmarcado / Inactive)**  
+  *(CRITICAL: Disables outbound webhook POST requests from GitHub).*
+- **Webhook URL**: *Disabled / Leave empty*
+- **Webhook secret**: *Disabled / Leave empty*
+- **SSL verification**: *Disabled / Leave default*
+
+#### Step 5: Repository Permissions (Permissions -> Repository permissions)
+Click each dropdown and configure the exact values below:
+
+| Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
-| **Callback URL** | `http://localhost:3333/callback` *(or blank)* | Only required if generating User Access Tokens (UAT) via OAuth. For headless machine identities, this is ignored. We specify `http://localhost:3333/callback` solely to support the automated Manifest Provisioner script. |
-| **Allow wildcard matching** | **UNCHECKED** | Allowing wildcard URLs (`https://*.example.com`) introduces major open-redirect vulnerabilities. Strict matching is required. |
-| **Expire user authorization tokens** | **CHECKED** | Causes user access tokens to expire after 8 hours and issues refresh tokens. Best practice for token hygiene if OAuth is ever invoked. |
-| **Request user authorization (OAuth) during installation** | **UNCHECKED** | When installing the app onto `tupynambalucas-dev`, we are establishing an **installation entity**, not authenticating a human user session. Keeping this unchecked prevents unnecessary browser redirect prompts during setup. |
-| **Enable Device Flow** | **UNCHECKED** | Device flow allows OAuth authentication on headless devices (e.g. smart TVs or CLI tools showing a verification code). Not applicable to server-side CI/CD. |
+| **Actions** | **Read and write** | Needed to trigger, cancel, or re-run workflows via API. |
+| **Administration** | **Read and write** | Needed to manage repository settings and branch rules. |
+| **Checks** | **Read and write** | Needed to create and update status checks. |
+| **Code scanning alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` security audits. |
+| **Commit statuses** | **Read and write** | Needed to publish build status markers on commits. |
+| **Contents** | **Read and write** | Needed for reading files, committing changes, creating tags. |
+| **Custom properties** | **No access** | Not required for current operations. |
+| **Dependabot alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` vulnerability triage. |
+| **Deployments** | **No access** | Not currently used. |
+| **Discussions** | **No access** | Not currently used. |
+| **Environments** | **Read and write** | Needed for managing deployment environment rules. |
+| **Issues** | **Read and write** | Needed to open governance issues and automated notices. |
+| **Metadata** | **Read-only (Mandatory)** | Automatically set by GitHub; allows reading repository names. |
+| **Packages** | **Read and write** | **CRITICAL: Grants REST API rights to list and delete package versions.** |
+| **Pages** | **No access** | Not currently used (docs hosted via static platform). |
+| **Pull requests** | **Read and write** | Needed to inspect, comment, and manage pull requests. |
+| **Repository security advisories** | **Read and write** | Needed to audit repository CVE status. |
+| **Secret scanning alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` secret audits. |
+| **Webhooks** | **No access** | Not managing repository-level webhooks. |
+| **Workflows** | **Read and write** | Needed to update workflow files in `.github/workflows/`. |
 
----
+*(All other repository permissions not listed above should remain **No access**).*
 
-### 5.3 Post Installation
+#### Step 6: Organization Permissions (Permissions -> Organization permissions)
+Click each dropdown and configure the exact values below:
 
-| Option | Recommended Setting | Deep Technical Explanation |
+| Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
-| **Setup URL** | *Leave Empty* | Optional URL where GitHub redirects an administrator after installation. For internal machine identities, no external onboarding portal is needed. |
-| **Redirect on update** | **UNCHECKED** | Prevents unwanted redirects when repositories are added or removed from the app's installation scope. |
+| **Administration** | **Read and write** | Allows organization-level settings management. |
+| **Custom organization roles** | **Read-only** | Allows inspecting organizational role templates. |
+| **Custom properties** | **No access** | Not required. |
+| **Members** | **Read and write** | Allows managing team rosters and collaborator invitations. |
+| **Organization rulesets** | **Read and write** | **CRITICAL: Needed for `@tupynambalucas-dev/mcp-github` to audit/enforce rulesets.** |
+| **Organization security advisories** | **Read and write** | Needed for organization-wide security posture audits. |
+| **Packages** | **Read and write** | **CRITICAL: Needed for organization-level package administrative operations.** |
+| **Webhooks** | **No access** | Not managing organization-level webhooks. |
+
+*(All other organization permissions not listed above should remain **No access**).*
+
+#### Step 7: Account Permissions
+- Keep all Account permissions set to **No access**.
+
+#### Step 8: Subscribe to Events
+- Because **Active** is unchecked under Webhook, this section is automatically grayed out or inactive. Leave empty.
+
+#### Step 9: Where Can This GitHub App Be Installed?
+- Select: **Only on this account** (`@tupynambalucas-dev`).  
+  *(Never select "Any account" for internal enterprise tools).*
+
+#### Step 10: Complete Creation
+- Click the green button: **Create GitHub App**.
 
 ---
 
-### 5.4 Webhook Configuration
+### 6.3 Step-by-Step Walkthrough for App 2: `tupynambalucas-ci-bot` (Tier 2)
 
-| Option | Recommended Setting | Deep Technical Explanation |
+Follow each field sequentially:
+
+#### Step 1: App Metadata
+- **GitHub App name**: `tupynambalucas-ci-bot`
+- **Description**:  
+  `Autonomous CI/CD delivery bot for releases, dependency updates, and automated workflows.`
+- **Homepage URL**:  
+  `https://docs.tupynambalucas.dev`
+
+#### Step 2: Identifying and Authorizing Users (User-to-Server)
+- **Callback URL**: *Leave completely empty*
+- **Allow wildcard matching**: **UNCHECKED**
+- **Expire user authorization tokens**: **CHECKED**
+- **Request user authorization (OAuth) during installation**: **UNCHECKED**
+- **Enable Device Flow**: **UNCHECKED**
+
+#### Step 3: Post Installation
+- **Setup URL**: *Leave completely empty*
+- **Redirect on update**: **UNCHECKED**
+
+#### Step 4: Webhook Configuration
+- **Active**: **UNCHECKED (Desmarcado / Inactive)**
+- **Webhook URL**: *Disabled / Leave empty*
+- **Webhook secret**: *Disabled / Leave empty*
+- **SSL verification**: *Disabled / Leave default*
+
+#### Step 5: Repository Permissions (Permissions -> Repository permissions)
+Click each dropdown and configure the exact values below:
+
+| Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
-| **Active** | **UNCHECKED (Inactive)** | **CRITICAL**: If checked without a live, publicly reachable backend server, GitHub will continuously send POST requests for every event, encounter timeouts, log HTTP failures, and degrade health status. Since these apps operate as outbound machine identities (CI/CD and MCP tools calling GitHub APIs), webhooks must remain inactive. |
-| **Webhook URL** | *Leave Empty* | Only configured when deploying an active webhook listener service in Kubernetes (`platform/k8s`). |
-| **Webhook secret** | *Leave Empty* | Cryptographic secret for verifying HMAC-SHA256 signatures of incoming payloads. Not needed when inactive. |
+| **Actions** | **Read-only** | Allows checking run states without power to cancel pipelines. |
+| **Administration** | **No access** | Strict PoLP isolation: CI bot cannot modify repo settings. |
+| **Checks** | **Read and write** | Allows emitting test reports and linting status checks. |
+| **Code scanning alerts** | **No access** | Not required for standard delivery. |
+| **Commit statuses** | **Read and write** | Allows reporting build status badges on commits. |
+| **Contents** | **Read and write** | **Allows pushing release tags (`v1.0.0`) and changelog commits.** |
+| **Dependabot alerts** | **No access** | Handled by Tier 1. |
+| **Issues** | **Read and write** | Allows opening and commenting on build failure tracking issues. |
+| **Metadata** | **Read-only (Mandatory)** | Automatically set by GitHub. |
+| **Packages** | **Read and write** | **Allows publishing tarballs (`pnpm -r publish`). Cannot delete.** |
+| **Pull requests** | **Read and write** | Allows Renovate Bot and release automations to open PRs. |
+| **Secret scanning alerts** | **No access** | Handled by Tier 1. |
+| **Workflows** | **Read and write** | Allows automated PRs that modify `.github/workflows/` files. |
+
+*(All other repository permissions should remain **No access**).*
+
+#### Step 6: Organization Permissions (Permissions -> Organization permissions)
+- Set all Organization permissions to **No access**.  
+  *(Tier 2 has zero organization-level administrative rights).*
+
+#### Step 7: Account Permissions
+- Set all Account permissions to **No access**.
+
+#### Step 8: Subscribe to Events
+- Grayed out / Inactive.
+
+#### Step 9: Where Can This GitHub App Be Installed?
+- Select: **Only on this account** (`@tupynambalucas-dev`).
+
+#### Step 10: Complete Creation
+- Click the green button: **Create GitHub App**.
 
 ---
 
-### 5.5 Permissions Specification
+### 6.4 Generating and Securing the RSA Private Key (`.pem`)
 
-GitHub permissions are strictly partitioned into four categories:
+Immediately after creating each app, GitHub displays the **General** settings page for the new app:
 
-#### Category A: Repository Permissions
+```mermaid
+flowchart TD
+    G1["App Created -> General Settings Page"] --> G2["1. Record App ID (e.g. 1048291)"]
+    G1 --> G3["2. Record Client ID (e.g. Iv23...)"]
+    G1 --> G4["3. Scroll to 'Private keys' section"]
+    G4 --> G5["4. Click 'Generate a private key'"]
+    G5 --> G6["5. Browser downloads: <app-name>.<date>.private-key.pem"]
+    G6 --> G7["6. Store securely in Infisical & Org Secrets"]
+```
 
-| Permission Key | `tupynambalucas-org-manager` | `tupynambalucas-ci-bot` | Operational Purpose |
-| :--- | :--- | :--- | :--- |
-| **Actions** | Read and write | Read-only | Manager can cancel or re-trigger workflows; CI Bot inspects status. |
-| **Administration** | Read and write | No access | Manager configures repo settings, branch protections, and repository rules. |
-| **Checks** | Read and write | Read and write | Emits granular check runs and status badges for PRs. |
-| **Contents** | Read and write | Read and write | Reading code, committing automated releases, creating tags (`v1.0.0`). |
-| **Dependabot alerts** | Read and write | No access | Manager triages and resolves security vulnerabilities. |
-| **Issues** | Read and write | Read and write | Opening automated tracking issues, triage, closing resolved bugs. |
-| **Packages** | **Read and write** | **Read and write** | **Manager purges/deletes packages; CI Bot uploads/publishes packages.** |
-| **Pull requests** | Read and write | Read and write | Opening automated PRs (Renovate, docs translations, release bumps). |
-| **Secret scanning alerts** | Read and write | No access | Manager triages leaked credentials and triggers secret rotation. |
-| **Workflows** | Read and write | Read and write | Updating `.github/workflows/*.yml` files without permission rejection. |
-
-#### Category B: Organization Permissions
-
-| Permission Key | `tupynambalucas-org-manager` | `tupynambalucas-ci-bot` | Operational Purpose |
-| :--- | :--- | :--- | :--- |
-| **Administration** | Read and write | No access | Modifying organization settings, billing audit, security defaults. |
-| **Members** | Read and write | No access | Managing team rosters, invitations, and repository assignments. |
-| **Organization rulesets** | Read and write | No access | Enforcing organization-wide branch and tag protection policies. |
-| **Custom repository roles**| Read-only | No access | Inspecting fine-grained organizational permission templates. |
-
-#### Category C & D: Account & Enterprise Permissions
-- **Account permissions**: No access needed (pertains to user email, profile, followers).
-- **Enterprise permissions**: No access needed (applicable only to GitHub Enterprise Cloud accounts).
+1. **Record the App ID**: At the top of the **General** page, find **App ID** (numeric string, e.g. `1149202`). Copy this number.
+2. **Record the Client ID**: Right below App ID, find **Client ID** (alphanumeric string, e.g. `Iv23...`). Copy this value.
+3. **Generate Private Key**:
+   - Scroll down to the section titled **Private keys**.
+   - Click the button **Generate a private key**.
+   - GitHub generates a 2048-bit RSA private key and downloads a file named `<app-name>.<timestamp>.private-key.pem` to your computer.
+   - Store this file securely. Never commit it to any Git repository.
 
 ---
 
-### 5.6 Subscribe to Events
+### 6.5 Installing the App on the Organization and Capturing Installation ID
 
-When **Webhook** is set to **Inactive**, event subscriptions have no effect. When webhooks are activated in the future, subscriptions must align with selected permissions:
-- `Release`: Dispatched when new GitHub releases are drafted or published.
-- `Workflow run`: Dispatched when Actions pipelines complete or fail.
-- `Security advisory`: Dispatched when CVEs impact organization packages.
+A registered GitHub App cannot perform any actions until it is **installed** on the organization:
+
+1. On the left navigation sidebar of your GitHub App settings, click **Install App**.
+2. GitHub displays a list of accounts where you have administrative access. Locate `tupynambalucas-dev` and click the green **Install** button next to it.
+3. In the repository selection prompt:
+   - Select **All repositories** *(ensures all 5 repositories in `org-core` inherit the identity)*.
+4. Click **Install**.
+5. GitHub redirects you to the organization settings page for the installation:
+   - Examine your browser's address bar URL:
+     `https://github.com/organizations/tupynambalucas-dev/settings/installations/62345678`
+   - The trailing integer (e.g. `62345678`) is your **Installation ID**.
+   - Copy this number for Infisical storage.
 
 ---
 
-### 5.7 Where Can This GitHub App Be Installed?
+## 7. Alternative Automated Provisioning via Manifest Flow
 
-| Option | Selection | Deep Technical Explanation |
-| :--- | :--- | :--- |
-| **Only on this account** | **SELECTED (Mandatory)** | Restricts app installation strictly to `tupynambalucas-dev`. Prevents external entities from installing your machine identity on unauthorized GitHub accounts. |
-| **Any account** | **PROHIBITED** | Used exclusively for commercial SaaS products (e.g. Snyk, Datadog) distributed via GitHub Marketplace. Never enable for internal enterprise apps. |
-
----
-
-## 6. Provisioning Runbooks
-
-### 6.1 Method A: Automated Provisioning via Manifest Flow (Recommended)
-
-The organization provides an automated helper in `agent-mesh` implementing GitHub's official **App Manifest Flow**:
+For developers who prefer command-line automation, the repository provides a pre-configured provisioner in `agent-mesh`:
 
 ```bash
-# In your terminal:
 cd C:\Users\tupyn\projects\organizations\tupynambalucas-dev\org-core\agent-mesh
 
-# Run the manager provisioner:
+# Run the automated manager provisioner:
 node plugins/packages/github-org/skills/github-app-operator/scripts/provision-app.js --profile=manager
 ```
 
-#### What the Script Executes:
+### What the Script Executes:
 1. Spawns an ephemeral HTTP callback listener on `http://localhost:3333`.
 2. Encodes the complete JSON manifest (name, permissions, inactive webhooks) into a POST form.
-3. Automatically launches your default desktop browser at `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
+3. Automatically launches your desktop browser at `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
 4. Displays GitHub's pre-filled confirmation screen: click **Create GitHub App**.
 5. GitHub redirects back to `http://localhost:3333/callback` with an exchange code.
 6. The script exchanges the code with GitHub's API, securely outputs the App ID, Client ID, and saves the RSA Private Key to `tupynambalucas-org-manager.private-key.pem` (mode `0600`).
@@ -338,56 +520,46 @@ node plugins/packages/github-org/skills/github-app-operator/scripts/provision-ap
 
 ---
 
-### 6.2 Method B: Manual Registration via GitHub Web UI
+## 8. Secret Governance & Storage Runbook
 
-If preferred, register manually via the browser:
-1. Navigate to: `GitHub -> tupynambalucas-dev Organization Settings -> Developer settings -> GitHub Apps -> New GitHub App`.
-2. Fill in metadata, permissions, and settings exactly as specified in **Section 5**.
-3. Under **Webhook**, ensure **Active is UNCHECKED**.
-4. Click **Create GitHub App**.
-5. On the App details page:
-   - Note the numeric **App ID** (e.g. `1048291`).
-   - Note the **Client ID** (e.g. `Iv23...`).
-   - Under **Private keys**, click **Generate a private key**. A `.pem` file will download to your machine.
-6. In the left navigation, click **Install App**, find `tupynambalucas-dev`, click **Install**, and choose **All repositories**.
-7. Note the **Installation ID** present in your browser URL (`https://github.com/organizations/tupynambalucas-dev/settings/apps/<slug>/installations/<INSTALLATION_ID>`).
-
----
-
-## 7. Secret Governance & Storage Runbook
-
-To adhere strictly to organizational Rule 4 (Secret Hygiene):
+To adhere strictly to Rule 4 (Secret Hygiene):
 > [!CAUTION]
 > Never commit `.pem` private keys or output raw private keys into terminal logs. All private keys are strictly git-ignored.
 
-### 7.1 Infisical Cloud Vault Enrollment
+### 8.1 GitHub Actions Organization Secrets Enrollment
 
-Store the four identity credentials in Infisical project `tupynambalucas-dev-platform` across environments (`dev` and `prod`):
+To make the credentials universally accessible across all workflows in all five repositories, configure them as **Organization Secrets** (`https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions`):
+
+| Secret Name | Value to Input | Repository Access Policy |
+| :--- | :--- | :--- |
+| **`ORGANIZATION_APP_ID`** | Numeric App ID of `tupynambalucas-org-manager` | Selected repositories: `agent-mesh`, `platform`, `.github`, `docs`, `gh-tl` |
+| **`ORGANIZATION_APP_PRIVATE_KEY`** | Full text content of the downloaded `.pem` file (including `-----BEGIN RSA PRIVATE KEY-----` and `-----END RSA PRIVATE KEY-----`) | Selected repositories: `agent-mesh`, `platform`, `.github`, `docs`, `gh-tl` |
+
+*(Optional for Tier 2 CI workflows)*:
+| Secret Name | Value to Input | Repository Access Policy |
+| :--- | :--- | :--- |
+| **`CI_APP_ID`** | Numeric App ID of `tupynambalucas-ci-bot` | Selected repositories: `agent-mesh`, `platform`, `.github`, `docs`, `gh-tl` |
+| **`CI_APP_PRIVATE_KEY`** | Full text content of the `ci-bot` `.pem` file | Selected repositories: `agent-mesh`, `platform`, `.github`, `docs`, `gh-tl` |
+
+### 8.2 Infisical Cloud Vault Enrollment
+
+Store all four identity parameters in Infisical project `tupynambalucas-dev-platform` across environments (`dev` and `prod`) for programmatic agent consumption:
 
 ```bash
-# Using Infisical CLI or MCP secrets tool:
+# Vault Enrollment Schema
 GITHUB_APP_ID="<Numeric App ID>"
 GITHUB_APP_CLIENT_ID="<Client ID>"
 GITHUB_APP_INSTALLATION_ID="<Installation ID>"
 GITHUB_APP_PRIVATE_KEY="<Complete contents of the .pem file with \n line breaks>"
 ```
 
-### 7.2 GitHub Actions Secrets Enrollment
-
-To make the credentials universally accessible across all workflows in all five repositories, configure them as **Organization Secrets** (`https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions`):
-
-| Secret Name | Content | Repository Access Policy |
-| :--- | :--- | :--- |
-| `ORGANIZATION_APP_ID` | Numeric App ID | Selected repositories: `agent-mesh`, `platform`, `.github`, `docs`, `gh-tl` |
-| `ORGANIZATION_APP_PRIVATE_KEY` | Full content of `.pem` file | Selected repositories: `agent-mesh`, `platform`, `.github`, `docs`, `gh-tl` |
-
 ---
 
-## 8. Workflow Consumption Architecture
+## 9. Workflow Consumption Architecture
 
-Once enrolled, workflows across `agent-mesh`, `platform`, `docs`, and `gh-tl` consume the GitHub App token via the standard, pinned composite action:
+Workflows across `agent-mesh`, `platform`, `docs`, and `gh-tl` consume the GitHub App token via the standard, pinned action `actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755`:
 
-### 8.1 Example: Package Deletion & Administration (`agent-mesh/.github/workflows/admin-packages.yml`)
+### 9.1 Package Deletion & Administration (`agent-mesh/.github/workflows/admin-packages.yml`)
 ```yaml
       - name: Generate GitHub App Token
         id: app-token
@@ -407,7 +579,7 @@ Once enrolled, workflows across `agent-mesh`, `platform`, `docs`, and `gh-tl` co
         run: node .github/scripts/manage-packages.js
 ```
 
-### 8.2 Example: Native Package Publishing (`agent-mesh/.github/workflows/publish.yml`)
+### 9.2 Native Package Publishing (`agent-mesh/.github/workflows/publish.yml`)
 ```yaml
       - name: Generate GitHub App Token
         id: app-token
@@ -424,7 +596,7 @@ Once enrolled, workflows across `agent-mesh`, `platform`, `docs`, and `gh-tl` co
         run: pnpm run packages:publish
 ```
 
-### 8.3 Example: Cross-Platform Extension Release (`gh-tl/.github/workflows/release.yml`)
+### 9.3 Cross-Platform CLI Extension Release (`gh-tl/.github/workflows/release.yml`)
 ```yaml
 name: release
 on:
@@ -457,13 +629,28 @@ jobs:
 
 ---
 
-## 9. Conclusion & Actionable Execution Checklist
+## 10. Conclusion & Actionable Execution Checklist
 
-1. **Architecture Confirmed**: GitHub Apps operate without code in headless mode for CI/CD and MCP tools.
-2. **Two-Tier Separation**:
-   - `tupynambalucas-org-manager` (High Privilege: Packages purge, Org governance, Security alerts).
-   - `tupynambalucas-ci-bot` (Operational: Releases, Publishing, PRs, Renovate).
-3. **Execution Path**:
-   - Run `node plugins/packages/github-org/skills/github-app-operator/scripts/provision-app.js --profile=manager` to instantiate `tupynambalucas-org-manager` via the 1-click manifest flow.
-   - Save `ORGANIZATION_APP_ID` and `ORGANIZATION_APP_PRIVATE_KEY` in GitHub Organization Secrets.
-   - Re-run `admin-packages.yml` to purge remote packages, and trigger `publish.yml` for the clean inaugural `1.0.0` release.
+Use this checklist during manual setup:
+
+1. [ ] **Register `tupynambalucas-org-manager`**:
+   - [ ] Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
+   - [ ] Enter Name: `tupynambalucas-org-manager` and Homepage URL: `https://docs.tupynambalucas.dev`.
+   - [ ] Uncheck **Active** under Webhook.
+   - [ ] Configure Repository Permissions (Packages: Read & write, Administration: Read & write, Actions: Read & write, Contents: Read & write, Workflows: Read & write, Secret scanning: Read & write, Dependabot: Read & write).
+   - [ ] Configure Organization Permissions (Administration: Read & write, Members: Read & write, Organization rulesets: Read & write, Packages: Read & write).
+   - [ ] Select **Only on this account** and click **Create GitHub App**.
+2. [ ] **Capture Credentials & Generate Key**:
+   - [ ] Note numeric **App ID**.
+   - [ ] Scroll to **Private keys** and click **Generate a private key** (saves `.pem` file).
+3. [ ] **Install App on Organization**:
+   - [ ] Click **Install App** in the left sidebar.
+   - [ ] Click **Install** next to `tupynambalucas-dev`, select **All repositories**, and confirm.
+   - [ ] Note **Installation ID** from browser address bar.
+4. [ ] **Configure Organization Secrets**:
+   - [ ] Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions`.
+   - [ ] Add `ORGANIZATION_APP_ID` with the numeric App ID.
+   - [ ] Add `ORGANIZATION_APP_PRIVATE_KEY` with the full content of the `.pem` file.
+5. [ ] **Run Package Administration & Clean Release**:
+   - [ ] Trigger `admin-packages.yml` to purge remote packages.
+   - [ ] Trigger `publish.yml` to publish clean `1.0.0` packages to GitHub Packages.
