@@ -1,6 +1,6 @@
 # GitHub App Organizational Architecture & Comprehensive Setup Guide
 **Organization**: `tupynambalucas-dev`  
-**Domain**: Enterprise Identity, Governance & CI/CD Automation  
+**Domain**: Enterprise Identity, Governance, CI/CD Automation & Workstation Integration  
 **Classification**: Senior Architectural Specification & Didactic Runbook  
 **Standard**: en-US Technical Specification (Strict Zero-Emoji Policy)
 
@@ -17,11 +17,13 @@ This guide provides the authoritative architectural blueprint for establishing s
 2. A deep dive into GitHub App Webhooks: push vs pull architecture, why webhooks are unnecessary for outbound machine identities, and the operational hazards of activating webhooks without an active listener.
 3. Multi-repository topology analysis across `org-core` (`agent-mesh`, `.github`, `gh-tl`, `platform`, `docs`) establishing a comprehensive **Three-Tier App model** (`tupynambalucas-org-manager`, `tupynambalucas-ci-bot`, and `tupynambalucas-developer-tools`) under the Principle of Least Privilege (PoLP) and Separation of Duties (SoD).
 4. Near-Total Organizational Freedom specification for `tupynambalucas-org-manager`, detailing how to pre-configure organization-level roles and repository permissions directly on functional teams rather than individual developers.
-5. Dedicated interactive developer identity tier (`tupynambalucas-developer-tools`) implementing OAuth Device Flow, enabling CLI tooling (`gh-tl`) and developer workstations to authenticate seamlessly without private key sprawl.
-6. The architectural boundary between human developer workstation configuration (`gh-tl`) and machine automation under the Dual-Verification Standard.
-7. Strict Operator Authority Guard governing [`@tupynambalucas-dev/plugin-github-org`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-mesh/plugins/packages/github-org), ensuring only organization owners and top-tier administrative teams can execute high-privilege operations.
-8. An exhaustive, didactic, screen-by-screen and checkbox-by-checkbox manual setup walkthrough for creating all three apps via GitHub's web interface.
-9. Concrete runbooks for generating private keys, installing the apps on the organization, capturing Installation IDs, enrolling secrets into Infisical and GitHub Organization Secrets, and consuming them inside GitHub Actions workflows.
+5. Role-to-App Access Control Architecture and 5-Layer Defense-in-Depth Enforcement Model governing which teams have access to which apps and how unauthorized access is strictly blocked.
+6. Exhaustive Master Permission Catalog comparing all 76 permissions supported by GitHub Apps across all three apps, mapped directly to plugin consumers in `agent-mesh/plugins`.
+7. Dedicated interactive developer identity tier (`tupynambalucas-developer-tools`) implementing OAuth Device Flow, enabling CLI tooling (`gh-tl`) and developer workstations to authenticate seamlessly without private key sprawl.
+8. The architectural boundary between human developer workstation configuration (`gh-tl`) and machine automation under the Dual-Verification Standard.
+9. Strict Operator Authority Guard governing [`@tupynambalucas-dev/plugin-github-org`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-mesh/plugins/packages/github-org), ensuring only organization owners and top-tier administrative teams can execute high-privilege operations.
+10. An exhaustive, didactic, screen-by-screen and checkbox-by-checkbox manual setup walkthrough for creating all three apps and assigning GitHub App Managers via GitHub's web interface.
+11. Concrete runbooks for generating private keys, installing the apps on the organization, capturing Installation IDs, enrolling secrets into Infisical and GitHub Organization Secrets, and consuming them inside GitHub Actions workflows.
 
 ---
 
@@ -109,7 +111,7 @@ flowchart LR
 ### 3.2 Do We Need Webhooks for Our GitHub Apps?
 
 > [!IMPORTANT]
-> **NO, we DO NOT need webhooks for our GitHub Apps.**
+> **NO, we DO NOT need webhooks for our GitHub Apps.**  
 > When registering all three apps in GitHub, the **Webhook Active checkbox MUST BE UNCHECKED (Inactive)**.
 
 Here is the exhaustive technical rationale:
@@ -237,6 +239,7 @@ classDiagram
         +Actions: Read-only
         +Packages: Read and write (Publish tarballs only)
         +Commit Statuses: Read and write
+        +Attestations: Read and write
         Custody: GitHub Actions Runners, Renovate, Docusaurus, gh-tl
     }
 
@@ -361,7 +364,85 @@ flowchart TD
 
 ---
 
-### 5.5 Human Developer Identity (`gh-tl`) vs Machine Identity (GitHub Apps): The Dual-Verification Standard
+### 5.5 Role-to-App Access Control Architecture & 5-Layer Defense-in-Depth Enforcement Model
+
+To resolve the fundamental governance question of how access to each App is granted to specific roles while strictly preventing unauthorized teams or developers from abusing elevated privileges, the organization implements a **5-Layer Defense-in-Depth Security Model**:
+
+```mermaid
+flowchart TD
+    subgraph Layer1 ["Layer 1: GitHub Web UI 'App Managers' Delegation"]
+        L1["Organization Settings -> GitHub Apps -> App managers"]
+        L1 --> L1A["App 1 (org-manager): Assigned ONLY to 'lead-architects' & Owner"]
+        L1 --> L1B["App 2 (ci-bot): Assigned to 'lead-architects' & 'infra-ops'"]
+        L1 --> L1C["App 3 (developer-tools): Managed by 'lead-architects'"]
+    end
+
+    subgraph Layer2 ["Layer 2: Cryptographic Vault Isolation (Infisical RBAC)"]
+        L2["Infisical Cloud Vault Permissions"]
+        L2 --> L2A["Project: platform / Environment: prod (Folder: /governance)"]
+        L2A -->|Holds Org Manager .pem| L2A1["Readable ONLY by Owner & 'lead-architects'"]
+        L2 --> L2B["Project: platform / Environment: staging / ci-cd"]
+        L2B -->|Holds CI Bot .pem| L2B1["Readable by CI Machine Identities & 'infra-ops'"]
+        L2 --> L2C["App 3: NO RSA KEY EXISTS (Public Client ID only)"]
+    end
+
+    subgraph Layer3 ["Layer 3: GitHub Organization Secrets Repository & Environment Scoping"]
+        L3["GitHub Organization Secrets Policy"]
+        L3 --> L3A["ORGANIZATION_APP_PRIVATE_KEY: Scoped ONLY to .github and org-core"]
+        L3 --> L3B["CI_APP_PRIVATE_KEY: Scoped to all delivery monorepos"]
+        L3 --> L3C["Environment Approval Gates: Production deployment requires Owner sign-off"]
+    end
+
+    subgraph Layer4 ["Layer 4: Runtime Operator Authority Guard (Plugin Hook)"]
+        L4["resolve-operator-role.js in @tupynambalucas-dev/plugin-github-org"]
+        L4 --> L4A{"Evaluate Caller Team Membership"}
+        L4A -- "Caller in lead-architects or Owner" --> L4B["Permit Execution (privilegeLevel = level-3)"]
+        L4A -- "Caller in other teams" --> L4C["Reject with 403 Forbidden: Missing Level-3 Privilege"]
+    end
+
+    subgraph Layer5 ["Layer 5: OAuth Device Flow User Access Token (UAT) Dual-Boundary"]
+        L5["Developer Workstations running gh-tl login"]
+        L5 --> L5A["Mints User Access Token (UAT) for App 3"]
+        L5A --> L5B["Effective Rights = App 3 Scopes ∩ Developer Team RBAC"]
+        L5B --> L5C["Zero Org Admin Rights physically possible via App 3"]
+    end
+```
+
+#### 5.5.1 The Complete Organizational Role-to-App Access Matrix
+
+| Functional Role / Team | Privilege Tier | Access to App 1 (`org-manager`) | Access to App 2 (`ci-bot`) | Access to App 3 (`developer-tools`) | Primary Enforcement Mechanism |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Organization Owner** (`@tupynambalucas-dev`) | **Sovereign** | **Full Direct Access** | **Full Direct Access** | **Full Direct Access** | GitHub Root Owner + Infisical Master Key. |
+| **`lead-architects`** / `core-maintainers` | **Level 3 (Admin)** | **Authorized Operator** | Audit / Manage | **Authorized User** | GitHub App Manager + Infisical Prod Vault (`/governance`). |
+| **`security-managers`** | **Level 2 (Security)** | Read Alerts via Security Role | No Access | **Authorized User** | Designated via `PUT /security-managers/teams/security-managers`. |
+| **`infra-ops`** | **Level 2 (DevOps)** | **BLOCKED** | CI Runner Execution | **Authorized User** | GitHub App Manager on CI Bot + Infisical Staging Vault. |
+| **`core-engineers`** | **Level 1 (Developer)** | **BLOCKED** | Indirect via CI Triggers | **Authorized User** | Device Flow UAT (`gh tl login`) ∩ Repository `push` RBAC. |
+| **`technical-writers`** | **Level 1 (Docs)** | **BLOCKED** | Indirect via CI Triggers | **Authorized User** | Device Flow UAT (`gh tl login`) ∩ Repository `maintain` on `docs`. |
+| **`creative-team`** | **Level 1 (Creative)** | **BLOCKED** | Indirect via CI Triggers | **Authorized User** | Device Flow UAT (`gh tl login`) ∩ Repository `push` on assets. |
+| **`contractors`** | **Level 0 (External)** | **BLOCKED** | **BLOCKED** | **BLOCKED** (or Delegated) | Org Third-Party App Policy blocks unauthorized app installation. |
+
+#### 5.5.2 How Unauthorized Roles Are Physically and Cryptographically Blocked:
+1. **Why `core-engineers` Cannot Use `tupynambalucas-org-manager`**:
+   - `tupynambalucas-org-manager` is a Server-to-Server App. It has no user login, no device flow, and no OAuth web interface.
+   - To invoke it, a client MUST sign a JWT using the 2048-bit RSA Private Key (`.pem`).
+   - The RSA Private Key is vaulted in Infisical under `tupynambalucas-dev-platform [prod] /governance/`.
+   - The Infisical RBAC policy restricts access to `/governance/` strictly to identities bound to `lead-architects` and the Organization Owner.
+   - When a core engineer runs `infisical export`, Infisical denies access with `403 Forbidden`. Without the `.pem` file, generating an Installation Access Token is cryptographically impossible.
+2. **Why `infra-ops` Cannot Escalate to Org Administration**:
+   - `infra-ops` engineers manage CI/CD pipelines and infrastructure, having access to Infisical `staging` and GitHub Actions secrets for daily delivery.
+   - They are granted App Manager status on `tupynambalucas-ci-bot` (Tier 2), allowing them to manage CI bot credentials.
+   - However, they are NOT granted App Manager on `tupynambalucas-org-manager` (Tier 1), preventing them from viewing or regenerating the Tier 1 key.
+   - Furthermore, the runtime Operator Authority Guard script (`resolve-operator-role.js`) assigns `privilegeLevel = level-2` to `infra-ops`, automatically disabling `capabilities.organizationAdmin`.
+3. **Why Developers Authenticating via App 3 Cannot Elevate Privileges**:
+   - When developers run `gh tl login`, they authenticate through **App 3 (`tupynambalucas-developer-tools`)** via OAuth Device Flow.
+   - The token issued by GitHub is a **User Access Token (UAT)**.
+   - GitHub enforces: `Effective Permissions = App 3 Scopes ∩ Developer's Personal/Team Permissions`.
+   - Even if App 3 declares `Contents: Read and write`, if a developer only has `pull` access to `org-core`, GitHub prevents write operations.
+   - Additionally, App 3 declares **zero administrative scopes** on the organization (`organization_administration: no access`, `organization_secrets: no access`, `organization_rulesets: no access`), making privilege escalation structurally impossible.
+
+---
+
+### 5.6 Human Developer Identity (`gh-tl`) vs Machine Identity (GitHub Apps): The Dual-Verification Standard
 
 The enterprise architecture enforces a strict boundary between human workstations and cloud automation:
 
@@ -400,7 +481,105 @@ flowchart LR
 
 This section provides the authoritative, exhaustive runbook for manually registering all three GitHub Apps directly through the GitHub Web UI.
 
-### 6.1 Accessing the Registration Interface
+### 6.1 Master GitHub App Permission Matrix (Exhaustive Catalog)
+
+The following master catalog maps all permissions supported by GitHub Apps, comparing the exact required levels across our three apps and identifying the primary consumer plugins in `agent-mesh/plugins`:
+
+#### 6.1.1 Repository Permissions (34 Total Permissions)
+
+| UI Permission Name | API Slug | Tier 1: `org-manager` | Tier 2: `ci-bot` | Tier 3: `developer-tools` | Primary Consumers & Purpose |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **Actions** | `actions` | **Read and write** | **Read-only** | **Read-only** | `plugin-github-flow` (`github-actions-operator`), CI runner inspection, `gh-tl`. |
+| **Administration** | `administration` | **Read and write** | No access | No access | `plugin-github-org` (`github-org-operator`, `github-ruleset-operator`). |
+| **Agent secrets** | `agent_secrets` | No access | No access | No access | Copilot custom agent secrets (not currently utilized). |
+| **Agent variables** | `agent_variables` | No access | No access | No access | Copilot custom agent variables (not currently utilized). |
+| **Artifact metadata** | `artifact_metadata` | **Read and write** | **Read and write** | No access | Build artifact provenance inspection and release publishing. |
+| **Attestations** | `attestations` | **Read and write** | **Read and write** | No access | Sigstore/SLSA build attestations for npm packages and `gh-tl` binaries. |
+| **Checks** | `checks` | **Read and write** | **Read and write** | **Read-only** | `plugin-github-flow`, test suites, linting reports, CI checks. |
+| **Code quality** | `code_quality` | No access | No access | No access | Automated code quality metrics (reserved for future linters). |
+| **Code scanning alerts** | `code_scanning_alerts` | **Read and write** | No access | No access | `plugin-github-org` (`github-security-auditor`), CodeQL triage. |
+| **Codespaces** | `codespaces` | No access | No access | No access | Codespace instance lifecycle management. |
+| **Codespaces lifecycle admin** | `codespaces_lifecycle_admin` | No access | No access | No access | Codespace auto-shutdown policies. |
+| **Codespaces metadata** | `codespaces_metadata` | No access | No access | No access | Codespace devcontainer specifications. |
+| **Codespaces secrets** | `codespaces_secrets` | No access | No access | No access | Codespace repository secret injection. |
+| **Commit statuses** | `statuses` | **Read and write** | **Read and write** | **Read-only** | `plugin-github-flow`, CI commit status markers, `gh-tl` status checks. |
+| **Contents** | `contents` | **Read and write** | **Read and write** | **Read and write** | `plugin-github-flow`, `plugin-repo`, `gh-tl`, Git branching, commits, release tags. |
+| **Copilot agent settings** | `copilot_agent_settings` | No access | No access | No access | Repository-level Copilot extension enablement. |
+| **Custom properties** | `custom_properties` | **Read and write** | No access | No access | `plugin-github-org`, repository custom property definitions. |
+| **Dependabot alerts** | `dependabot_alerts` | **Read and write** | No access | No access | `plugin-github-org` (`github-security-auditor`), Dependabot alert audits. |
+| **Dependabot secrets** | `dependabot_secrets` | **Read and write** | No access | No access | `plugin-github-org`, private registry secrets for Dependabot. |
+| **Deployments** | `deployments` | **Read and write** | **Read and write** | **Read-only** | CI deployment tracking, environment rollouts, `gh-tl`. |
+| **Discussions** | `discussions` | No access | No access | **Read and write** | Developer community discussions and Q&A interactions. |
+| **Environments** | `environments` | **Read and write** | **Read-only** | No access | `plugin-github-org`, deployment protection rules, reviewer requirements. |
+| **Issues** | `issues` | **Read and write** | **Read and write** | **Read and write** | `plugin-github-flow`, `gh-tl`, CI issue reporting, triage workflows. |
+| **Metadata** | `metadata` | **Read-only (Mandatory)** | **Read-only (Mandatory)** | **Read-only (Mandatory)** | Universal repository metadata inspection (always enforced by GitHub). |
+| **Packages** | `packages` | **Read and write** | **Read and write** | No access | `agent-mesh` release publishing (Tier 2) and package purging/admin (Tier 1). |
+| **Pages** | `pages` | No access | No access | No access | GitHub Pages deployment (docs hosted via sovereign platform). |
+| **Pull requests** | `pull_requests` | **Read and write** | **Read and write** | **Read and write** | `plugin-github-flow`, `plugin-repo`, `gh-tl`, Renovate PR creation and review. |
+| **Repository creation** | `repository_creation` | **Read and write** | No access | No access | `plugin-github-org` (`github-org-operator`), new repo provisioning. |
+| **Repository security advisories** | `repository_security_advisories` | **Read and write** | No access | No access | `plugin-github-org` (`github-security-auditor`), CVE disclosure management. |
+| **Repository app installation access** | `repository_app_installation_access` | **Read and write** | No access | No access | `plugin-github-org`, managing which repos an app is installed on. |
+| **Secret scanning alerts** | `secret_scanning_alerts` | **Read and write** | No access | No access | `plugin-github-org` (`github-security-auditor`), token leak triage. |
+| **Secrets** | `secrets` | **Read and write** | No access | No access | `plugin-github-org`, repository encrypted secret management. |
+| **Variables** | `variables` | **Read and write** | No access | No access | `plugin-github-org`, repository configuration variables. |
+| **Webhooks** | `webhooks` | No access | No access | No access | Inactive per Section 3 discipline. |
+| **Workflows** | `workflows` | **Read and write** | **Read and write** | **Read and write** | `plugin-github-flow`, `plugin-repo`, editing `.github/workflows/` files. |
+
+#### 6.1.2 Organization Permissions (28 Total Permissions)
+
+| UI Permission Name | API Slug | Tier 1: `org-manager` | Tier 2: `ci-bot` | Tier 3: `developer-tools` | Primary Consumers & Purpose |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **Administration** | `organization_administration` | **Read and write** | No access | No access | `plugin-github-org`, org settings, security managers, Actions policies. |
+| **Agent secrets** | `organization_agent_secrets` | No access | No access | No access | Org-wide Copilot agent secrets (not currently utilized). |
+| **Agent variables** | `organization_agent_variables` | No access | No access | No access | Org-wide Copilot agent variables (not currently utilized). |
+| **API Insights** | `organization_api_insights` | **Read-only** | No access | No access | Rate limit usage analytics and route-by-actor statistics. |
+| **Blocking users** | `organization_user_blocking` | **Read and write** | No access | No access | `plugin-github-org`, blocking abusive accounts from org repos. |
+| **Campaigns** | `organization_campaigns` | No access | No access | No access | Code scanning remediation campaigns across the organization. |
+| **Copilot Spaces** | `organization_copilot_spaces` | No access | No access | No access | Shared context containers for GitHub Copilot. |
+| **Copilot agent settings** | `organization_copilot_agent_settings` | No access | No access | No access | Organizational Copilot agent extension settings. |
+| **Copilot content exclusion** | `organization_copilot_content_exclusion` | No access | No access | No access | Excluding proprietary repos from Copilot indexing. |
+| **Custom organization roles** | `organization_custom_org_roles` | **Read and write** | No access | No access | `plugin-github-org`, managing and assigning custom org roles to teams. |
+| **Custom properties** | `organization_custom_properties` | **Read and write** | No access | No access | `plugin-github-org`, defining org property schemas and values. |
+| **Events** | `organization_events` | **Read-only** | No access | **Read-only** | Org public event audit logs, developer activity monitoring. |
+| **GitHub Copilot Business** | `organization_copilot_business` | No access | No access | No access | Managing Copilot seats for functional teams. |
+| **Issue Fields** | `organization_issue_fields` | No access | No access | No access | Custom field schemas for organization projects. |
+| **Issue Types** | `organization_issue_types` | No access | No access | No access | Custom organization issue types (Bug, Feature, Chore, Epic). |
+| **Members** | `organization_members` | **Read and write** | No access | **Read-only** | **MASTER RBAC**: Team creation, team repo binding, org roles on teams. |
+| **Organization Copilot metrics** | `organization_copilot_metrics` | No access | No access | No access | Aggregated Copilot engagement reports. |
+| **Organization private registries** | `organization_private_registries` | **Read and write** | No access | No access | Configuring access to external private package registries. |
+| **Organization rulesets** | `organization_rulesets` | **Read and write** | No access | No access | `plugin-github-org` (`github-ruleset-operator`), branch/tag protection. |
+| **Organization security advisories** | `organization_security_advisories` | **Read and write** | No access | No access | `plugin-github-org` (`github-security-auditor`), org-wide CVE posture. |
+| **Packages** | `organization_packages` | **Read and write** | No access | No access | `agent-mesh` administrative package deletion via `admin-packages.yml`. |
+| **Personal access token requests** | `organization_personal_access_token_requests` | **Read and write** | No access | No access | `plugin-github-org`, approving/denying fine-grained PAT requests. |
+| **Personal access tokens** | `organization_personal_access_tokens` | **Read and write** | No access | No access | `plugin-github-org`, auditing and revoking active personal tokens. |
+| **Projects** | `organization_projects` | **Read and write** | No access | No access | Managing organization-level GitHub Projects (v2) boards and views. |
+| **Secrets** | `organization_secrets` | **Read and write** | No access | No access | `plugin-github-org`, organization-wide encrypted secret management. |
+| **Self-hosted runners** | `organization_self_hosted_runners` | **Read and write** | No access | No access | Managing org-wide runner groups and registration tokens. |
+| **Variables** | `organization_variables` | **Read and write** | No access | No access | `plugin-github-org`, organization-wide configuration variables. |
+| **Webhooks** | `organization_hooks` | No access | No access | No access | Inactive per Section 3 discipline. |
+
+#### 6.1.3 Account (User) Permissions (14 Total Permissions)
+
+| UI Permission Name | API Slug | Tier 1: `org-manager` | Tier 2: `ci-bot` | Tier 3: `developer-tools` | Primary Consumers & Purpose |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **Block another user** | `block_another_user` | No access | No access | No access | User-level blocked user management. |
+| **Codespaces user secrets** | `codespaces_user_secrets` | No access | No access | No access | User personal Codespaces secret management. |
+| **Email addresses** | `email_addresses` | No access | No access | **Read-only** | `gh-tl`, retrieving verified primary email for local Git config. |
+| **Followers** | `followers` | No access | No access | No access | Social following capabilities. |
+| **Gists** | `gists` | No access | No access | No access | Personal gist authoring. |
+| **Git SSH keys** | `git_ssh_keys` | No access | No access | No access | SSH keys managed directly via developer session in `gh-tl`. |
+| **GPG keys** | `gpg_keys` | No access | No access | No access | GPG signing keys management. |
+| **Interaction limits** | `interaction_limits` | No access | No access | No access | User-level interaction restriction management. |
+| **Plan** | `plan` | No access | No access | **Read-only** | `gh-tl`, querying user billing tier for CLI capability checks. |
+| **Private repository invitations** | `private_repository_invitations` | No access | No access | No access | Accepting incoming collaborator invitations. |
+| **Profile** | `profile` | No access | No access | **Read-only** | `gh-tl`, retrieving developer avatar, bio, and username for terminal UI. |
+| **SSH signing keys** | `ssh_signing_keys` | No access | No access | No access | SSH signing keys provisioned via personal session in `gh-tl`. |
+| **Starring** | `starring` | No access | No access | **Read and write** | Developer bookmarking and repository starring. |
+| **Watching** | `watching` | No access | No access | **Read and write** | Developer repository notification and thread subscriptions. |
+
+---
+
+### 6.2 Accessing the Registration Interface
 
 1. Open your desktop browser and log in with your administrative account.
 2. Navigate directly to the organization app creation portal:
@@ -409,7 +588,7 @@ This section provides the authoritative, exhaustive runbook for manually registe
 
 ---
 
-### 6.2 Step-by-Step Walkthrough for App 1: `tupynambalucas-org-manager` (Tier 1 - Near-Total Freedom)
+### 6.3 Step-by-Step Walkthrough for App 1: `tupynambalucas-org-manager` (Tier 1 - Near-Total Freedom)
 
 Follow each field sequentially:
 
@@ -447,29 +626,30 @@ Click each dropdown and configure the exact values below:
 
 | Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
-| **Actions** | **Read and write** | Needed to trigger, cancel, or re-run workflows via API. |
-| **Administration** | **Read and write** | Needed to manage repository settings, branch protections, and repo rules. |
-| **Checks** | **Read and write** | Needed to create and update status checks and automated annotations. |
+| **Actions** | **Read and write** | Trigger, cancel, or re-run workflows via API. |
+| **Administration** | **Read and write** | Manage repository settings, branch protections, and repo rules. |
+| **Artifact metadata** | **Read and write** | Inspect and publish metadata and attestations for build artifacts. |
+| **Attestations** | **Read and write** | Cryptographically sign and write artifact provenance attestations (Sigstore/SLSA). |
+| **Checks** | **Read and write** | Create and update status checks and automated annotations. |
 | **Code scanning alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` security audits. |
-| **Commit statuses** | **Read and write** | Needed to publish build status markers on commits. |
-| **Contents** | **Read and write** | Needed for reading files, committing changes, creating tags (`v1.0.0`). |
-| **Custom properties** | **Read and write** | **Allows reading and setting repository-specific custom property values.** |
+| **Commit statuses** | **Read and write** | Publish build status markers on commits. |
+| **Contents** | **Read and write** | Read code, commit files, create branches, push tags (`v1.0.0`). |
+| **Custom properties** | **Read and write** | Read and set repository-specific custom property values. |
 | **Dependabot alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` vulnerability triage. |
-| **Deployments** | **No access** | Not currently used. |
-| **Discussions** | **No access** | Not currently used. |
-| **Environments** | **Read and write** | Needed for managing deployment environment rules and approvals. |
-| **Issues** | **Read and write** | Needed to open governance issues and automated notices. |
+| **Dependabot secrets** | **Read and write** | Manage private registry tokens consumed by Dependabot. |
+| **Deployments** | **Read and write** | Create deployment records, track environment rollouts. |
+| **Environments** | **Read and write** | Manage deployment environment rules and approvals. |
+| **GitHub App installation repository access** | **Read and write** | Manage which GitHub App installations have access to the repo. |
+| **Issues** | **Read and write** | Open governance issues and automated notices. |
 | **Metadata** | **Read-only (Mandatory)** | Automatically set by GitHub; allows reading repository names. |
 | **Packages** | **Read and write** | **CRITICAL: Grants REST API rights to list and delete package versions.** |
-| **Pages** | **No access** | Not currently used (docs hosted via static platform). |
-| **Pull requests** | **Read and write** | Needed to inspect, comment, approve, and manage pull requests. |
-| **Repository creation** | **Read and write** | **Allows the bot to create new repositories in the organization.** |
-| **Repository security advisories** | **Read and write** | Needed to audit repository CVE status and manage security disclosures. |
+| **Pull requests** | **Read and write** | Inspect, comment, approve, and manage pull requests. |
+| **Repository creation** | **Read and write** | Allows the bot to create new repositories in the organization. |
+| **Repository security advisories** | **Read and write** | Audit repository CVE status and manage security disclosures. |
 | **Secret scanning alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` secret audits. |
-| **Secrets** | **Read and write** | **Allows managing repository-level encrypted secrets for GitHub Actions.** |
-| **Variables** | **Read and write** | **Allows managing repository-level configuration variables.** |
-| **Webhooks** | **No access** | Not managing repository-level webhooks. |
-| **Workflows** | **Read and write** | Needed to update workflow files in `.github/workflows/`. |
+| **Secrets** | **Read and write** | Manage repository-level encrypted secrets for GitHub Actions. |
+| **Variables** | **Read and write** | Manage repository-level configuration variables. |
+| **Workflows** | **Read and write** | Update workflow files in `.github/workflows/`. |
 
 *(All other repository permissions not listed above should remain **No access**).*
 
@@ -478,19 +658,23 @@ Click each dropdown and configure the exact values below:
 
 | Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
-| **Administration** | **Read and write** | **Allows organization-level settings, security managers, and Actions policies.** |
-| **Custom organization roles** | **Read-only** | **Allows listing organization roles to retrieve IDs for team assignment.** |
-| **Custom properties** | **Read and write** | **Allows defining org property schemas and bulk assigning values to repos.** |
-| **Members** | **Read and write** | **MASTER RBAC: Allows creating teams, updating teams, setting team repo access, and assigning organization roles directly to teams.** |
-| **Organization rulesets** | **Read and write** | **CRITICAL: Needed to create and enforce org-wide branch and tag protection policies.** |
-| **Organization security advisories** | **Read and write** | Needed for organization-wide security posture audits. |
-| **Packages** | **Read and write** | **CRITICAL: Needed for organization-level package administrative operations.** |
-| **Personal access tokens** | **Read and write** | **Allows auditing and revoking fine-grained personal access tokens.** |
-| **Personal access token requests** | **Read and write** | **Allows approving or rejecting fine-grained PAT requests.** |
-| **Secrets** | **Read and write** | **Allows managing organization-wide secrets for Actions and Dependabot.** |
-| **Self-hosted runners** | **Read and write** | **Allows managing organization runner groups and runner registrations.** |
-| **Variables** | **Read and write** | **Allows managing organization-wide configuration variables.** |
-| **Webhooks** | **No access** | Not managing organization-level webhooks. |
+| **Administration** | **Read and write** | Organization-level settings, security managers, and Actions policies. |
+| **API Insights** | **Read-only** | Retrieve API rate usage statistics by actor, route, and subject. |
+| **Blocking users** | **Read and write** | Block abusive accounts from interacting with organization repos. |
+| **Custom organization roles** | **Read and write** | Manage custom organization roles and retrieve IDs for team assignment. |
+| **Custom properties** | **Read and write** | Define org property schemas and bulk assign values to repos. |
+| **Events** | **Read-only** | Organization-wide event audit logs for compliance tracking. |
+| **Members** | **Read and write** | **MASTER RBAC: Create teams, update teams, set team repo access, and assign organization roles directly to teams.** |
+| **Organization private registries** | **Read and write** | Configure access to external private package registries. |
+| **Organization rulesets** | **Read and write** | **CRITICAL: Create and enforce org-wide branch and tag protection policies.** |
+| **Organization security advisories** | **Read and write** | Organization-wide security posture audits. |
+| **Packages** | **Read and write** | **CRITICAL: Organization-level package administrative operations and purge.** |
+| **Personal access tokens** | **Read and write** | Audit and revoke fine-grained personal access tokens. |
+| **Personal access token requests** | **Read and write** | Approve or deny fine-grained PAT requests. |
+| **Projects** | **Read and write** | Manage organization-level GitHub Projects (v2) boards and views. |
+| **Secrets** | **Read and write** | Manage organization-wide secrets for Actions and Dependabot. |
+| **Self-hosted runners** | **Read and write** | Manage organization runner groups and runner registrations. |
+| **Variables** | **Read and write** | Manage organization-wide configuration variables. |
 
 *(All other organization permissions not listed above should remain **No access**).*
 
@@ -498,18 +682,17 @@ Click each dropdown and configure the exact values below:
 - Keep all Account permissions set to **No access**.
 
 #### Step 8: Subscribe to Events
-- Because **Active** is unchecked under Webhook, this section is automatically grayed out or inactive. Leave empty.
+- Inactive / Grayed out per Webhook Unchecked setting.
 
 #### Step 9: Where Can This GitHub App Be Installed?
-- Select: **Only on this account** (`@tupynambalucas-dev`).  
-  *(Never select "Any account" for internal enterprise tools).*
+- Select: **Only on this account** (`@tupynambalucas-dev`).
 
 #### Step 10: Complete Creation
 - Click the green button: **Create GitHub App**.
 
 ---
 
-### 6.3 Step-by-Step Walkthrough for App 2: `tupynambalucas-ci-bot` (Tier 2 - Operational Delivery)
+### 6.4 Step-by-Step Walkthrough for App 2: `tupynambalucas-ci-bot` (Tier 2 - Operational Delivery)
 
 Follow each field sequentially:
 
@@ -542,25 +725,24 @@ Click each dropdown and configure the exact values below:
 
 | Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
-| **Actions** | **Read-only** | Allows checking run states without power to cancel pipelines. |
+| **Actions** | **Read-only** | Check workflow run states without power to cancel pipelines. |
 | **Administration** | **No access** | Strict PoLP isolation: CI bot cannot modify repo settings. |
-| **Checks** | **Read and write** | Allows emitting test reports and linting status checks. |
-| **Code scanning alerts** | **No access** | Not required for standard delivery. |
-| **Commit statuses** | **Read and write** | Allows reporting build status badges on commits. |
-| **Contents** | **Read and write** | **Allows pushing release tags (`v1.0.0`) and changelog commits.** |
-| **Dependabot alerts** | **No access** | Handled by Tier 1. |
-| **Issues** | **Read and write** | Allows opening and commenting on build failure tracking issues. |
+| **Artifact metadata** | **Read and write** | Publish metadata and build digests during package release. |
+| **Attestations** | **Read and write** | Write Sigstore artifact provenance attestations for releases. |
+| **Checks** | **Read and write** | Emit test reports and linting status checks. |
+| **Commit statuses** | **Read and write** | Report build status badges on commits. |
+| **Contents** | **Read and write** | **Push release tags (`v1.0.0`) and automated changelog commits.** |
+| **Deployments** | **Read and write** | Track deployment statuses and environments for releases. |
+| **Issues** | **Read and write** | Open and comment on build failure tracking issues. |
 | **Metadata** | **Read-only (Mandatory)** | Automatically set by GitHub. |
-| **Packages** | **Read and write** | **Allows publishing tarballs (`pnpm -r publish`). Cannot delete.** |
-| **Pull requests** | **Read and write** | Allows Renovate Bot and release automations to open PRs. |
-| **Secret scanning alerts** | **No access** | Handled by Tier 1. |
-| **Workflows** | **Read and write** | Allows automated PRs that modify `.github/workflows/` files. |
+| **Packages** | **Read and write** | **Publish tarballs (`pnpm -r publish`). Cannot delete.** |
+| **Pull requests** | **Read and write** | Renovate Bot and release automations to open PRs. |
+| **Workflows** | **Read and write** | Automated PRs modifying `.github/workflows/` files. |
 
 *(All other repository permissions should remain **No access**).*
 
-#### Step 6: Organization Permissions (Permissions -> Organization permissions)
-- Set all Organization permissions to **No access**.  
-  *(Tier 2 has zero organization-level administrative rights).*
+#### Step 6: Organization Permissions
+- Set all Organization permissions to **No access**.
 
 #### Step 7: Account Permissions
 - Set all Account permissions to **No access**.
@@ -576,7 +758,7 @@ Click each dropdown and configure the exact values below:
 
 ---
 
-### 6.4 Step-by-Step Walkthrough for App 3: `tupynambalucas-developer-tools` (Tier 3 - Interactive Developer Self-Service)
+### 6.5 Step-by-Step Walkthrough for App 3: `tupynambalucas-developer-tools` (Tier 3 - Interactive Developer Self-Service)
 
 Follow each field sequentially:
 
@@ -611,28 +793,36 @@ Click each dropdown and configure the exact values below:
 
 | Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
-| **Actions** | **Read-only** | Allows developer CLI to inspect workflow logs and run statuses. |
+| **Actions** | **Read-only** | Inspect workflow logs and run statuses from CLI. |
 | **Administration** | **No access** | Strict PoLP isolation: Developer App cannot alter repository configurations. |
-| **Checks** | **Read-only** | Allows developer CLI to inspect test check suites and annotations. |
-| **Contents** | **Read and write** | **Allows developer CLI to push feature branches and create commits.** |
-| **Issues** | **Read and write** | Allows developer CLI to open, comment, and triage issues on user behalf. |
+| **Checks** | **Read-only** | Inspect test check suites and annotations from CLI. |
+| **Commit statuses** | **Read-only** | View status indicators on pull request branches. |
+| **Contents** | **Read and write** | **Push feature branches and create commits on assigned repos.** |
+| **Deployments** | **Read-only** | View environment rollout states from developer CLI. |
+| **Discussions** | **Read and write** | Participate in repository discussions and technical Q&A. |
+| **Issues** | **Read and write** | Open, comment, and triage issues on user behalf. |
 | **Metadata** | **Read-only (Mandatory)** | Automatically set by GitHub. |
-| **Pull requests** | **Read and write** | Allows developer CLI to author PRs, add review comments, and check status. |
+| **Pull requests** | **Read and write** | Author PRs, add review comments, and inspect review statuses. |
+| **Workflows** | **Read and write** | Allow developers to create and edit workflow files in feature branches. |
 
 *(All other repository permissions should remain **No access**).*
 
 #### Step 6: Organization Permissions (Permissions -> Organization permissions)
 | Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
-| **Members** | **Read-only** | Allows developer CLI to query team rosters and collaborators. |
+| **Events** | **Read-only** | Query organization activity stream from developer dashboard. |
+| **Members** | **Read-only** | Query functional team rosters and organization collaborators. |
 
 *(All other organization permissions should remain **No access**).*
 
 #### Step 7: Account Permissions (Permissions -> Account permissions)
 | Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
-| **Email addresses** | **Read-only** | Allows CLI to retrieve verified primary email for local Git signature configuration. |
-| **Profile** | **Read-only** | Allows CLI to retrieve developer avatar and username for display. |
+| **Email addresses** | **Read-only** | Retrieve verified primary email for local Git signature configuration. |
+| **Plan** | **Read-only** | Query user billing tier for CLI capability validation. |
+| **Profile** | **Read-only** | Retrieve developer avatar, name, and username for terminal UI. |
+| **Starring** | **Read and write** | Developer bookmarking and starring repositories. |
+| **Watching** | **Read and write** | Managing repository subscriptions and notifications. |
 
 *(All other account permissions should remain **No access**).*
 
@@ -644,11 +834,11 @@ Click each dropdown and configure the exact values below:
 
 #### Step 10: Complete Creation
 - Click the green button: **Create GitHub App**.
-- *Note for Tier 3*: Developers only consume the **Client ID** (alphanumeric string). No RSA private key is distributed to developer workstations.
+- *Note for Tier 3*: Developers consume exclusively the **Client ID** (alphanumeric string). No RSA private key is ever generated or distributed for Tier 3.
 
 ---
 
-### 6.5 Generating and Securing the RSA Private Key (`.pem`)
+### 6.6 Generating and Securing the RSA Private Key (`.pem`)
 
 Immediately after creating `tupynambalucas-org-manager` (Tier 1) and `tupynambalucas-ci-bot` (Tier 2), GitHub displays the **General** settings page for the new app:
 
@@ -672,7 +862,7 @@ flowchart TD
 
 ---
 
-### 6.6 Installing the Apps on the Organization and Capturing Installation IDs
+### 6.7 Installing the Apps on the Organization and Capturing Installation IDs
 
 A registered GitHub App cannot perform any actions until it is **installed** on the organization:
 
@@ -686,6 +876,30 @@ A registered GitHub App cannot perform any actions until it is **installed** on 
      `https://github.com/organizations/tupynambalucas-dev/settings/installations/62345678`
    - The trailing integer (e.g. `62345678`) is your **Installation ID**.
    - Copy this number for Infisical storage.
+
+---
+
+### 6.8 Configuring GitHub App Managers (Step-by-Step UI Guide)
+
+To enforce Layer 1 of our Defense-in-Depth model, the Organization Owner must delegate App Management authority strictly to authorized functional teams:
+
+#### 6.8.1 Assigning App Managers to `tupynambalucas-org-manager` (Tier 1)
+1. In the top-right corner of GitHub, click your profile picture -> **Your organizations** -> click **tupynambalucas-dev**.
+2. Click the **Settings** tab under the organization profile.
+3. In the left navigation sidebar, scroll down to **Developer settings** and click **GitHub Apps**.
+4. In the list of GitHub Apps, click on the name or icon of **`tupynambalucas-org-manager`**.
+5. In the inner left sidebar of the app settings, click **App managers**.
+6. In the search box under *App managers*, type the team name: `lead-architects`.
+7. Click **Grant**.
+8. Confirm that `lead-architects` appears in the App managers list.
+9. Verify that NO OTHER TEAMS (`core-engineers`, `infra-ops`, etc.) are listed.
+
+#### 6.8.2 Assigning App Managers to `tupynambalucas-ci-bot` (Tier 2)
+1. Repeat steps 1 to 4 and select **`tupynambalucas-ci-bot`**.
+2. In the inner left sidebar, click **App managers**.
+3. In the search box, type `lead-architects` and click **Grant**.
+4. In the search box, type `infra-ops` and click **Grant**.
+5. Confirm that both `lead-architects` and `infra-ops` appear as managers.
 
 ---
 
@@ -729,25 +943,25 @@ To make the credentials universally accessible across all workflows in all five 
 | **`CI_APP_PRIVATE_KEY`** | Full text content of the `ci-bot` `.pem` file | All repositories |
 | **`DEVELOPER_TOOLS_CLIENT_ID`** | Alphanumeric Client ID of `tupynambalucas-developer-tools` (Tier 3) | All repositories / Publicly accessible configuration |
 
-### 8.2 Infisical Cloud Vault Enrollment
+### 8.2 Infisical Cloud Vault Enrollment & Path-Based Access Control
 
-Store all four identity parameters in Infisical project `tupynambalucas-dev-platform` across environments (`dev` and `prod`) for programmatic agent consumption:
+Store all identity parameters in Infisical project `tupynambalucas-dev-platform` with path-based access segregation:
 
 ```bash
-# Tier 1 Vault Enrollment
-GITHUB_APP_ID="<Numeric App ID of org-manager>"
-GITHUB_APP_CLIENT_ID="<Client ID of org-manager>"
-GITHUB_APP_INSTALLATION_ID="<Installation ID of org-manager>"
-GITHUB_APP_PRIVATE_KEY="<Complete contents of org-manager .pem file>"
+# Tier 1 Vault Enrollment (Restricted Folder: /governance - Lead Architects Only)
+infisical secrets set --env=prod --path=/governance GITHUB_APP_ID="<Numeric App ID of org-manager>"
+infisical secrets set --env=prod --path=/governance GITHUB_APP_CLIENT_ID="<Client ID of org-manager>"
+infisical secrets set --env=prod --path=/governance GITHUB_APP_INSTALLATION_ID="<Installation ID of org-manager>"
+infisical secrets set --env=prod --path=/governance GITHUB_APP_PRIVATE_KEY="<Complete contents of org-manager .pem file>"
 
-# Tier 2 Vault Enrollment
-CI_APP_ID="<Numeric App ID of ci-bot>"
-CI_APP_CLIENT_ID="<Client ID of ci-bot>"
-CI_APP_INSTALLATION_ID="<Installation ID of ci-bot>"
-CI_APP_PRIVATE_KEY="<Complete contents of ci-bot .pem file>"
+# Tier 2 Vault Enrollment (CI/CD Folder: /ci-cd - Runners & Infra-Ops)
+infisical secrets set --env=staging --path=/ci-cd CI_APP_ID="<Numeric App ID of ci-bot>"
+infisical secrets set --env=staging --path=/ci-cd CI_APP_CLIENT_ID="<Client ID of ci-bot>"
+infisical secrets set --env=staging --path=/ci-cd CI_APP_INSTALLATION_ID="<Installation ID of ci-bot>"
+infisical secrets set --env=staging --path=/ci-cd CI_APP_PRIVATE_KEY="<Complete contents of ci-bot .pem file>"
 
-# Tier 3 Vault Enrollment
-DEVELOPER_TOOLS_CLIENT_ID="<Client ID of developer-tools>"
+# Tier 3 Vault Enrollment (Developer Tools - Accessible to All Workspace Projects)
+infisical secrets set --env=dev --path=/tooling DEVELOPER_TOOLS_CLIENT_ID="<Client ID of developer-tools>"
 ```
 
 ---
@@ -837,13 +1051,18 @@ Use this checklist during manual setup:
 4. [ ] Configure Repository Permissions:
    - [ ] Actions: `Read and write`
    - [ ] Administration: `Read and write`
+   - [ ] Artifact metadata: `Read and write`
+   - [ ] Attestations: `Read and write`
    - [ ] Checks: `Read and write`
    - [ ] Code scanning alerts: `Read and write`
    - [ ] Commit statuses: `Read and write`
    - [ ] Contents: `Read and write`
    - [ ] Custom properties: `Read and write`
    - [ ] Dependabot alerts: `Read and write`
+   - [ ] Dependabot secrets: `Read and write`
+   - [ ] Deployments: `Read and write`
    - [ ] Environments: `Read and write`
+   - [ ] GitHub App installation repository access: `Read and write`
    - [ ] Issues: `Read and write`
    - [ ] Metadata: `Read-only`
    - [ ] Packages: `Read and write`
@@ -856,14 +1075,19 @@ Use this checklist during manual setup:
    - [ ] Workflows: `Read and write`
 5. [ ] Configure Organization Permissions:
    - [ ] Administration: `Read and write`
-   - [ ] Custom organization roles: `Read-only`
+   - [ ] API Insights: `Read-only`
+   - [ ] Blocking users: `Read and write`
+   - [ ] Custom organization roles: `Read and write`
    - [ ] Custom properties: `Read and write`
+   - [ ] Events: `Read-only`
    - [ ] Members: `Read and write` (Enables team creation and org-role assignments)
+   - [ ] Organization private registries: `Read and write`
    - [ ] Organization rulesets: `Read and write`
    - [ ] Organization security advisories: `Read and write`
    - [ ] Packages: `Read and write`
    - [ ] Personal access tokens: `Read and write`
    - [ ] Personal access token requests: `Read and write`
+   - [ ] Projects: `Read and write`
    - [ ] Secrets: `Read and write`
    - [ ] Self-hosted runners: `Read and write`
    - [ ] Variables: `Read and write`
@@ -874,7 +1098,19 @@ Use this checklist during manual setup:
 1. [ ] Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
 2. [ ] Enter Name: `tupynambalucas-ci-bot` and Homepage URL: `https://docs.tupynambalucas.dev`.
 3. [ ] Uncheck **Active** under Webhook.
-4. [ ] Configure Repository Permissions: Actions (`Read-only`), Checks (`Read and write`), Commit statuses (`Read and write`), Contents (`Read and write`), Issues (`Read and write`), Metadata (`Read-only`), Packages (`Read and write`), Pull requests (`Read and write`), Workflows (`Read and write`).
+4. [ ] Configure Repository Permissions:
+   - [ ] Actions: `Read-only`
+   - [ ] Artifact metadata: `Read and write`
+   - [ ] Attestations: `Read and write`
+   - [ ] Checks: `Read and write`
+   - [ ] Commit statuses: `Read and write`
+   - [ ] Contents: `Read and write`
+   - [ ] Deployments: `Read and write`
+   - [ ] Issues: `Read and write`
+   - [ ] Metadata: `Read-only`
+   - [ ] Packages: `Read and write`
+   - [ ] Pull requests: `Read and write`
+   - [ ] Workflows: `Read and write`
 5. [ ] Organization Permissions: All set to `No access`.
 6. [ ] Select **Only on this account** and click **Create GitHub App**.
 7. [ ] Generate RSA Private Key, install on `tupynambalucas-dev` ("All repositories"), and record credentials.
@@ -885,13 +1121,35 @@ Use this checklist during manual setup:
 3. [ ] Check **Enable Device Flow** under Identifying & Authorizing Users.
 4. [ ] Check **Expire user authorization tokens**.
 5. [ ] Uncheck **Active** under Webhook.
-6. [ ] Configure Repository Permissions: Contents (`Read and write`), Issues (`Read and write`), Pull requests (`Read and write`), Metadata (`Read-only`), Actions (`Read-only`), Checks (`Read-only`).
-7. [ ] Configure Organization Permissions: Members (`Read-only`).
-8. [ ] Configure Account Permissions: Email addresses (`Read-only`), Profile (`Read-only`).
+6. [ ] Configure Repository Permissions:
+   - [ ] Actions: `Read-only`
+   - [ ] Checks: `Read-only`
+   - [ ] Commit statuses: `Read-only`
+   - [ ] Contents: `Read and write`
+   - [ ] Deployments: `Read-only`
+   - [ ] Discussions: `Read and write`
+   - [ ] Issues: `Read and write`
+   - [ ] Metadata: `Read-only`
+   - [ ] Pull requests: `Read and write`
+   - [ ] Workflows: `Read and write`
+7. [ ] Configure Organization Permissions:
+   - [ ] Events: `Read-only`
+   - [ ] Members: `Read-only`
+8. [ ] Configure Account Permissions:
+   - [ ] Email addresses: `Read-only`
+   - [ ] Plan: `Read-only`
+   - [ ] Profile: `Read-only`
+   - [ ] Starring: `Read and write`
+   - [ ] Watching: `Read and write`
 9. [ ] Select **Only on this account** and click **Create GitHub App**.
 10. [ ] Install on `tupynambalucas-dev` ("All repositories") and record the **Client ID** for CLI tooling. (No private key required).
 
-### Phase 4: Configure Organization Secrets & Run Clean Release
+### Phase 4: Configure GitHub App Managers
+1. [ ] In `tupynambalucas-org-manager` settings -> **App managers**: Add team `lead-architects`.
+2. [ ] In `tupynambalucas-ci-bot` settings -> **App managers**: Add teams `lead-architects` and `infra-ops`.
+3. [ ] In `tupynambalucas-developer-tools` settings -> **App managers**: Add team `lead-architects`.
+
+### Phase 5: Configure Organization Secrets & Run Clean Release
 1. [ ] Configure `ORGANIZATION_APP_ID`, `ORGANIZATION_APP_PRIVATE_KEY`, `CI_APP_ID`, and `CI_APP_PRIVATE_KEY` in GitHub Organization Secrets.
 2. [ ] Trigger `admin-packages.yml` to purge remote packages.
 3. [ ] Trigger `publish.yml` to publish inaugural clean `1.0.0` packages to GitHub Packages.
