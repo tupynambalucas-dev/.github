@@ -595,8 +595,30 @@ Follow each field sequentially:
 #### Step 1: App Metadata
 - **GitHub App name**: `tupynambalucas-org-manager`  
   *(Must be unique across all of GitHub, maximum 34 characters).*
-- **Description**:  
-  `Sovereign organizational governance, security auditing, package administration, and RBAC team operator.`
+- **Description** *(Markdown supported - copy and paste the formatted block below directly into GitHub's Description field)*:
+
+````markdown
+### Sovereign Organizational Governance & Machine Identity Operator
+
+`tupynambalucas-org-manager` is the Tier-1 executive machine identity for `tupynambalucas-dev`, providing automated organizational governance, team RBAC orchestration, security posture oversight, and package lifecycle administration.
+
+#### Core Responsibilities
+- **RBAC & Team Administration**: Programmatic management of functional teams (`lead-architects`, `security-managers`, `infra-ops`, `core-engineers`) and direct assignment of organization roles to teams.
+- **Rulesets & Protection**: Enforcement of organization-wide branch protection rulesets, tag protection policies, and required status checks.
+- **Security Auditing**: Comprehensive oversight of Secret Scanning alerts, Dependabot vulnerabilities, and CodeQL security scanning via `@tupynambalucas-dev/mcp-github`.
+- **Package Governance**: Administrative deletion and cleanup of obsolete package versions on GitHub Packages (`npm.pkg.github.com`).
+- **Secrets & Token Governance**: Centralized audit and management of fine-grained personal access tokens and organization variables.
+
+#### Custody & Security Architecture
+- **Authentication**: Headless Server-to-Server via 2048-bit RSA Private Key (`.pem`) minting ephemeral 60-minute Installation Access Tokens (IAT).
+- **Custody**: Strictly restricted to the Organization Owner (`@tupynambalucas-dev`) and executive leadership (`lead-architects` / `core-maintainers`).
+- **Vaulting**: Vaulted in Infisical Cloud (`tupynambalucas-dev-platform [prod] /governance/`) and repository-scoped GitHub Organization Secrets (`.github`, `org-core`).
+- **Webhooks**: Strictly disabled (`Active: false`) for outbound-only on-demand operations.
+
+> [!NOTE]
+> Automated operations authored by this machine identity carry GitHub's official **Verified** badge under `@tupynambalucas-org-manager[bot]`.
+````
+
 - **Homepage URL**:  
   `https://docs.tupynambalucas.dev`
 
@@ -698,8 +720,30 @@ Follow each field sequentially:
 
 #### Step 1: App Metadata
 - **GitHub App name**: `tupynambalucas-ci-bot`
-- **Description**:  
-  `Autonomous CI/CD delivery bot for releases, dependency updates, and automated workflows.`
+- **Description** *(Markdown supported - copy and paste the formatted block below directly into GitHub's Description field)*:
+
+````markdown
+### Autonomous CI/CD Delivery & Package Release Automation Bot
+
+`tupynambalucas-ci-bot` is the Tier-2 headless delivery identity for `tupynambalucas-dev`, driving routine continuous integration, automated package releases, dependency maintenance, and build attestations across all monorepos.
+
+#### Core Responsibilities
+- **Package Publishing**: Automated publishing of workspace packages to GitHub Packages (`npm.pkg.github.com`) with Sigstore/SLSA provenance attestations.
+- **Continuous Integration**: Reporting commit status markers, publishing check runs, and surfacing automated test/lint annotations.
+- **Dependency Automation**: Opening, updating, and auto-merging dependency PRs via Renovate Bot (`platform/.github/workflows/renovate.yml`).
+- **Binary Releases**: Compiling, tagging, and distributing multi-platform release binaries for `gh-tl` via `cli/gh-extension-precompile`.
+- **Documentation Localization**: Synchronizing CrowdIn translation pull requests and previews for `docs`.
+
+#### Custody & Security Architecture
+- **Authentication**: Server-to-Server Installation Access Tokens (IAT) generated in-memory on ephemeral GitHub Actions runners.
+- **Principle of Least Privilege**: Strictly isolated from organization administration, repository deletion, member management, and security ruleset modification.
+- **Custody**: Co-managed by `lead-architects` and `infra-ops`.
+- **Webhooks**: Strictly disabled (`Active: false`) for outbound-only token consumption via `actions/create-github-app-token`.
+
+> [!NOTE]
+> Routine CI/CD commits and release tags authored by this bot carry the cryptographic **Verified** badge under `@tupynambalucas-ci-bot[bot]`.
+````
+
 - **Homepage URL**:  
   `https://docs.tupynambalucas.dev`
 
@@ -764,8 +808,29 @@ Follow each field sequentially:
 
 #### Step 1: App Metadata
 - **GitHub App name**: `tupynambalucas-developer-tools`
-- **Description**:  
-  `Interactive developer self-service tooling, CLI authentication, and workstation integration.`
+- **Description** *(Markdown supported - copy and paste the formatted block below directly into GitHub's Description field)*:
+
+````markdown
+### Interactive Developer Tooling & Workstation Self-Service Identity
+
+`tupynambalucas-developer-tools` is the Tier-3 developer enablement identity for `tupynambalucas-dev`, providing secure, passwordless authentication for developer workstations, internal CLI extensions (`gh-tl`), IDE tools, and local engineering workflows without static access tokens.
+
+#### Core Capabilities
+- **OAuth Device Flow Integration**: Authenticates engineers via `https://github.com/login/device` with auto-expiring 8-hour User Access Tokens (UAT) and automatic refresh rotation.
+- **Zero Static Personal Access Tokens**: Completely eliminates high-risk classic and fine-grained PATs from developer laptops.
+- **Workstation Verification & Onboarding**: Powers `gh tl onboard` and `gh tl verify` to validate local Git configuration, SSH commit signing keys, and repository remotes.
+- **Interactive Developer Workflows**: Enables human-attributed Git branching, PR authoring, code review comments, and issue triage from terminal and IDE interfaces.
+
+#### Dual-Boundary Security Architecture
+- **Zero Private Key Distribution**: No RSA private key is ever generated or distributed to developer machines; CLI clients embed only the public `Client ID`.
+- **Intersection of Rights**: Operates strictly within the intersection of the App permissions and the individual developer's team RBAC (`Effective Rights = App Scopes ∩ Team RBAC`).
+- **Zero Administrative Authority**: Holds zero organization-level administrative scopes, ensuring developer sessions cannot alter security rulesets, teams, or billing.
+- **Instant Revocation**: Compromised or decommissioned workstations can be revoked instantly by an administrator via Organization Settings with zero key rotation impact on CI/CD.
+
+> [!IMPORTANT]
+> Commits and pull request reviews created through this tool are attributed to the individual developer's verified human username with `programmatic_access_type: GitHub App user-to-server token`.
+````
+
 - **Homepage URL**:  
   `https://docs.tupynambalucas.dev`
 
@@ -1047,7 +1112,8 @@ Use this checklist during manual setup:
 ### Phase 1: Register Tier 1 (`tupynambalucas-org-manager`)
 1. [ ] Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
 2. [ ] Enter Name: `tupynambalucas-org-manager` and Homepage URL: `https://docs.tupynambalucas.dev`.
-3. [ ] Uncheck **Active** under Webhook.
+3. [ ] In the **Description** field, copy and paste the formatted GitHub Flavored Markdown block from Section 6.3 (Step 1).
+4. [ ] Uncheck **Active** under Webhook.
 4. [ ] Configure Repository Permissions:
    - [ ] Actions: `Read and write`
    - [ ] Administration: `Read and write`
@@ -1097,7 +1163,8 @@ Use this checklist during manual setup:
 ### Phase 2: Register Tier 2 (`tupynambalucas-ci-bot`)
 1. [ ] Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
 2. [ ] Enter Name: `tupynambalucas-ci-bot` and Homepage URL: `https://docs.tupynambalucas.dev`.
-3. [ ] Uncheck **Active** under Webhook.
+3. [ ] In the **Description** field, copy and paste the formatted GitHub Flavored Markdown block from Section 6.4 (Step 1).
+4. [ ] Uncheck **Active** under Webhook.
 4. [ ] Configure Repository Permissions:
    - [ ] Actions: `Read-only`
    - [ ] Artifact metadata: `Read and write`
@@ -1118,7 +1185,8 @@ Use this checklist during manual setup:
 ### Phase 3: Register Tier 3 (`tupynambalucas-developer-tools`)
 1. [ ] Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
 2. [ ] Enter Name: `tupynambalucas-developer-tools` and Homepage URL: `https://docs.tupynambalucas.dev`.
-3. [ ] Check **Enable Device Flow** under Identifying & Authorizing Users.
+3. [ ] In the **Description** field, copy and paste the formatted GitHub Flavored Markdown block from Section 6.5 (Step 1).
+4. [ ] Check **Enable Device Flow** under Identifying & Authorizing Users.
 4. [ ] Check **Expire user authorization tokens**.
 5. [ ] Uncheck **Active** under Webhook.
 6. [ ] Configure Repository Permissions:
