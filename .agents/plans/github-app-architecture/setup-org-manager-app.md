@@ -100,7 +100,7 @@ Click each dropdown and configure the exact values below:
 | **Variables** | **Read and write** | Manage repository-level configuration variables. |
 | **Workflows** | **Read and write** | Update workflow files in `.github/workflows/`. |
 | **Merge queues** | **Read and write** | Programmatic control and inspection of repository merge queues. |
-| **Repository license policy** | **Read and write** | Enforce and audit repository license policies via `@tupynambalucas-dev/plugin-repo`. |
+| **Repository license policy** | **Read-only** | Audit repository license policy and check package compliance via `@tupynambalucas-dev/plugin-repo` (`license-architect`). *(Note: GitHub UI supports view-only for repository license policies).* |
 | **License compliance alerts** | **Read-only** | Audit license compliance warnings on external dependencies. |
 | **Secret scanning alert dismissal requests** | **Read and write** | Review, approve, or reject secret alert dismissal requests. |
 | **Secret scanning push protection bypass requests** | **Read and write** | Review and manage push protection bypass requests when developers attempt to push sensitive data. |

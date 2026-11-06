@@ -40,7 +40,7 @@ Use this checklist during manual setup:
    - [ ] Secret scanning alerts: `Read and write`
     - [ ] Secret scanning push protection bypass requests: `Read and write`
     - [ ] Secret scanning alert dismissal requests: `Read and write`
-    - [ ] Repository license policy: `Read and write`
+    - [ ] Repository license policy: `Read-only`
     - [ ] Merge queues: `Read and write`
    - [ ] Secrets: `Read and write`
    - [ ] Variables: `Read and write`
