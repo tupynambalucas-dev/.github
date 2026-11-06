@@ -140,14 +140,16 @@ Use this checklist during manual setup:
 3. [ ] In `tupynambalucas-developer-tools` settings -> **App managers**: Add team `lead-architects`.
 
 ### Phase 5: Configure Organization Secrets & Run Clean Release
-1. [ ] Configure `ORGANIZATION_APP_ID`, `ORGANIZATION_APP_PRIVATE_KEY`, `CI_APP_ID`, and `CI_APP_PRIVATE_KEY` in GitHub Organization Secrets.
-2. [ ] Trigger `admin-packages.yml` to purge remote packages.
-3. [ ] Trigger `publish.yml` to publish inaugural clean `1.0.0` packages to GitHub Packages.
+1. [ ] Configure `ORGANIZATION_APP_ID`, `ORGANIZATION_APP_PRIVATE_KEY`, `CI_APP_ID`, and `CI_APP_PRIVATE_KEY` in GitHub Organization Secrets (`https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions`).
+2. [ ] Verify workflow pre-flight evaluation: Confirm that `publish.yml` and `admin-packages.yml` map secrets to step-level `env` blocks before conditional evaluation, adhering strictly to the architecture documented in [Document 09: CI/CD Workflow Integration & Runner Architecture](./ci-cd-workflow-integration-and-runner-architecture.md).
+3. [ ] Trigger `admin-packages.yml` to purge remote packages.
+4. [ ] Trigger `publish.yml` to publish inaugural clean `1.0.0` packages to GitHub Packages.
 
 ---
 
 ## Navigation
 
 - [GitHub App Architecture Suite README](./README.md)
-- Previous: [Secret Governance, Key Generation & Workflows](./secrets-governance-and-workflows.md)
+- Previous: [Secret Governance, Key Generation & Workflows (Document 06)](./secrets-governance-and-workflows.md)
+- Associated: [CI/CD Workflow Integration & Runner Architecture (Document 09)](./ci-cd-workflow-integration-and-runner-architecture.md)
 - [Parent Architectural Plans Index](../README.md)
