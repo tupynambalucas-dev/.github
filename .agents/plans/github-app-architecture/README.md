@@ -81,6 +81,7 @@ flowchart TD
 | **05** | [Manual Setup Guide: Developer Tools Identity (Tier 3)](./setup-developer-tools-app.md) | Screen-by-screen, field-by-field web UI creation guide for `tupynambalucas-developer-tools` with Device Flow and 5 permissions. | Organization Owners, Tooling Engineers |
 | **06** | [Secret Governance, Key Generation & Workflows](./secrets-governance-and-workflows.md) | Generating RSA `.pem` keys, installing apps, configuring App Managers, Infisical Cloud Vault storage, Organization Secrets, and workflow consumption. | DevOps, Platform Engineers, SecOps |
 | **07** | [Actionable Execution Checklist & Roadmap](./execution-checklist-and-roadmap.md) | Phased step-by-step checklist for registering all three apps, downloading keys, enrolling secrets, and running verification tests. | Implementation Lead, Reviewers |
+| **08** | [Plugin Integration, Custom MCP & Multi-User Authorization](./plugin-integration-and-mcp-authorization-model.md) | Architectural coupling between `plugin-github-org`, `mcp-github`, and `org-manager`, including the 5-layer defense-in-depth authorization model for multi-user workspaces. | Lead Architects, Security Engineers, AI Mesh Developers |
 
 ---
 
