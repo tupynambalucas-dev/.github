@@ -101,6 +101,52 @@ Click each dropdown and configure the exact values below:
 
 #### Step 10: Complete Creation
 - Click the green button: **Create GitHub App**.
+- GitHub creates the application and redirects you to the App's **General** settings dashboard (`https://github.com/organizations/tupynambalucas-dev/settings/apps/tupynambalucas-ci-bot`).
+
+#### Step 11: Generate RSA Private Key (.pem)
+1. On the **General** settings tab, scroll down to the **Private keys** section.
+2. Click the green button: **Generate a private key**.
+3. GitHub automatically generates a secure 2048-bit RSA keypair and initiates a browser download of:
+   `tupynambalucas-ci-bot.<timestamp>.private-key.pem`
+4. Confirm the success banner appears: *"A private key has been generated and downloaded to your computer."*
+
+> [!CAUTION]
+> GitHub never displays or re-downloads this private key. Protect this `.pem` file during configuration and purge it immediately after enrolling into secrets vaults.
+
+#### Step 12: Install App on Organization & Capture Installation ID
+1. In the left navigation sidebar of the App settings, click **Install App**.
+2. Locate `@tupynambalucas-dev` and click the green **Install** button.
+3. Under **Repository access**, select: **All repositories** (allowing automated CI/CD checks, releases, and dependency PRs across every repo in the organization).
+4. Click the green **Install** button.
+5. GitHub redirects you to:
+   `https://github.com/organizations/tupynambalucas-dev/settings/installations/<INSTALLATION_ID>`
+6. **Capture the Installation ID**: Inspect the URL in your browser address bar. The numeric value at the end is your **`CI_APP_INSTALLATION_ID`**. Record this value alongside the **App ID** (from the General tab).
+
+#### Step 13: Configure Credentials across CI/CD Secrets & Vaults
+1. **GitHub Actions Organization Secrets (`settings/secrets/actions`)**:
+   Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions` and enroll:
+   - Secret **`CI_APP_ID`**: Paste the numeric App ID. Set Repository Access to **All repositories**.
+   - Secret **`CI_APP_PRIVATE_KEY`**: Paste the entire raw text content of the `tupynambalucas-ci-bot.*.private-key.pem` file. Set Repository Access to **All repositories**.
+
+2. **Infisical Cloud Vault (`/ci-cd`)**:
+   Enroll the credentials for infrastructure automation and staging pipelines:
+   ```bash
+   infisical secrets set --env=staging --path=/ci-cd CI_APP_ID="<Numeric App ID>"
+   infisical secrets set --env=staging --path=/ci-cd CI_APP_CLIENT_ID="<Client ID from General tab>"
+   infisical secrets set --env=staging --path=/ci-cd CI_APP_INSTALLATION_ID="<Numeric Installation ID>"
+   infisical secrets set --env=staging --path=/ci-cd CI_APP_PRIVATE_KEY="$(cat tupynambalucas-ci-bot.*.private-key.pem)"
+   ```
+
+3. **Cryptographic Hygiene & Cleanup**:
+   Permanently delete the unencrypted `.pem` file from your workstation downloads directory:
+   ```powershell
+   Remove-Item "$HOME\Downloads\tupynambalucas-ci-bot.*.private-key.pem"
+   ```
+
+#### Step 14: Assign App Managers
+1. In the App settings left sidebar, click **App managers**.
+2. Click **Add people or teams**.
+3. Search for and select the teams: `lead-architects` and `infra-ops`.
 
 ---
 

@@ -115,7 +115,43 @@ Click each dropdown and configure the exact values below:
 
 #### Step 10: Complete Creation
 - Click the green button: **Create GitHub App**.
-- *Note for Tier 3*: Developers consume exclusively the **Client ID** (alphanumeric string). No RSA private key is ever generated or distributed for Tier 3.
+- GitHub creates the application and redirects you to the App's **General** settings dashboard (`https://github.com/organizations/tupynambalucas-dev/settings/apps/tupynambalucas-developer-tools`).
+
+#### Step 11: Cryptographic Invariant - Zero Private Key Generation (Tier 3 Rule)
+> [!IMPORTANT]
+> **DO NOT GENERATE A PRIVATE KEY FOR THIS APP.**
+>
+> **Technical Rationale**:
+> - `tupynambalucas-developer-tools` operates exclusively as a **Public Client** utilizing the **OAuth 2.0 Device Authorization Flow** (`https://github.com/login/device`).
+> - An RSA private key represents machine-level authorization (the power to act as the App itself without an interactive user session). Distributing private keys to developer workstations violates organizational security policies and zero-trust principles.
+> - With Device Flow, developer CLI tools (such as `gh tl onboard` and local developer tooling) identify themselves strictly using the public **Client ID**. Authentication occurs through interactive web-based browser approval by the human engineer, which issues short-lived, user-scoped OAuth tokens.
+> - Therefore, leave the **Private keys** section completely empty. Never click "Generate a private key" for Tier 3.
+
+#### Step 12: Record Public Client ID
+1. On the **General** settings tab under the **About** section, locate the **Client ID** (an alphanumeric string such as `Iv23...`).
+2. Copy and record this value. This is the **`GITHUB_DEVELOPER_TOOLS_CLIENT_ID`**.
+
+#### Step 13: Install App on Organization
+1. In the left navigation sidebar of the App settings, click **Install App**.
+2. Locate `@tupynambalucas-dev` and click the green **Install** button.
+3. Under **Repository access**, select: **All repositories** (enabling developer CLI tools to interact with all org repositories).
+4. Click the green **Install** button.
+
+#### Step 14: Configure Developer Workstation & Tooling Environment
+1. **Local Developer Environment (`.env`)**:
+   In `org-core/.env` and `agent-mesh/.env`, configure:
+   ```dotenv
+   GITHUB_DEVELOPER_TOOLS_CLIENT_ID="<Client ID from General tab>"
+   ```
+
+2. **Infisical Cloud Vault (`/tooling`)**:
+   Enroll the client ID into the developer tooling folder:
+   ```bash
+   infisical secrets set --env=dev --path=/tooling DEVELOPER_TOOLS_CLIENT_ID="<Client ID from General tab>"
+   ```
+
+3. **Verification with CLI**:
+   Developers running `gh tl onboard` or local CLI utilities will automatically read `GITHUB_DEVELOPER_TOOLS_CLIENT_ID` to trigger device flow onboarding without needing any private key files.
 
 ---
 
