@@ -342,7 +342,7 @@ The following master catalog maps all permissions supported by GitHub Apps, comp
 | **Dependabot secrets** | `dependabot_secrets` | **Read and write** | No access | No access | `plugin-github-org`, private registry secrets for Dependabot. |
 | **Deployments** | `deployments` | **Read and write** | **Read and write** | **Read-only** | CI deployment tracking, environment rollouts, `gh-tl`. |
 | **Discussions** | `discussions` | No access | No access | **Read and write** | Developer community discussions and Q&A interactions. |
-| **Environments** | `environments` | **Read and write** | **Read-only** | No access | `plugin-github-org`, deployment protection rules, reviewer requirements. |
+| **Environments** | `environments` | **Read and write** | **Read and write** | No access | `plugin-github-org`, deployment protection rules, reviewer requirements. |
 | **Issues** | `issues` | **Read and write** | **Read and write** | **Read and write** | `plugin-github-flow`, `gh-tl`, CI issue reporting, triage workflows. |
 | **Metadata** | `metadata` | **Read-only (Mandatory)** | **Read-only (Mandatory)** | **Read-only (Mandatory)** | Universal repository metadata inspection (always enforced by GitHub). |
 | **Packages** | `packages` | **Read and write** | **Read and write** | No access | `agent-mesh` release publishing (Tier 2) and package purging/admin (Tier 1). |
@@ -356,6 +356,11 @@ The following master catalog maps all permissions supported by GitHub Apps, comp
 | **Variables** | `variables` | **Read and write** | No access | No access | `plugin-github-org`, repository configuration variables. |
 | **Webhooks** | `webhooks` | No access | No access | No access | Inactive per Section 3 discipline. |
 | **Workflows** | `workflows` | **Read and write** | **Read and write** | **Read and write** | `plugin-github-flow`, `plugin-repo`, editing `.github/workflows/` files. |
+| **Merge queues** | `merge_queues` | **Read and write** | No access | No access | Manage merge queue order and locks for high-concurrency PR merges. |
+| **Repository license policy** | `repository_license_policy` | **Read and write** | No access | No access | `plugin-repo` (`license-architect`), automate repository license governance. |
+| **License compliance alerts** | `license_compliance_alerts` | **Read-only** | No access | No access | Ingest compliance alerts for third-party open source packages. |
+| **Secret scanning alert dismissal requests** | `secret_scanning_alert_dismissal_requests` | **Read and write** | No access | No access | Review and triage requests to dismiss secret scanning alerts. |
+| **Secret scanning push protection bypass requests** | `secret_scanning_push_protection_bypass_requests` | **Read and write** | No access | No access | `plugin-github-org` (`github-security-auditor`), triage developer bypass requests. |
 
 #### 6.1.2 Organization Permissions (28 Total Permissions)
 
@@ -388,6 +393,10 @@ The following master catalog maps all permissions supported by GitHub Apps, comp
 | **Secrets** | `organization_secrets` | **Read and write** | No access | No access | `plugin-github-org`, organization-wide encrypted secret management. |
 | **Self-hosted runners** | `organization_self_hosted_runners` | **Read and write** | No access | No access | Managing org-wide runner groups and registration tokens. |
 | **Variables** | `organization_variables` | **Read and write** | No access | No access | `plugin-github-org`, organization-wide configuration variables. |
+| **Organization announcement banners** | `organization_announcement_banners` | **Read and write** | No access | No access | Broadcast organization-wide maintenance and operational notices. |
+| **Organization bypass requests for secret scanning** | `organization_secret_scanning_bypass_requests` | **Read and write** | No access | No access | Organization-level review of push protection bypass requests. |
+| **Organization dismissal requests for Dependabot** | `organization_dependabot_dismissal_requests` | **Read and write** | No access | No access | Audit and approve Dependabot vulnerability dismissal requests. |
+| **Organization dismissal requests for code scanning** | `organization_code_scanning_dismissal_requests` | **Read and write** | No access | No access | Audit and approve CodeQL code scanning dismissal requests. |
 | **Webhooks** | `organization_hooks` | No access | No access | No access | Inactive per Section 3 discipline. |
 
 #### 6.1.3 Account (User) Permissions (14 Total Permissions)
@@ -399,13 +408,13 @@ The following master catalog maps all permissions supported by GitHub Apps, comp
 | **Email addresses** | `email_addresses` | No access | No access | **Read-only** | `gh-tl`, retrieving verified primary email for local Git config. |
 | **Followers** | `followers` | No access | No access | No access | Social following capabilities. |
 | **Gists** | `gists` | No access | No access | No access | Personal gist authoring. |
-| **Git SSH keys** | `git_ssh_keys` | No access | No access | No access | SSH keys managed directly via developer session in `gh-tl`. |
-| **GPG keys** | `gpg_keys` | No access | No access | No access | GPG signing keys management. |
+| **Git SSH keys** | `git_ssh_keys` | No access | No access | **Read-only** | Validate developer authentication SSH keys during workstation onboarding. |
+| **GPG keys** | `gpg_keys` | No access | No access | **Read-only** | Audit legacy GPG signing keys during workstation onboarding. |
 | **Interaction limits** | `interaction_limits` | No access | No access | No access | User-level interaction restriction management. |
 | **Plan** | `plan` | No access | No access | **Read-only** | `gh-tl`, querying user billing tier for CLI capability checks. |
 | **Private repository invitations** | `private_repository_invitations` | No access | No access | No access | Accepting incoming collaborator invitations. |
 | **Profile** | `profile` | No access | No access | **Read-only** | `gh-tl`, retrieving developer avatar, bio, and username for terminal UI. |
-| **SSH signing keys** | `ssh_signing_keys` | No access | No access | No access | SSH signing keys provisioned via personal session in `gh-tl`. |
+| **SSH signing keys** | `ssh_signing_keys` | No access | No access | **Read and write** | **CRITICAL FOR GH-TL**: Programmatic registration of developer public SSH Ed25519 signing key. |
 | **Starring** | `starring` | No access | No access | **Read and write** | Developer bookmarking and repository starring. |
 | **Watching** | `watching` | No access | No access | **Read and write** | Developer repository notification and thread subscriptions. |
 

@@ -83,6 +83,7 @@ Use this checklist during manual setup:
    - [ ] Commit statuses: `Read and write`
    - [ ] Contents: `Read and write`
    - [ ] Deployments: `Read and write`
+   - [ ] Environments: `Read and write`
    - [ ] Issues: `Read and write`
    - [ ] Metadata: `Read-only`
    - [ ] Packages: `Read and write`

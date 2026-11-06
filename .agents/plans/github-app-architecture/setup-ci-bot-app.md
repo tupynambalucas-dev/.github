@@ -78,6 +78,7 @@ Click each dropdown and configure the exact values below:
 | **Commit statuses** | **Read and write** | Report build status badges on commits. |
 | **Contents** | **Read and write** | **Push release tags (`v1.0.0`) and automated changelog commits.** |
 | **Deployments** | **Read and write** | Track deployment statuses and environments for releases. |
+| **Environments** | **Read and write** | Manage deployment environment rules and release gate approvals. |
 | **Issues** | **Read and write** | Open and comment on build failure tracking issues. |
 | **Metadata** | **Read-only (Mandatory)** | Automatically set by GitHub. |
 | **Packages** | **Read and write** | **Publish tarballs (`pnpm -r publish`). Cannot delete.** |
