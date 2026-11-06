@@ -125,7 +125,7 @@ Use this checklist during manual setup:
     - [ ] SSH signing keys: `Read and write` (Required for gh tl onboard auto-provisioning)
     - [ ] Git SSH keys: `Read and write` (Required for gh tl onboard authentication key registration)
    - [ ] Plan: `Read-only`
-   - [ ] Profile: `Read-only`
+   - [ ] Profile: `Read and write` (GitHub UI only provides 'No access' or 'Read and write')
    - [ ] Starring: `Read and write`
    - [ ] Watching: `Read and write`
 9. [ ] Select **Only on this account** and click **Create GitHub App**.

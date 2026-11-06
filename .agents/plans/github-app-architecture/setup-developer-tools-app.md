@@ -97,13 +97,18 @@ Click each dropdown and configure the exact values below:
 | Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
 | **Email addresses** | **Read-only** | Retrieve verified primary email for local Git signature configuration. |
+| **Git SSH keys** | **Read and write** | **REQUIRED FOR GH-TL**: Allows `gh tl onboard` to register the developer public SSH authentication key on GitHub (`POST /user/keys`). |
 | **Plan** | **Read-only** | Query user billing tier for CLI capability validation. |
-| **Profile** | **Read-only** | Retrieve developer avatar, name, and username for terminal UI. |
+| **Profile** | **Read and write** | Retrieve developer avatar, name, and profile data for terminal UI. *(GitHub UI only offers 'No access' or 'Read and write' for Profile; select 'Read and write').* |
+| **SSH signing keys** | **Read and write** | **CRITICAL FOR GH-TL**: Allows `gh tl onboard` to inspect and register the developer's public SSH Ed25519 signing key on GitHub (`POST /user/ssh_signing_keys`). |
 | **Starring** | **Read and write** | Developer bookmarking and starring repositories. |
 | **Watching** | **Read and write** | Managing repository subscriptions and notifications. |
-| **SSH signing keys** | **Read and write** | **CRITICAL FOR GH-TL**: Allows `gh tl onboard` to inspect and register the developer's public SSH Ed25519 signing key on GitHub. |
-| **Git SSH keys** | **Read and write** | **REQUIRED FOR GH-TL**: Allows `gh tl onboard` to register the developer public SSH authentication key on GitHub (`POST /user/keys`). |
-| **GPG keys** | **Read-only** | Audit legacy GPG keys if used by developers. |
+
+> [!NOTE]
+> **GitHub UI Options for Profile and Keys**:
+> - **Profile**: GitHub does not provide a "Read-only" option in the UI; it only supports **Read and write** or **No access**. Select **Read and write**.
+> - **Git SSH keys**: Must be explicitly selected as **Read and write** alongside **SSH signing keys** to allow `gh tl onboard` to provision both authentication and cryptographic signing keys.
+> - **Total Account Permissions Selected**: Exactly **7 selected** (`Email addresses`, `Git SSH keys`, `Plan`, `Profile`, `SSH signing keys`, `Starring`, `Watching`).
 
 *(All other account permissions should remain **No access**).*
 
