@@ -68,7 +68,10 @@ Use this checklist during manual setup:
    - [ ] Self-hosted runners: `Read and write`
    - [ ] Variables: `Read and write`
 6. [ ] Select **Only on this account** and click **Create GitHub App**.
-7. [ ] Generate RSA Private Key, install on `tupynambalucas-dev` ("All repositories"), and record App ID, Client ID, and Installation ID.
+7. [ ] Generate RSA Private Key: Click **Generate a private key** and download `tupynambalucas-org-manager.*.private-key.pem`.
+8. [ ] Install App on Organization: Select **All repositories**, install, and capture numeric **Installation ID** from redirect URL.
+9. [ ] Vault Credentials: Configure `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, and `GITHUB_APP_PRIVATE_KEY` across `.env`, Infisical (`/governance`), and Actions Org Secrets (`ORGANIZATION_APP_ID`, `ORGANIZATION_APP_PRIVATE_KEY`). Purge local `.pem` file.
+10. [ ] Assign App Managers: Add team `lead-architects`.
 
 ### Phase 2: Register Tier 2 (`tupynambalucas-ci-bot`)
 1. [ ] Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
@@ -91,7 +94,10 @@ Use this checklist during manual setup:
    - [ ] Workflows: `Read and write`
 5. [ ] Organization Permissions: All set to `No access`.
 6. [ ] Select **Only on this account** and click **Create GitHub App**.
-7. [ ] Generate RSA Private Key, install on `tupynambalucas-dev` ("All repositories"), and record credentials.
+7. [ ] Generate RSA Private Key: Click **Generate a private key** and download `tupynambalucas-ci-bot.*.private-key.pem`.
+8. [ ] Install App on Organization: Select **All repositories**, install, and capture numeric `CI_APP_INSTALLATION_ID`.
+9. [ ] Vault Credentials: Configure `CI_APP_ID` and `CI_APP_PRIVATE_KEY` in Actions Org Secrets (All repositories) and Infisical (`/ci-cd`). Purge local `.pem` file.
+10. [ ] Assign App Managers: Add teams `lead-architects` and `infra-ops`.
 
 ### Phase 3: Register Tier 3 (`tupynambalucas-developer-tools`)
 1. [ ] Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
@@ -123,7 +129,10 @@ Use this checklist during manual setup:
    - [ ] Starring: `Read and write`
    - [ ] Watching: `Read and write`
 9. [ ] Select **Only on this account** and click **Create GitHub App**.
-10. [ ] Install on `tupynambalucas-dev` ("All repositories") and record the **Client ID** for CLI tooling. (No private key required).
+10. [ ] Cryptographic Invariant: Verify zero private key generation (Public Client / Device Flow).
+11. [ ] Record Client ID: Copy public alphanumeric Client ID from General settings tab.
+12. [ ] Install App on Organization: Select **All repositories** and install on `@tupynambalucas-dev`.
+13. [ ] Configure Developer Tooling: Set `GITHUB_DEVELOPER_TOOLS_CLIENT_ID` in `.env` and Infisical (`/tooling`).
 
 ### Phase 4: Configure GitHub App Managers
 1. [ ] In `tupynambalucas-org-manager` settings -> **App managers**: Add team `lead-architects`.

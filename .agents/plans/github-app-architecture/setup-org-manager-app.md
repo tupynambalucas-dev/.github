@@ -144,6 +144,64 @@ Click each dropdown and configure the exact values below:
 
 #### Step 10: Complete Creation
 - Click the green button: **Create GitHub App**.
+- GitHub creates the application and redirects you to the App's **General** settings dashboard (`https://github.com/organizations/tupynambalucas-dev/settings/apps/tupynambalucas-org-manager`).
+
+#### Step 11: Generate RSA Private Key (.pem)
+1. On the **General** settings tab, scroll down to the **Private keys** section.
+2. Click the green button: **Generate a private key**.
+3. GitHub automatically generates a secure 2048-bit RSA keypair, registers the public key on GitHub servers, and initiates an immediate browser download of the private key file named:
+   `tupynambalucas-org-manager.<timestamp>.private-key.pem`
+4. Confirm the success banner appears: *"A private key has been generated and downloaded to your computer."*
+5. Keep this file in a secure temporary location for Step 13.
+
+> [!CAUTION]
+> GitHub never stores or displays the private key again after generation. If the `.pem` file is lost before vaulting, you must click **Delete** next to the lost key and click **Generate a private key** to issue a replacement.
+
+#### Step 12: Install App on Organization & Capture Installation ID
+1. In the left navigation sidebar of the App settings, click **Install App**.
+2. Locate the organization account `@tupynambalucas-dev` and click the green **Install** button.
+3. Under **Repository access**, select: **All repositories** (enabling comprehensive organization-wide governance, RBAC, and policy enforcement).
+4. Click the green **Install** button.
+5. GitHub redirects you to the organization installation settings:
+   `https://github.com/organizations/tupynambalucas-dev/settings/installations/<INSTALLATION_ID>`
+6. **Capture the Installation ID**: Inspect your browser's address bar. The numeric value at the end of the URL (e.g. `12345678`) is your **`GITHUB_APP_INSTALLATION_ID`**. Record this value alongside the **App ID** (from the General tab under "About").
+
+#### Step 13: Configure Credentials across Environment & Secrets Vaults
+1. **Local Developer Environment (`.env`)**:
+   In `org-core/.env` and `agent-mesh/.env`, configure the following keys:
+   ```dotenv
+   GITHUB_ORG="tupynambalucas-dev"
+   GITHUB_APP_ID="<Numeric App ID from General tab>"
+   GITHUB_APP_INSTALLATION_ID="<Numeric Installation ID from Step 12>"
+   GITHUB_APP_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n-----END RSA PRIVATE KEY-----"
+   ```
+   *(Note: The private key can be formatted either as a single line with `\n` linebreaks or as a multiline string wrapped in double quotes).*
+
+2. **Infisical Cloud Vault (`/governance`)**:
+   Store the production machine credentials securely using the Infisical CLI:
+   ```bash
+   infisical secrets set --env=prod --path=/governance GITHUB_APP_ID="<Numeric App ID>"
+   infisical secrets set --env=prod --path=/governance GITHUB_APP_CLIENT_ID="<Client ID from General tab>"
+   infisical secrets set --env=prod --path=/governance GITHUB_APP_INSTALLATION_ID="<Numeric Installation ID>"
+   infisical secrets set --env=prod --path=/governance GITHUB_APP_PRIVATE_KEY="$(cat tupynambalucas-org-manager.*.private-key.pem)"
+   ```
+
+3. **GitHub Actions Organization Secrets (`settings/secrets/actions`)**:
+   Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions` and enroll:
+   - Secret **`ORGANIZATION_APP_ID`**: Paste the numeric App ID. Set Repository Access to **Selected repositories** (`agent-mesh`, `platform`, `.github`, `docs`, `gh-tl`).
+   - Secret **`ORGANIZATION_APP_PRIVATE_KEY`**: Paste the entire raw text content of the downloaded `.pem` file (including header and footer). Set Repository Access to **Selected repositories**.
+
+4. **Cryptographic Hygiene & Cleanup**:
+   Once stored securely in Infisical and local `.env`, permanently purge the unencrypted `.pem` file from your workstation downloads directory:
+   ```powershell
+   Remove-Item "$HOME\Downloads\tupynambalucas-org-manager.*.private-key.pem"
+   ```
+
+#### Step 14: Assign App Managers
+1. In the App settings left sidebar, click **App managers**.
+2. Click **Add people or teams**.
+3. Search for and select the team: `lead-architects`.
+4. Grant manager permissions to ensure enterprise leads can audit configurations and rotate keys without accessing root owner accounts.
 
 ---
 
