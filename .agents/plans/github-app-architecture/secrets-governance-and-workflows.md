@@ -145,22 +145,36 @@ infisical secrets set --env=dev --path=/tooling DEVELOPER_TOOLS_CLIENT_ID="<Clie
 
 ## 9. Workflow Consumption Architecture
 
-Workflows across `agent-mesh`, `platform`, `docs`, and `gh-tl` consume the GitHub App token via the standard, pinned action `actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755`:
+Workflows across `agent-mesh`, `platform`, `docs`, and `gh-tl` consume the GitHub App token via the standard, pinned action `actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755`.
+
+> [!IMPORTANT]
+> **GitHub Actions Parser Rule on Secrets**: The GitHub Actions workflow expression parser strictly prohibits referencing the `secrets.*` context inside `if:` conditionals (which triggers `Unrecognized named-value: 'secrets'`). Secrets MUST be mapped into step-level `env:` before evaluation:
+> ```yaml
+> env:
+>   APP_ID: ${{ secrets.CI_APP_ID || secrets.ORGANIZATION_APP_ID || secrets.APP_ID }}
+>   APP_PRIVATE_KEY: ${{ secrets.CI_APP_PRIVATE_KEY || secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY }}
+> if: ${{ env.APP_ID != '' && env.APP_PRIVATE_KEY != '' }}
+> ```
+> For an exhaustive architectural explanation of why workflows consume GitHub Apps instead of `GITHUB_TOKEN` or PATs, see [Document 09: CI/CD Workflow Integration & Runner Architecture](./ci-cd-workflow-integration-and-runner-architecture.md).
 
 ### 9.1 Package Deletion & Administration (`agent-mesh/.github/workflows/admin-packages.yml`)
+Operated under **Tier 1 (`tupynambalucas-org-manager`)** because organizational package administration requires elevated rights:
 ```yaml
       - name: Generate GitHub App Token
         id: app-token
-        if: ${{ (secrets.ORGANIZATION_APP_ID || secrets.APP_ID) != '' && (secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY) != '' }}
+        env:
+          APP_ID: ${{ secrets.ORGANIZATION_APP_ID || secrets.APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY }}
+        if: ${{ env.APP_ID != '' && env.APP_PRIVATE_KEY != '' }}
         uses: actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755 # v1.11.1
         with:
-          app-id: ${{ secrets.ORGANIZATION_APP_ID || secrets.APP_ID }}
-          private-key: ${{ secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY }}
+          app-id: ${{ env.APP_ID }}
+          private-key: ${{ env.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
       - name: Execute Package Administration Script
         env:
-          ADMIN_TOKEN: ${{ steps.app-token.outputs.token || secrets.ADMIN_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+          ADMIN_TOKEN: ${{ inputs.admin_token || steps.app-token.outputs.token || secrets.ADMIN_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
           ADMIN_ACTION: ${{ inputs.action }}
           TARGET_PACKAGE: ${{ inputs.package_name }}
           DRY_RUN: ${{ inputs.dry_run }}
@@ -168,14 +182,18 @@ Workflows across `agent-mesh`, `platform`, `docs`, and `gh-tl` consume the GitHu
 ```
 
 ### 9.2 Native Package Publishing (`agent-mesh/.github/workflows/publish.yml`)
+Operated under **Tier 2 (`tupynambalucas-ci-bot`)** with fallback to `ORGANIZATION_APP_ID` or `GITHUB_TOKEN`:
 ```yaml
       - name: Generate GitHub App Token
         id: app-token
-        if: ${{ (secrets.ORGANIZATION_APP_ID || secrets.APP_ID) != '' && (secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY) != '' }}
+        env:
+          APP_ID: ${{ secrets.CI_APP_ID || secrets.ORGANIZATION_APP_ID || secrets.APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.CI_APP_PRIVATE_KEY || secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY }}
+        if: ${{ env.APP_ID != '' && env.APP_PRIVATE_KEY != '' }}
         uses: actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755 # v1.11.1
         with:
-          app-id: ${{ secrets.ORGANIZATION_APP_ID || secrets.APP_ID }}
-          private-key: ${{ secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY }}
+          app-id: ${{ env.APP_ID }}
+          private-key: ${{ env.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
       - name: Publish Workspace Packages Idempotently (Native pnpm)
@@ -200,11 +218,14 @@ jobs:
 
       - name: Generate GitHub App Token
         id: app-token
-        if: ${{ (secrets.ORGANIZATION_APP_ID || secrets.APP_ID) != '' && (secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY) != '' }}
+        env:
+          APP_ID: ${{ secrets.CI_APP_ID || secrets.ORGANIZATION_APP_ID || secrets.APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.CI_APP_PRIVATE_KEY || secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY }}
+        if: ${{ env.APP_ID != '' && env.APP_PRIVATE_KEY != '' }}
         uses: actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755 # v1.11.1
         with:
-          app-id: ${{ secrets.ORGANIZATION_APP_ID || secrets.APP_ID }}
-          private-key: ${{ secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY }}
+          app-id: ${{ env.APP_ID }}
+          private-key: ${{ env.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
       - uses: cli/gh-extension-precompile@v2

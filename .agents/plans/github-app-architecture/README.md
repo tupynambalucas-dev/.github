@@ -82,6 +82,7 @@ flowchart TD
 | **06** | [Secret Governance, Key Generation & Workflows](./secrets-governance-and-workflows.md) | Generating RSA `.pem` keys, installing apps, configuring App Managers, Infisical Cloud Vault storage, Organization Secrets, and workflow consumption. | DevOps, Platform Engineers, SecOps |
 | **07** | [Actionable Execution Checklist & Roadmap](./execution-checklist-and-roadmap.md) | Phased step-by-step checklist for registering all three apps, downloading keys, enrolling secrets, and running verification tests. | Implementation Lead, Reviewers |
 | **08** | [Plugin Integration, Custom MCP & Multi-User Authorization](./plugin-integration-and-mcp-authorization-model.md) | Architectural coupling between `plugin-github-org`, `mcp-github`, and `org-manager`, including the 5-layer defense-in-depth authorization model for multi-user workspaces. | Lead Architects, Security Engineers, AI Mesh Developers |
+| **09** | [CI/CD Workflow Integration & Runner Architecture](./ci-cd-workflow-integration-and-runner-architecture.md) | GitHub Actions expression parser rules, why enterprise CI/CD mandates GitHub Apps over PATs/GITHUB_TOKEN, cascade triggers, workflow-to-app mapping, and SLSA Level 3 compliance. | CI/CD Engineers, DevOps, Platform Architects |
 
 ---
 
