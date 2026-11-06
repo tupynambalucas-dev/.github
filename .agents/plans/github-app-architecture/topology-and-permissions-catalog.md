@@ -408,7 +408,7 @@ The following master catalog maps all permissions supported by GitHub Apps, comp
 | **Email addresses** | `email_addresses` | No access | No access | **Read-only** | `gh-tl`, retrieving verified primary email for local Git config. |
 | **Followers** | `followers` | No access | No access | No access | Social following capabilities. |
 | **Gists** | `gists` | No access | No access | No access | Personal gist authoring. |
-| **Git SSH keys** | `git_ssh_keys` | No access | No access | **Read-only** | Validate developer authentication SSH keys during workstation onboarding. |
+| **Git SSH keys** | `git_ssh_keys` | No access | No access | **Read and write** | **REQUIRED FOR GH-TL**: Allows `gh tl onboard` to register developer authentication SSH keys (`POST /user/keys`). |
 | **GPG keys** | `gpg_keys` | No access | No access | **Read-only** | Audit legacy GPG signing keys during workstation onboarding. |
 | **Interaction limits** | `interaction_limits` | No access | No access | No access | User-level interaction restriction management. |
 | **Plan** | `plan` | No access | No access | **Read-only** | `gh-tl`, querying user billing tier for CLI capability checks. |

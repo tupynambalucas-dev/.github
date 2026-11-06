@@ -117,7 +117,7 @@ Use this checklist during manual setup:
 8. [ ] Configure Account Permissions:
    - [ ] Email addresses: `Read-only`
     - [ ] SSH signing keys: `Read and write` (Required for gh tl onboard auto-provisioning)
-    - [ ] Git SSH keys: `Read-only`
+    - [ ] Git SSH keys: `Read and write` (Required for gh tl onboard authentication key registration)
    - [ ] Plan: `Read-only`
    - [ ] Profile: `Read-only`
    - [ ] Starring: `Read and write`
