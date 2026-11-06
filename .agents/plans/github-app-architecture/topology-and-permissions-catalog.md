@@ -85,7 +85,7 @@ classDiagram
         +Issues: Read and write (Author issues)
         +Members: Read-only
         +Email addresses: Read-only
-        +Profile: Read-only
+        +Profile: Read and write
         Custody: All Engineers (core-engineers, infra-ops, etc.)
     }
 ```
@@ -413,7 +413,7 @@ The following master catalog maps all permissions supported by GitHub Apps, comp
 | **Interaction limits** | `interaction_limits` | No access | No access | No access | User-level interaction restriction management. |
 | **Plan** | `plan` | No access | No access | **Read-only** | `gh-tl`, querying user billing tier for CLI capability checks. |
 | **Private repository invitations** | `private_repository_invitations` | No access | No access | No access | Accepting incoming collaborator invitations. |
-| **Profile** | `profile` | No access | No access | **Read-only** | `gh-tl`, retrieving developer avatar, bio, and username for terminal UI. |
+| **Profile** | `profile` | No access | No access | **Read and write** | `gh-tl`, retrieving developer avatar, bio, and username for terminal UI (GitHub UI only provides 'No access' or 'Read and write'). |
 | **SSH signing keys** | `ssh_signing_keys` | No access | No access | **Read and write** | **CRITICAL FOR GH-TL**: Programmatic registration of developer public SSH Ed25519 signing key. |
 | **Starring** | `starring` | No access | No access | **Read and write** | Developer bookmarking and repository starring. |
 | **Watching** | `watching` | No access | No access | **Read and write** | Developer repository notification and thread subscriptions. |
