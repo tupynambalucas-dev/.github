@@ -9,6 +9,7 @@ Index of cross-repository architectural specifications, governance blueprints, a
 | Directory | Entrypoint | Scope |
 | :--- | :--- | :--- |
 | **Meta-Repository Architecture** | [meta-repository-architecture/README.md](./meta-repository-architecture/README.md) | Multi-tenant workstation topology, `org-core` Git submodule orchestration, Husky v9 onboarding, GitHub Flow, Changesets, and organization rulesets. |
+| **GitHub App Architecture** | [github-app-architecture/README.md](./github-app-architecture/README.md) | Three-tier machine identity model (`org-manager`, `ci-bot`, `developer-tools`), web UI setup guides, 76-permission catalog, Infisical key governance, and workflow integration. |
 
 ---
 
@@ -28,3 +29,4 @@ Index of cross-repository architectural specifications, governance blueprints, a
 
 - [Parent `.agents/` Overview](../README.md)
 - [Meta-Repository Architecture Suite](./meta-repository-architecture/README.md)
+- [GitHub App Architecture Suite](./github-app-architecture/README.md)
