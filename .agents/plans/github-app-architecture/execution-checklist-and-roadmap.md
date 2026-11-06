@@ -38,6 +38,10 @@ Use this checklist during manual setup:
    - [ ] Repository creation: `Read and write`
    - [ ] Repository security advisories: `Read and write`
    - [ ] Secret scanning alerts: `Read and write`
+    - [ ] Secret scanning push protection bypass requests: `Read and write`
+    - [ ] Secret scanning alert dismissal requests: `Read and write`
+    - [ ] Repository license policy: `Read and write`
+    - [ ] Merge queues: `Read and write`
    - [ ] Secrets: `Read and write`
    - [ ] Variables: `Read and write`
    - [ ] Workflows: `Read and write`
@@ -56,6 +60,10 @@ Use this checklist during manual setup:
    - [ ] Personal access tokens: `Read and write`
    - [ ] Personal access token requests: `Read and write`
    - [ ] Projects: `Read and write`
+    - [ ] Organization bypass requests for secret scanning: `Read and write`
+    - [ ] Organization dismissal requests for Dependabot: `Read and write`
+    - [ ] Organization dismissal requests for code scanning: `Read and write`
+    - [ ] Organization announcement banners: `Read and write`
    - [ ] Secrets: `Read and write`
    - [ ] Self-hosted runners: `Read and write`
    - [ ] Variables: `Read and write`
@@ -107,6 +115,8 @@ Use this checklist during manual setup:
    - [ ] Members: `Read-only`
 8. [ ] Configure Account Permissions:
    - [ ] Email addresses: `Read-only`
+    - [ ] SSH signing keys: `Read and write` (Required for gh tl onboard auto-provisioning)
+    - [ ] Git SSH keys: `Read-only`
    - [ ] Plan: `Read-only`
    - [ ] Profile: `Read-only`
    - [ ] Starring: `Read and write`

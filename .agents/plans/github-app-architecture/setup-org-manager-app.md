@@ -99,6 +99,11 @@ Click each dropdown and configure the exact values below:
 | **Secrets** | **Read and write** | Manage repository-level encrypted secrets for GitHub Actions. |
 | **Variables** | **Read and write** | Manage repository-level configuration variables. |
 | **Workflows** | **Read and write** | Update workflow files in `.github/workflows/`. |
+| **Merge queues** | **Read and write** | Programmatic control and inspection of repository merge queues. |
+| **Repository license policy** | **Read and write** | Enforce and audit repository license policies via `@tupynambalucas-dev/plugin-repo`. |
+| **License compliance alerts** | **Read-only** | Audit license compliance warnings on external dependencies. |
+| **Secret scanning alert dismissal requests** | **Read and write** | Review, approve, or reject secret alert dismissal requests. |
+| **Secret scanning push protection bypass requests** | **Read and write** | Review and manage push protection bypass requests when developers attempt to push sensitive data. |
 
 *(All other repository permissions not listed above should remain **No access**).*
 
@@ -118,6 +123,10 @@ Click each dropdown and configure the exact values below:
 | **Personal access tokens** | **Read and write** | Audit and revoke fine-grained personal access tokens. |
 | **Personal access token requests** | **Read and write** | Approve or deny fine-grained PAT requests. |
 | **Projects** | **Read and write** | Manage organization-level GitHub Projects (v2) boards and views. |
+| **Organization announcement banners** | **Read and write** | Broadcast operational and maintenance announcements across the organization. |
+| **Organization bypass requests for secret scanning** | **Read and write** | Triage organization-wide secret push protection bypass requests. |
+| **Organization dismissal requests for Dependabot** | **Read and write** | Triage and audit Dependabot vulnerability dismissal requests. |
+| **Organization dismissal requests for code scanning** | **Read and write** | Triage and audit CodeQL code scanning dismissal requests. |
 | **Secrets** | **Read and write** | Manage organization-wide secrets for Actions and Dependabot. |
 | **Self-hosted runners** | **Read and write** | Manage organization runner groups and runner registrations. |
 | **Variables** | **Read and write** | Manage organization-wide configuration variables. |

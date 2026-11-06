@@ -101,6 +101,9 @@ Click each dropdown and configure the exact values below:
 | **Profile** | **Read-only** | Retrieve developer avatar, name, and username for terminal UI. |
 | **Starring** | **Read and write** | Developer bookmarking and starring repositories. |
 | **Watching** | **Read and write** | Managing repository subscriptions and notifications. |
+| **SSH signing keys** | **Read and write** | **CRITICAL FOR GH-TL**: Allows `gh tl onboard` to inspect and register the developer's public SSH Ed25519 signing key on GitHub. |
+| **Git SSH keys** | **Read-only** | Verify developer authentication SSH keys during workstation onboarding. |
+| **GPG keys** | **Read-only** | Audit legacy GPG keys if used by developers. |
 
 *(All other account permissions should remain **No access**).*
 
