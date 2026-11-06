@@ -107,7 +107,7 @@ Click each dropdown and configure the exact values below:
 
 | Permission Name in GitHub UI | Required Setting | Technical Operational Rationale |
 | :--- | :--- | :--- |
-| **Administration** | **Read and write** | Organization-level settings, security managers, and Actions policies. |
+| **Administration** | **Read and write** | **CRITICAL (Governs Organization Rulesets)**: Full programmatic management of organization settings, security managers, Actions policies, and all organization-wide branch/tag rulesets (`/orgs/{org}/rulesets`). *(Note: GitHub UI embeds ruleset management inside Administration rather than having a standalone checkbox).* |
 | **API Insights** | **Read-only** | Retrieve API rate usage statistics by actor, route, and subject. |
 | **Blocking users** | **Read and write** | Block abusive accounts from interacting with organization repos. |
 | **Custom organization roles** | **Read and write** | Manage custom organization roles and retrieve IDs for team assignment. |
@@ -115,9 +115,6 @@ Click each dropdown and configure the exact values below:
 | **Events** | **Read-only** | Organization-wide event audit logs for compliance tracking. |
 | **Members** | **Read and write** | **MASTER RBAC: Create teams, update teams, set team repo access, and assign organization roles directly to teams.** |
 | **Organization private registries** | **Read and write** | Configure access to external private package registries. |
-| **Organization rulesets** | **Read and write** | **CRITICAL: Create and enforce org-wide branch and tag protection policies.** |
-| **Organization security advisories** | **Read and write** | Organization-wide security posture audits. |
-| **Packages** | **Read and write** | **CRITICAL: Organization-level package administrative operations and purge.** |
 | **Personal access tokens** | **Read and write** | Audit and revoke fine-grained personal access tokens. |
 | **Personal access token requests** | **Read and write** | Approve or deny fine-grained PAT requests. |
 | **Projects** | **Read and write** | Manage organization-level GitHub Projects (v2) boards and views. |

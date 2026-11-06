@@ -50,7 +50,7 @@ Use this checklist during manual setup:
    - [ ] Events: `Read-only`
    - [ ] Members: `Read and write` (Enables team creation and org-role assignments)
    - [ ] Organization private registries: `Read and write`
-   - [ ] Organization rulesets: `Read and write`
+   - [ ] Administration: `Read and write` (Encompasses all organization branch and tag rulesets)
    - [ ] Organization security advisories: `Read and write`
    - [ ] Packages: `Read and write`
    - [ ] Personal access tokens: `Read and write`
