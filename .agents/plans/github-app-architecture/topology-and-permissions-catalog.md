@@ -357,7 +357,7 @@ The following master catalog maps all permissions supported by GitHub Apps, comp
 | **Webhooks** | `webhooks` | No access | No access | No access | Inactive per Section 3 discipline. |
 | **Workflows** | `workflows` | **Read and write** | **Read and write** | **Read and write** | `plugin-github-flow`, `plugin-repo`, editing `.github/workflows/` files. |
 | **Merge queues** | `merge_queues` | **Read and write** | No access | No access | Manage merge queue order and locks for high-concurrency PR merges. |
-| **Repository license policy** | `repository_license_policy` | **Read and write** | No access | No access | `plugin-repo` (`license-architect`), automate repository license governance. |
+| **Repository license policy** | `repository_license_policy` | **Read-only** | No access | No access | `plugin-repo` (`license-architect`), audit repository license policy and check package compliance. |
 | **License compliance alerts** | `license_compliance_alerts` | **Read-only** | No access | No access | Ingest compliance alerts for third-party open source packages. |
 | **Secret scanning alert dismissal requests** | `secret_scanning_alert_dismissal_requests` | **Read and write** | No access | No access | Review and triage requests to dismiss secret scanning alerts. |
 | **Secret scanning push protection bypass requests** | `secret_scanning_push_protection_bypass_requests` | **Read and write** | No access | No access | `plugin-github-org` (`github-security-auditor`), triage developer bypass requests. |
