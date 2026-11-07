@@ -126,12 +126,21 @@ Click each dropdown and configure the exact values below:
 6. **Capture the Installation ID**: Inspect the URL in your browser address bar. The numeric value at the end is your **`CI_APP_INSTALLATION_ID`**. Record this value alongside the **App ID** (from the General tab).
 
 #### Step 13: Configure Credentials across CI/CD Secrets & Vaults
-1. **GitHub Actions Organization Secrets (`settings/secrets/actions`)**:
-   Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions` and enroll:
-   - Secret **`CI_APP_ID`**: Paste the numeric App ID. Set Repository Access to **All repositories**.
-   - Secret **`CI_APP_PRIVATE_KEY`**: Paste the entire raw text content of the `tupynambalucas-ci-bot.*.private-key.pem` file. Set Repository Access to **All repositories**.
+1. **Local Developer Environment (`.env`)**:
+   In `org-core/.env` and `agent-mesh/.env`, configure:
+   ```dotenv
+   GITHUB_CI_BOT_APP_ID="<Numeric App ID from General tab>"
+   GITHUB_CI_BOT_APP_CLIENT_ID="<Client ID from General tab>"
+   GITHUB_CI_BOT_APP_INSTALLATION_ID="<Numeric Installation ID from Step 12>"
+   GITHUB_CI_BOT_APP_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n-----END RSA PRIVATE KEY-----"
+   ```
 
-2. **Infisical Cloud Vault (`/ci-cd`)**:
+2. **GitHub Actions Organization Secrets (`settings/secrets/actions`)**:
+   Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions` and enroll:
+   - Secret **`GITHUB_CI_BOT_APP_ID`** (or `CI_APP_ID`): Paste the numeric App ID. Set Repository Access to **All repositories**.
+   - Secret **`GITHUB_CI_BOT_APP_PRIVATE_KEY`** (or `CI_APP_PRIVATE_KEY`): Paste the entire raw text content of the `tupynambalucas-ci-bot.*.private-key.pem` file. Set Repository Access to **All repositories**.
+
+3. **Infisical Cloud Vault (`/ci-cd`)**:
    Enroll the credentials for infrastructure automation and staging pipelines:
    ```bash
    infisical secrets set --env=staging --path=/ci-cd CI_APP_ID="<Numeric App ID>"

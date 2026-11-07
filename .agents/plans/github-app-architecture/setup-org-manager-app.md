@@ -171,12 +171,13 @@ Click each dropdown and configure the exact values below:
 
 #### Step 13: Configure Credentials across Environment & Secrets Vaults
 1. **Local Developer Environment (`.env`)**:
-   In `org-core/.env` and `agent-mesh/.env`, configure the following keys:
+   In `org-core/.env` and `agent-mesh/.env`, configure the following domain-prefixed keys:
    ```dotenv
    GITHUB_ORG="tupynambalucas-dev"
-   GITHUB_APP_ID="<Numeric App ID from General tab>"
-   GITHUB_APP_INSTALLATION_ID="<Numeric Installation ID from Step 12>"
-   GITHUB_APP_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n-----END RSA PRIVATE KEY-----"
+   GITHUB_ORG_MANAGER_APP_ID="<Numeric App ID from General tab>"
+   GITHUB_ORG_MANAGER_APP_CLIENT_ID="<Client ID from General tab>"
+   GITHUB_ORG_MANAGER_APP_INSTALLATION_ID="<Numeric Installation ID from Step 12>"
+   GITHUB_ORG_MANAGER_APP_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n-----END RSA PRIVATE KEY-----"
    ```
    *(Note: The private key can be formatted either as a single line with `\n` linebreaks or as a multiline string wrapped in double quotes).*
 

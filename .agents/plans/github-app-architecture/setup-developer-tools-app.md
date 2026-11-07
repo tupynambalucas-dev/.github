@@ -146,7 +146,8 @@ Click each dropdown and configure the exact values below:
 1. **Local Developer Environment (`.env`)**:
    In `org-core/.env` and `agent-mesh/.env`, configure:
    ```dotenv
-   GITHUB_DEVELOPER_TOOLS_CLIENT_ID="<Client ID from General tab>"
+   GITHUB_DEVELOPER_TOOLS_APP_CLIENT_ID="<Client ID from General tab>"
+   GITHUB_DEVELOPER_TOOLS_APP_ID="<Numeric App ID from General tab>"
    ```
 
 2. **Infisical Cloud Vault (`/tooling`)**:
@@ -156,7 +157,7 @@ Click each dropdown and configure the exact values below:
    ```
 
 3. **Verification with CLI**:
-   Developers running `gh tl onboard` or local CLI utilities will automatically read `GITHUB_DEVELOPER_TOOLS_CLIENT_ID` to trigger device flow onboarding without needing any private key files.
+   Developers running `gh tl onboard` or local CLI utilities will automatically read `GITHUB_DEVELOPER_TOOLS_APP_CLIENT_ID` (or `GITHUB_DEVELOPER_TOOLS_CLIENT_ID`) to trigger device flow onboarding without needing any private key files.
 
 ---
 
