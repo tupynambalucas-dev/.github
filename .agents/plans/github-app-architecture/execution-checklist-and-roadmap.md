@@ -68,7 +68,7 @@ Use this checklist during manual setup:
    - [ ] Self-hosted runners: `Read and write`
    - [ ] Variables: `Read and write`
 6. [ ] Select **Only on this account** and click **Create GitHub App**.
-7. [ ] Generate RSA Private Key: Click **Generate a private key** and download `tupynambalucas-org-manager.*.private-key.pem`.
+7. [ ] Generate RSA Private Key: In the left sidebar, click **Credentials** tab -> under **Key pairs**, click **Generate a private key** and download `tupynambalucas-org-manager.*.private-key.pem`.
 8. [ ] Install App on Organization: Select **All repositories**, install, and capture numeric **Installation ID** from redirect URL.
 9. [ ] Vault Credentials: Configure `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, and `GITHUB_APP_PRIVATE_KEY` across `.env`, Infisical (`/governance`), and Actions Org Secrets (`ORGANIZATION_APP_ID`, `ORGANIZATION_APP_PRIVATE_KEY`). Purge local `.pem` file.
 10. [ ] Assign App Managers: Add team `lead-architects`.
@@ -94,7 +94,7 @@ Use this checklist during manual setup:
    - [ ] Workflows: `Read and write`
 5. [ ] Organization Permissions: All set to `No access`.
 6. [ ] Select **Only on this account** and click **Create GitHub App**.
-7. [ ] Generate RSA Private Key: Click **Generate a private key** and download `tupynambalucas-ci-bot.*.private-key.pem`.
+7. [ ] Generate RSA Private Key: In the left sidebar, click **Credentials** tab -> under **Key pairs**, click **Generate a private key** and download `tupynambalucas-ci-bot.*.private-key.pem`.
 8. [ ] Install App on Organization: Select **All repositories**, install, and capture numeric `CI_APP_INSTALLATION_ID`.
 9. [ ] Vault Credentials: Configure `CI_APP_ID` and `CI_APP_PRIVATE_KEY` in Actions Org Secrets (All repositories) and Infisical (`/ci-cd`). Purge local `.pem` file.
 10. [ ] Assign App Managers: Add teams `lead-architects` and `infra-ops`.

@@ -15,21 +15,22 @@ Immediately after creating `tupynambalucas-org-manager` (Tier 1) and `tupynambal
 
 ```mermaid
 flowchart TD
-    G1["App Created -> General Settings Page"] --> G2["1. Record App ID (e.g. 1048291)"]
-    G1 --> G3["2. Record Client ID (e.g. Iv23...)"]
-    G1 --> G4["3. Scroll to 'Private keys' section"]
-    G4 --> G5["4. Click 'Generate a private key'"]
-    G5 --> G6["5. Browser downloads: <app-name>.<date>.private-key.pem"]
-    G6 --> G7["6. Store securely in Infisical & Org Secrets"]
+    G1["App Created -> General Settings Page"] --> G2["1. General Tab: Record App ID & Client ID"]
+    G1 --> G3["2. Click Credentials Tab (Sidebar)"]
+    G3 --> G4["3. Key pairs Section: Click 'Generate a private key'"]
+    G4 --> G5["4. Browser downloads: <app-name>.<date>.private-key.pem"]
+    G5 --> G6["5. Store securely in Infisical & Org Secrets"]
 ```
 
-1. **Record the App ID**: At the top of the **General** page, find **App ID** (numeric string, e.g. `1149202`). Copy this number.
-2. **Record the Client ID**: Right below App ID, find **Client ID** (alphanumeric string, e.g. `Iv23...`). Copy this value.
-3. **Generate Private Key**:
-   - Scroll down to the section titled **Private keys**.
-   - Click the button **Generate a private key**.
-   - GitHub generates a 2048-bit RSA private key and downloads a file named `<app-name>.<timestamp>.private-key.pem` to your computer.
-   - Store this file securely. Never commit it to any Git repository.
+1. **Record the App ID & Client ID**: On the **General** settings tab, locate **App ID** (numeric integer) and **Client ID** (alphanumeric string) under the About section. Record these values.
+2. **Navigate to Credentials Tab**:
+   - In the left navigation sidebar of the app settings, click the **Credentials** tab.
+   - The page displays **Client secrets** (leave at 0) and **Key pairs** (shows 0).
+3. **Generate Key Pair (RSA Private Key)**:
+   - Under the **Key pairs** section, click the green button: **Generate a private key** (or **Generate key pair**).
+   - GitHub automatically generates a 2048-bit RSA private key, increments Key pairs to `1`, and initiates an immediate browser download of:
+     `<app-name>.<timestamp>.private-key.pem`
+   - Store this file securely in a temporary folder. Never commit it to any Git repository.
 
 ---
 
