@@ -4,7 +4,7 @@ Your GitHub App can perform actions on behalf of a user, like creating an issue,
 
 Your app can make API requests on behalf of a user. API requests made by an app on behalf of a user will be attributed to that user. For example, if your app posts a comment on behalf of a user, the GitHub UI will show the user's avatar photo along with the app's identicon badge as the author of the issue.
 
-![Screenshot of a comment that has a user avatar with an overlaid app identicon badge. The avatar is highlighted with an orange outline.](/assets/images/help/apps/github-app-acting-on-your-behalf.png)
+![Screenshot of a comment that has a user avatar with an overlaid app identicon badge. The avatar is highlighted with an orange outline.](https://docs.github.com/assets/images/help/apps/github-app-acting-on-your-behalf.png)
 
 Similarly, if the request triggers a corresponding entry in the audit logs and security logs, the logs will list the user as the actor but will state that the "programmatic_access_type" is "GitHub App user-to-server token".
 
@@ -12,7 +12,7 @@ To make an API request on behalf of a user, the user must authorize your app. If
 
 When a user installs an app on an account, they grant the app permission to access the resources that it requested. During the installation process, they will also see a list of account permissions that the app can request for individual users. When a user authorizes an app, they grant the app permission to act on their behalf, and they grant the account permissions that the app requested.
 
-Once a user has authorized your app, you can generate a user access token, which is a type of OAuth token. You should send the user access token in the `Authorization` header of your subsequent API requests. For more information about prompting a user to authorize your app and generating a user access token, see [Generating a user access token for a GitHub App](/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app).
+Once a user has authorized your app, you can generate a user access token, which is a type of OAuth token. You should send the user access token in the `Authorization` header of your subsequent API requests. For more information about prompting a user to authorize your app and generating a user access token, see [Generating a user access token for a GitHub App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app).
 
 When operating on behalf of a user, your app's access is limited to ensure secure and appropriate access:
 
@@ -24,7 +24,16 @@ Requests made with a user access token are sometimes called "user-to-server" req
 
 A token has the same capabilities to access resources and perform actions on those resources that the owner of the token has, and is further limited by any scopes or permissions granted to the token. A token cannot grant additional access capabilities to a user.
 
-If you want to attribute app activity to the app instead of to a user, you should authenticate as an app installation instead. For more information, see [Authenticating as a GitHub App installation](/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation).
+If you want to attribute app activity to the app instead of to a user, you should authenticate as an app installation instead. For more information, see [Authenticating as a GitHub App installation](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation).
 
 > [!NOTE]
-> If a user reports that they cannot see resources owned by their organization after authorizing your GitHub App and the organization uses SAML SSO, instruct the user to start an active SAML session for their organization before reauthorizing. For more information, see [SAML and GitHub Apps](/en/enterprise-cloud@latest/apps/using-github-apps/saml-and-github-apps) in the GitHub Enterprise Cloud documentation.
+> If a user reports that they cannot see resources owned by their organization after authorizing your GitHub App and the organization uses SAML SSO, instruct the user to start an active SAML session for their organization before reauthorizing. For more information, see [SAML and GitHub Apps](https://docs.github.com/en/enterprise-cloud@latest/apps/using-github-apps/saml-and-github-apps) in the GitHub Enterprise Cloud documentation.
+
+---
+
+## Navigation
+
+- [Parent Reference Index](../README.md)
+- [How-To: Generating and Configuring GitHub App Keys](./generating-and-configuring-github-app-keys.md)
+- [Reference: GitHub Apps Catalog and Credentials](../reference/github-apps-catalog-and-credentials.md)
+- [Explanation: Three-Tier GitHub App Identity Architecture](../explanation/github-app-identity-architecture.md)

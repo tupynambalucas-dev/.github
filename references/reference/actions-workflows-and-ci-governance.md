@@ -145,4 +145,4 @@ Because workflows inside `<org>/.github/.github/workflows/` do not auto-trigger 
 - [Reusing workflow configurations - GitHub Docs](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations)
 - [Sharing actions and workflows with your organization - GitHub Docs](https://docs.github.com/en/actions/how-tos/reuse-automations/share-with-your-organization)
 - [Sharing actions and workflows from your private repository - GitHub Docs](https://docs.github.com/en/actions/how-tos/reuse-automations/share-across-private-repositories)
-- [Parent Reference Index](./README.md)
+- [Parent Reference Index](../README.md)

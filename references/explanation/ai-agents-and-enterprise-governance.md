@@ -129,4 +129,4 @@ In the `@tupynambalucas-dev` federated architecture, responsibilities are cleanl
 - [Choosing how to deploy enterprise-managed settings to users - GitHub Docs](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/use-managed-settings/deploy-managed-settings)
 - [Managing plugin marketplaces and plugins with enterprise-managed settings - GitHub Docs](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/use-managed-settings/manage-plugin-marketplaces-and-plugins)
 - [Copilot customization cheat sheet - GitHub Docs](https://docs.github.com/en/copilot/reference/customization-cheat-sheet)
-- [Parent Reference Index](./README.md)
+- [Parent Reference Index](../README.md)
