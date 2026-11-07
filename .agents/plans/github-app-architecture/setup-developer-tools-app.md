@@ -159,6 +159,13 @@ Click each dropdown and configure the exact values below:
 3. **Verification with CLI**:
    Developers running `gh tl onboard` or local CLI utilities will automatically read `GITHUB_DEVELOPER_TOOLS_APP_CLIENT_ID` (or `GITHUB_DEVELOPER_TOOLS_CLIENT_ID`) to trigger device flow onboarding without needing any private key files.
 
+#### Step 15: Assign App Managers (Delegated Administration)
+1. In the App settings left sidebar, click **App managers**.
+2. Click **Add people or teams**.
+3. Search for and select the team: `lead-architects`.
+4. Grant manager permissions to ensure enterprise leads can maintain application settings, homepage URLs, and description metadata without requiring organization owner privileges.
+5. **Zero Developer Team Delegation**: Never add `core-engineers`, `contractors`, or general developer teams to App managers. End-user developers consume the App exclusively through runtime OAuth Device Flow token minting without administrative rights over App configurations.
+
 ---
 
 ---
