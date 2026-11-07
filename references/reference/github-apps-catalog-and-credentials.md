@@ -21,7 +21,7 @@ The `tupynambalucas-dev` organization enforces a three-tier sovereign identity t
 | **Authentication Flow** | Server-to-Server (JWT signed) | Server-to-Server (JWT signed) | OAuth 2.0 Device Flow (`/login/device`) |
 | **Token Lifetime** | 1 Hour (Installation Access Token) | 1 Hour (Installation Access Token) | 8 Hours (User Access Token + Refresh) |
 | **App Managers (Delegated)** | `lead-architects` | `lead-architects`, `infra-ops` | `lead-architects` |
-| **Primary Runtime Consumers** | `@tupynambalucas-dev/mcp-github`, Agent Mesh | GitHub Actions workflows (`publish.yml`) | Developer workstations, `gh-tl` CLI suite |
+| **Primary Runtime Consumers** | `@tupynambalucas-dev/mcp-github-org`, Agent Mesh | GitHub Actions workflows (`publish.yml`) | `@tupynambalucas-dev/mcp-github-flow`, `gh-tl` CLI suite |
 
 ---
 
@@ -30,7 +30,7 @@ The `tupynambalucas-dev` organization enforces a three-tier sovereign identity t
 To maintain cross-platform compatibility across local developer machines, GitHub Actions Organization Secrets, and Kubernetes clusters, credentials use standardized prefix-less names.
 
 > [!NOTE]
-> GitHub Actions strictly forbids secrets starting with the `GITHUB_` prefix. Our codebase and configuration templates standardize on `ORG_MANAGER_APP_*`, `CI_BOT_APP_*`, and `DEVELOPER_TOOLS_APP_*`, with automatic fallback to legacy aliases in `@tupynambalucas-dev/mcp-github`.
+> GitHub Actions strictly forbids secrets starting with the `GITHUB_` prefix. Our codebase and configuration templates standardize on `ORG_MANAGER_APP_*`, `CI_BOT_APP_*`, and `DEVELOPER_TOOLS_APP_*`, with automatic fallback to legacy aliases in `@tupynambalucas-dev/mcp-core-github`.
 
 ### Tier 1: `tupynambalucas-org-manager` (Administrative Machine Identity)
 

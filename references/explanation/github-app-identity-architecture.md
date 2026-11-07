@@ -47,7 +47,7 @@ To solve these challenges permanently, `tupynambalucas-dev` implements a soverei
 
 ### Tier 1: `tupynambalucas-org-manager` (Administrative Machine Identity)
 * **Role**: Headless orchestrator for organization governance, repository provisioning, branch protection rulesets, and team RBAC assignments.
-* **Operational Scope**: Consumed exclusively by administrative daemons, such as `@tupynambalucas-dev/mcp-github` in server mode and governance cron tasks.
+* **Operational Scope**: Consumed exclusively by administrative daemons, such as `@tupynambalucas-dev/mcp-github-org` in server mode and governance cron tasks.
 * **Credential Model**: RSA 2048-bit Private Key minting short-lived 1-hour Installation Access Tokens.
 * **App Managers**: Delegated exclusively to `@tupynambalucas-dev/lead-architects`.
 
@@ -123,14 +123,14 @@ Access to our high-privilege identities is protected across five distinct bounda
 
 ---
 
-## 6. Architectural Analysis: Single Unified MCP Server vs Dedicated MCP Servers per App
+## 6. Architectural Analysis: Scoped Domain MCP Servers with Shared Core vs Monolithic MCP Server
 
 A key architectural question in AI agent ecosystems is:
-> *Do we need to develop separate custom MCP servers in `agent-mesh/mcp/packages/` for each registered GitHub App (e.g. `mcp-github-org-manager`, `mcp-github-ci-bot`, `mcp-github-dev-tools`)?*
+> *Should we bundle all GitHub tools into a single monolithic MCP server, or partition them into domain-scoped MCP servers in `agent-mesh/mcp/servers/` backed by a shared core library in `agent-mesh/mcp/core/`?*
 
-### The Verdict: A Single Unified MCP Server (`@tupynambalucas-dev/mcp-github`)
+### The Verdict: Domain-Scoped MCP Servers (`mcp-github-org` & `mcp-github-flow`) Over a Shared Core (`mcp-core-github`)
 
-Our architecture strictly mandates **a single, unified Model Context Protocol server** (`agent-mesh/mcp/packages/github`) rather than fragmented, app-specific MCP servers.
+Our architecture enforces **Subsystem-Internal Partitioning** (`agent-mesh/mcp/servers/*` and `agent-mesh/mcp/core/*`), isolating high-privilege administrative tools from high-frequency developer workflow tools while eliminating code duplication through `@tupynambalucas-dev/mcp-core-github`.
 
 ```mermaid
 flowchart TD
@@ -139,12 +139,15 @@ flowchart TD
         P_Flow["plugin-github-flow (Developer Git Workflows)"]
     end
 
-    subgraph Conduit ["Unified Conduit: Single MCP Server (agent-mesh/mcp/packages/github)"]
-        MCP["@tupynambalucas-dev/mcp-github"]
-        Tools["Standardized Tools: get_repo_info, list_org_repos, list_rulesets, etc."]
-        AuthEngine["src/auth/github-app.auth.ts (Dynamic Context-Aware Credential Resolver)"]
-        MCP --> Tools
-        MCP --> AuthEngine
+    subgraph Servers ["Scoped MCP Servers (agent-mesh/mcp/servers)"]
+        MCP_Org["@tupynambalucas-dev/mcp-github-org"]
+        MCP_Flow["@tupynambalucas-dev/mcp-github-flow"]
+    end
+
+    subgraph Core ["Shared Core Library (agent-mesh/mcp/core/github)"]
+        CorePkg["@tupynambalucas-dev/mcp-core-github"]
+        AuthEngine["getOctokitClient(tier) & Zod Common Schemas"]
+        CorePkg --> AuthEngine
     end
 
     subgraph Runtimes ["Execution Environments & Consumed Machine Identities"]
@@ -153,34 +156,31 @@ flowchart TD
         R_CI["GitHub Actions Runner (CI/CD)"] -- "Consumes Tier 2" --> App2["tupynambalucas-ci-bot (App ID 5650100)"]
     end
 
-    P_Org --> MCP
-    P_Flow --> MCP
+    P_Org --> MCP_Org
+    P_Flow --> MCP_Flow
 
-    AuthEngine -- "When ORG_MANAGER_APP_ID present" --> App1
-    AuthEngine -- "When running locally without vaulted keys" --> App3
+    MCP_Org --> CorePkg
+    MCP_Flow --> CorePkg
+
+    MCP_Org -- "tier = org-manager" --> App1
+    MCP_Flow -- "tier = developer-tools" --> App3
 
     R_CI -. "Direct Workflow Step (actions/create-github-app-token)" .-> App2
 ```
 
 ### Architectural Rationale
 
-1. **Protocol Runtime vs Identity Decoupling**:
-   An MCP server is an RPC communication conduit that bridges Large Language Models with the GitHub API using typed tools (`get_repo_info`, `list_rulesets`, `list_dependabot_alerts`, `create_team`). The tools themselves are identical regardless of which App signs the underlying HTTP request. Creating multiple MCP servers would cause massive code duplication across tool handlers, schemas, and error wrappers.
+1. **Zero-Trust Process & Credential Isolation**:
+   By binding [`@tupynambalucas-dev/plugin-github-org`](../../../agent-mesh/plugins/packages/github-org) exclusively to [`@tupynambalucas-dev/mcp-github-org`](../../../agent-mesh/mcp/servers/github-org) (`tier = 'org-manager'`) and [`@tupynambalucas-dev/plugin-github-flow`](../../../agent-mesh/plugins/packages/github-flow) exclusively to [`@tupynambalucas-dev/mcp-github-flow`](../../../agent-mesh/mcp/servers/github-flow) (`tier = 'developer-tools'`), a developer workflow session never loads administrative ruleset or security tools into its LLM context window and never requires Tier 1 RSA keys.
 
-2. **Why Tier 2 (`ci-bot`) Does NOT Need an MCP Server**:
+2. **DRY Shared Core (`@tupynambalucas-dev/mcp-core-github`)**:
+   Both scoped MCP servers consume [`@tupynambalucas-dev/mcp-core-github`](../../../agent-mesh/mcp/core/github) (`agent-mesh/mcp/core/github`), which centralizes `getOctokitClient(tier: GitHubIdentityTier)`, PEM normalization (`_PATH` -> `_BASE64` -> raw PEM), `gh auth token` CLI fallback for Tier 3 OAuth Device Flow sessions, and shared Zod schemas.
+
+3. **Why Tier 2 (`ci-bot`) Does NOT Need an MCP Server**:
    `tupynambalucas-ci-bot` is built strictly for **automated CI/CD pipelines** executing inside GitHub Actions runners (`publish.yml`, `release.yml`, `renovate.yml`).
    * GitHub Actions runners execute deterministic bash commands, pnpm scripts, and native actions.
    * Runners do **not** run LLM agent sessions and do **not** converse over the Model Context Protocol.
    * Workflows mint ephemeral tokens directly via `actions/create-github-app-token@v1`. Wrapping this in an MCP server would introduce unnecessary overhead, latency, and operational failure modes.
-
-3. **Why Tier 3 (`developer-tools`) Does NOT Need a Separate MCP Server**:
-   `tupynambalucas-developer-tools` operates via OAuth 2.0 Device Flow (`https://github.com/login/device`) to issue short-lived User Access Tokens (UAT) to human engineers. When an engineer runs `@tupynambalucas-dev/mcp-github` on their workstation without Tier 1 administrative keys, the server seamlessly authenticates using their personal session token or Tier 3 credentials. GitHub's permission intersection ensures they cannot exceed their team permissions.
-
-4. **Domain Specialization Belongs to the Plugin Layer**:
-   Separation of duties is maintained at the **Agent Plugin** level, not by fragmenting the MCP protocol server:
-   * [`@tupynambalucas-dev/plugin-github-org`](../../../agent-mesh/plugins/packages/github-org): Defines governance rules, team provisioning, ruleset enforcement, and security auditing skills.
-   * [`@tupynambalucas-dev/plugin-github-flow`](../../../agent-mesh/plugins/packages/github-flow): Defines developer workflow skills, Conventional Commits validation, and PR orchestration.
-   Both plugins bind cleanly to the single `@tupynambalucas-dev/mcp-github` MCP server via their manifest configuration.
 
 ---
 

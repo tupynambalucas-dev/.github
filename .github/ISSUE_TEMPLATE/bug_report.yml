@@ -12,7 +12,7 @@ body:
     attributes:
       label: Affected Package, Service, or Subsystem
       description: Specify the package (`@tupynambalucas-dev/*`), service, or directory path affected.
-      placeholder: "@tupynambalucas-dev/mcp-github"
+      placeholder: "@tupynambalucas-dev/mcp-github-org"
     validations:
       required: true
 

@@ -79,7 +79,7 @@ In your local configuration files (`org-core/.env`, `agent-mesh/.env`, and `plat
 GITHUB_ORG=tupynambalucas-dev
 
 # -- Tier 1: tupynambalucas-org-manager (Administrative Headless Machine Identity)
-# Consumed by @tupynambalucas-dev/mcp-github in administrative and governance modes.
+# Consumed by @tupynambalucas-dev/mcp-github-org in administrative and governance modes.
 ORG_MANAGER_APP_ID="5648756"
 ORG_MANAGER_APP_CLIENT_ID="Iv23lijGKyMy4ZmR8kAa"
 ORG_MANAGER_APP_INSTALLATION_ID="179571234"
@@ -95,12 +95,12 @@ CI_BOT_APP_PRIVATE_KEY_BASE64="LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFc
 CI_BOT_APP_PRIVATE_KEY_PATH=""
 
 # -- Tier 3: tupynambalucas-developer-tools (Developer Workstation Identity)
-# Public Client ID used by developers during OAuth 2.0 Device Flow (gh-tl CLI).
+# Public Client ID used by developers during OAuth 2.0 Device Flow (gh-tl CLI & @tupynambalucas-dev/mcp-github-flow).
 DEVELOPER_TOOLS_APP_ID="5650238"
 DEVELOPER_TOOLS_APP_CLIENT_ID="Iv23li0HsZejytkVkbTl"
 ```
 
-The runtime loader ([`@tupynambalucas-dev/mcp-github`](../../../agent-mesh/mcp/packages/github)) automatically resolves the private key in order of priority:
+The runtime loader ([`@tupynambalucas-dev/mcp-core-github`](../../../agent-mesh/mcp/core/github)) automatically resolves the private key in order of priority:
 1. `_PATH` (if defined and the file exists on disk).
 2. `_BASE64` (decoding from Base64 into UTF-8 in memory).
 3. Raw key / legacy aliases (for backward compatibility).
@@ -191,14 +191,14 @@ In containerized production environments, exposing private keys as environment v
    apiVersion: apps/v1
    kind: Deployment
    metadata:
-     name: cortex-mcp-github
+     name: cortex-mcp-github-org
      namespace: cortex
    spec:
      template:
        spec:
          containers:
-           - name: mcp-github
-             image: ghcr.io/tupynambalucas-dev/mcp-github:latest
+           - name: mcp-github-org
+             image: ghcr.io/tupynambalucas-dev/mcp-github-org:latest
              env:
                - name: ORG_MANAGER_APP_ID
                  value: "5648756"
@@ -230,13 +230,13 @@ When managing cluster secrets with the Infisical Kubernetes Operator:
 To test that your credentials and key are functioning correctly from your local machine:
 
 ```bash
-cd agent-mesh/mcp/packages/github
+cd agent-mesh/mcp/core/github
 node -e "
 require('dotenv').config({ path: '../../../.env' });
 const { getOctokitClient } = require('./dist/auth/github-app.auth');
 (async () => {
   try {
-    const octokit = await getOctokitClient();
+    const octokit = await getOctokitClient('org-manager');
     const res = await octokit.request('GET /installation/repositories');
     console.log('GitHub App Auth SUCCESS! Total accessible repositories:', res.data.total_count);
   } catch (err) {
