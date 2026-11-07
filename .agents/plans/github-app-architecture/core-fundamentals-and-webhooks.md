@@ -81,6 +81,39 @@ GitHub Apps support three distinct token flows:
 | **Installation Access Token** | `IAT` | Exactly 60 minutes | Minted by calling `POST /app/installations/{id}/access_tokens` using a JWT. | **Server-to-Server automation**; all CI/CD, release publishing, repository governance, and package management. |
 | **User Access Token** | `UAT` | 8 hours (with refresh token) | Minted via OAuth authorization or Device Flow when a user authorizes the App. | **User-to-Server developer tooling**; interactive CLI commands (`gh-tl`), developer portals, and IDE extensions. |
 
+### 2.4 Modern Token Evolution: The Stateless Installation Token Transition
+
+In May 2026 (completed October 2026), GitHub introduced and concluded the rollout of a **stateless, JWT-based format for GitHub App installation access tokens (`ghs_`)**, replacing the legacy 40-character opaque stateful token.
+
+```mermaid
+flowchart LR
+    subgraph Legacy ["Legacy Format (Deprecated)"]
+        L1["Opaque Hash: ghs_... (40 chars, 0 dots)"]
+        L2["Requires central DB lookup on every API call"]
+    end
+
+    subgraph Modern ["Modern Stateless Format (Default since Oct 2026)"]
+        M1["JWT Format: ghs_APPID_JWT... (~520 chars, 2 dots)"]
+        M2["Self-contained cryptographic verification"]
+    end
+```
+
+#### Key Architecture Principles of the New Token Format:
+1. **Format and Structure**:
+   - Classic token: 40-character alphanumeric string without periods (`ghs_[A-Za-z0-9]{36}`).
+   - Stateless token: ~520-character base64-encoded JWT with the `ghs_` prefix and **two dots** separating the header, payload, and signature.
+2. **Why GitHub Migrated to Stateless Tokens**:
+   - State-less tokens do not require round-trip database queries inside GitHub's infrastructure for every single REST/GraphQL API request, drastically increasing throughput, reducing latency, and eliminating token-validation database bottlenecks during high-load CI/CD bursts.
+3. **The `X-GitHub-Stateless-S2S-Token` Override Header**:
+   - During the staged rollout (May–November 2026), GitHub provided a temporary HTTP request header on `POST /app/installations/:installation_id/access_tokens`:
+     - `X-GitHub-Stateless-S2S-Token: enabled`: Forces the generation of the stateless ~520-character JWT token.
+     - `X-GitHub-Stateless-S2S-Token: disabled`: Forces the legacy 40-character opaque format.
+   - **Deprecation Date**: The override header will be permanently deprecated and ignored on **November 30, 2026**. All newly minted installation tokens will unconditionally use the stateless format.
+4. **Organizational Readiness & Compliance**:
+   - **No Hardcoded Length Assumptions**: Code and storage must never assume installation tokens are 40 characters.
+   - **Regex Guidance**: When matching installation tokens, use the official GitHub pattern `ghs_[A-Za-z0-9\.\-_]{36,}`.
+   - **Tupynamba Lucas Stack Compliance**: Our stack (`agent-mesh`, `platform`, `gh-tl`, `actions/create-github-app-token`) consumes tokens dynamically via environment variables without length or character restrictions, guaranteeing complete native compliance with zero required changes.
+
 ---
 
 ## 3. Webhooks Deep Dive: Push vs. Pull Architecture & Inactive Discipline
