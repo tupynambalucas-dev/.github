@@ -69,9 +69,9 @@ Use this checklist during manual setup:
    - [ ] Variables: `Read and write`
 6. [ ] Select **Only on this account** and click **Create GitHub App**.
 7. [ ] Generate RSA Private Key: In the left sidebar, click **Credentials** tab -> under **Key pairs**, click **Generate a private key** and download `tupynambalucas-org-manager.*.private-key.pem`.
-8. [ ] Install App on Organization: Select **All repositories**, install, and capture numeric **Installation ID** from redirect URL.
-9. [ ] Vault Credentials: Configure `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, and `GITHUB_APP_PRIVATE_KEY` across `.env`, Infisical (`/governance`), and Actions Org Secrets (`ORGANIZATION_APP_ID`, `ORGANIZATION_APP_PRIVATE_KEY`). Purge local `.pem` file.
-10. [ ] Assign App Managers: Add team `lead-architects`.
+8. [x] Install App on Organization: Select **All repositories**, install, and capture numeric **Installation ID** from redirect URL.
+9. [x] Vault Credentials: Configure `ORG_MANAGER_APP_ID`, `ORG_MANAGER_APP_INSTALLATION_ID`, and `ORG_MANAGER_APP_PRIVATE_KEY_BASE64` across `.env`, Infisical (`/governance`), and Actions Org Secrets (`ORG_MANAGER_APP_ID`, `ORG_MANAGER_APP_PRIVATE_KEY`). Purge local `.pem` file.
+10. [x] Assign App Managers: Add team `lead-architects`.
 
 ### Phase 2: Register Tier 2 (`tupynambalucas-ci-bot`)
 1. [ ] Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
@@ -95,9 +95,9 @@ Use this checklist during manual setup:
 5. [ ] Organization Permissions: All set to `No access`.
 6. [ ] Select **Only on this account** and click **Create GitHub App**.
 7. [ ] Generate RSA Private Key: In the left sidebar, click **Credentials** tab -> under **Key pairs**, click **Generate a private key** and download `tupynambalucas-ci-bot.*.private-key.pem`.
-8. [ ] Install App on Organization: Select **All repositories**, install, and capture numeric `CI_APP_INSTALLATION_ID`.
-9. [ ] Vault Credentials: Configure `CI_APP_ID` and `CI_APP_PRIVATE_KEY` in Actions Org Secrets (All repositories) and Infisical (`/ci-cd`). Purge local `.pem` file.
-10. [ ] Assign App Managers: Add teams `lead-architects` and `infra-ops`.
+8. [x] Install App on Organization: Select **All repositories**, install, and capture numeric `CI_BOT_APP_INSTALLATION_ID`.
+9. [x] Vault Credentials: Configure `CI_BOT_APP_ID` and `CI_BOT_APP_PRIVATE_KEY` in Actions Org Secrets (All repositories) and Infisical (`/ci-cd`). Purge local `.pem` file.
+10. [x] Assign App Managers: Add teams `lead-architects` and `infra-ops`.
 
 ### Phase 3: Register Tier 3 (`tupynambalucas-developer-tools`)
 1. [ ] Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/apps/new`.
@@ -140,10 +140,10 @@ Use this checklist during manual setup:
 3. [ ] In `tupynambalucas-developer-tools` settings -> **App managers**: Add team `lead-architects`.
 
 ### Phase 5: Configure Organization Secrets & Run Clean Release
-1. [ ] Configure `ORGANIZATION_APP_ID`, `ORGANIZATION_APP_PRIVATE_KEY`, `CI_APP_ID`, and `CI_APP_PRIVATE_KEY` in GitHub Organization Secrets (`https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions`).
-2. [ ] Verify workflow pre-flight evaluation: Confirm that `publish.yml` and `admin-packages.yml` map secrets to step-level `env` blocks before conditional evaluation, adhering strictly to the architecture documented in [Document 09: CI/CD Workflow Integration & Runner Architecture](./ci-cd-workflow-integration-and-runner-architecture.md).
-3. [ ] Trigger `admin-packages.yml` to purge remote packages.
-4. [ ] Trigger `publish.yml` to publish inaugural clean `1.0.0` packages to GitHub Packages.
+1. [x] Configure `ORG_MANAGER_APP_ID`, `ORG_MANAGER_APP_PRIVATE_KEY`, `CI_BOT_APP_ID`, and `CI_BOT_APP_PRIVATE_KEY` in GitHub Organization Secrets (`https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions`).
+2. [x] Verify workflow pre-flight evaluation: Confirm that workflows consuming GitHub App tokens (`renovate.yml`, `renderer-generate.yml`, `deploy-docs.yaml`, `release.yml`) map secrets to step-level `env` blocks before conditional evaluation, while `publish.yml` and `admin-packages.yml` authenticate against `npm.pkg.github.com` and granular package endpoints using `secrets.GITHUB_TOKEN` (`permissions: packages: write`).
+3. [x] Trigger `publish.yml` (`purge-obsolete` / `force_republish: true`) to purge all 18 obsolete remote packages (including `@tupynambalucas-dev/mcp-github`).
+4. [x] Publish all 19 clean `1.0.0` workspace packages to GitHub Packages.
 
 ---
 

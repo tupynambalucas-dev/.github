@@ -24,9 +24,9 @@ graph TD
 ```
 
 1. **`agent-mesh`**:
-   - Compiles and publishes 17 internal packages (7 MCP servers + 10 domain plugins) to `npm.pkg.github.com`.
-   - Administers package registry versions (listing, purging obsolete packages via REST API).
-   - Hosts `@tupynambalucas-dev/mcp-github`, interrogating GitHub Security APIs (Secret Scanning, Dependabot), repository rulesets, and pull requests.
+   - Compiles and publishes 19 internal packages (1 shared MCP core library `@tupynambalucas-dev/mcp-core-github` + 8 MCP servers + 10 domain plugins) to `npm.pkg.github.com`.
+   - Administers package registry versions (listing and purging obsolete packages via `.github/scripts/manage-packages.js` using `secrets.GITHUB_TOKEN` granular package `admin` role).
+   - Hosts `@tupynambalucas-dev/mcp-github-org` (bound to Tier 1 `tupynambalucas-org-manager` for organization governance, rulesets, Dependabot, and Secret Scanning) and `@tupynambalucas-dev/mcp-github-flow` (bound to Tier 3 `tupynambalucas-developer-tools` for branches, pull requests, and GitHub Actions workflow diagnostics).
 2. **`.github`**:
    - Manages organization-level configurations, community health files, issue/PR templates, and organization rulesets.
 3. **`gh-tl`**:
@@ -222,8 +222,8 @@ flowchart TD
 
     subgraph Layer3 ["Layer 3: GitHub Organization Secrets Repository & Environment Scoping"]
         L3["GitHub Organization Secrets Policy"]
-        L3 --> L3A["ORGANIZATION_APP_PRIVATE_KEY: Scoped ONLY to .github and org-core"]
-        L3 --> L3B["CI_APP_PRIVATE_KEY: Scoped to all delivery monorepos"]
+        L3 --> L3A["ORG_MANAGER_APP_PRIVATE_KEY: Organization-level governance secret"]
+        L3 --> L3B["CI_BOT_APP_PRIVATE_KEY: Scoped to all delivery monorepos"]
         L3 --> L3C["Environment Approval Gates: Production deployment requires Owner sign-off"]
     end
 

@@ -32,7 +32,7 @@ Follow each field sequentially:
 #### Core Responsibilities
 - **RBAC & Team Administration**: Programmatic management of functional teams (`lead-architects`, `security-managers`, `infra-ops`, `core-engineers`) and direct assignment of organization roles to teams.
 - **Rulesets & Protection**: Enforcement of organization-wide branch protection rulesets, tag protection policies, and required status checks.
-- **Security Auditing**: Comprehensive oversight of Secret Scanning alerts, Dependabot vulnerabilities, and CodeQL security scanning via `@tupynambalucas-dev/mcp-github`.
+- **Security Auditing**: Comprehensive oversight of Secret Scanning alerts, Dependabot vulnerabilities, and CodeQL security scanning via `@tupynambalucas-dev/mcp-github-org`.
 - **Package Governance**: Administrative deletion and cleanup of obsolete package versions on GitHub Packages (`npm.pkg.github.com`).
 - **Secrets & Token Governance**: Centralized audit and management of fine-grained personal access tokens and organization variables.
 
@@ -80,11 +80,11 @@ Click each dropdown and configure the exact values below:
 | **Artifact metadata** | **Read and write** | Inspect and publish metadata and attestations for build artifacts. |
 | **Attestations** | **Read and write** | Cryptographically sign and write artifact provenance attestations (Sigstore/SLSA). |
 | **Checks** | **Read and write** | Create and update status checks and automated annotations. |
-| **Code scanning alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` security audits. |
+| **Code scanning alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github-org` security audits. |
 | **Commit statuses** | **Read and write** | Publish build status markers on commits. |
 | **Contents** | **Read and write** | Read code, commit files, create branches, push tags (`v1.0.0`). |
 | **Custom properties** | **Read and write** | Read and set repository-specific custom property values. |
-| **Dependabot alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` vulnerability triage. |
+| **Dependabot alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github-org` vulnerability triage. |
 | **Dependabot secrets** | **Read and write** | Manage private registry tokens consumed by Dependabot. |
 | **Deployments** | **Read and write** | Create deployment records, track environment rollouts. |
 | **Environments** | **Read and write** | Manage deployment environment rules and approvals. |
@@ -95,7 +95,7 @@ Click each dropdown and configure the exact values below:
 | **Pull requests** | **Read and write** | Inspect, comment, approve, and manage pull requests. |
 | **Repository creation** | **Read and write** | Allows the bot to create new repositories in the organization. |
 | **Repository security advisories** | **Read and write** | Audit repository CVE status and manage security disclosures. |
-| **Secret scanning alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github` secret audits. |
+| **Secret scanning alerts** | **Read and write** | Needed for `@tupynambalucas-dev/mcp-github-org` secret audits. |
 | **Secrets** | **Read and write** | Manage repository-level encrypted secrets for GitHub Actions. |
 | **Variables** | **Read and write** | Manage repository-level configuration variables. |
 | **Workflows** | **Read and write** | Update workflow files in `.github/workflows/`. |
@@ -192,8 +192,8 @@ Click each dropdown and configure the exact values below:
 
 3. **GitHub Actions Organization Secrets (`settings/secrets/actions`)**:
    Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions` and enroll:
-   - Secret **`ORGANIZATION_APP_ID`**: Paste the numeric App ID. Set Repository Access to **Selected repositories** (`agent-mesh`, `platform`, `.github`, `docs`, `gh-tl`).
-   - Secret **`ORGANIZATION_APP_PRIVATE_KEY`**: Paste the entire raw text content of the downloaded `.pem` file (including header and footer). Set Repository Access to **Selected repositories**.
+   - Secret **`ORG_MANAGER_APP_ID`**: Paste the numeric App ID. Set Repository Access to **All repositories** (or Selected repositories: `agent-mesh`, `platform`, `.github`, `docs`, `gh-tl`).
+   - Secret **`ORG_MANAGER_APP_PRIVATE_KEY`**: Paste the entire raw text content of the downloaded `.pem` file (including header and footer). Set Repository Access to **All repositories** (or Selected repositories).
 
 4. **Cryptographic Hygiene & Cleanup**:
    Once stored securely in Infisical and local `.env`, permanently purge the unencrypted `.pem` file from your workstation downloads directory:

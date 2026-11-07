@@ -15,8 +15,8 @@ As the `tupynambalucas-dev` agent mesh expands across repositories, managing acc
 - **The Machine Identity is Unified**: Operations executed by autonomous agents must carry cryptographic authenticity, emit clean audit trails, and be attributed to the official `@tupynambalucas-org-manager[bot]` persona.
 
 This specification establishes:
-1. The architectural coupling between [`@tupynambalucas-dev/plugin-github-org`](../../../../agent-mesh/plugins/packages/github-org) and the Tier-1 GitHub App (`tupynambalucas-org-manager`).
-2. The role of the custom Model Context Protocol server ([`@tupynambalucas-dev/mcp-github`](../../../../agent-mesh/mcp/packages/github)) in `agent-mesh/mcp/packages/github`, including its existing authentication layer and roadmap for governance mutation tools.
+1. The architectural coupling between [`@tupynambalucas-dev/plugin-github-org`](../../../../agent-mesh/plugins/packages/github-org) and the Tier-1 GitHub App (`tupynambalucas-org-manager`), and between [`@tupynambalucas-dev/plugin-github-flow`](../../../../agent-mesh/plugins/packages/github-flow) and the Tier-3 GitHub App (`tupynambalucas-developer-tools`).
+2. The role of the shared foundation package ([`@tupynambalucas-dev/mcp-core-github`](../../../../agent-mesh/mcp/core/github)) and the two scoped Model Context Protocol servers ([`@tupynambalucas-dev/mcp-github-org`](../../../../agent-mesh/mcp/servers/github-org) and [`@tupynambalucas-dev/mcp-github-flow`](../../../../agent-mesh/mcp/servers/github-flow)).
 3. The **Five-Layer Defense-in-Depth Authorization Model**, ensuring that workspace access never equates to administrative authority.
 4. The operational distinction between **Headless Server-to-Server** operations and **Interactive User-to-Server** operations via OAuth Device Flow.
 
@@ -24,7 +24,7 @@ This specification establishes:
 
 ## 2. Plugin Architecture: The Brain and Body Paradigm
 
-The integration between the agent plugin and the GitHub App implements a strict separation of concerns:
+The integration between the agent plugins and the GitHub Apps implements a strict separation of concerns:
 
 ```mermaid
 flowchart TD
@@ -48,10 +48,10 @@ flowchart TD
         TokenIssuer --> BotPersona
     end
 
-    subgraph Conduit ["The Conduit: Custom MCP Server (@tupynambalucas-dev/mcp-github)"]
-        MCPConfig["src/config.ts (Env Cascade: GITHUB_APP_ID, PEM, GITHUB_ORG)"]
-        OctokitAuth["src/auth/github-app.auth.ts (@octokit/auth-app RS256 JWT Exchange)"]
-        ToolHandlers["src/tools/* (Repos, Rulesets, Security Alerts, RBAC)"]
+    subgraph Conduit ["The Conduit: Scoped MCP Server (@tupynambalucas-dev/mcp-github-org)"]
+        MCPConfig["mcp/core/github/src/config.ts (ORG_MANAGER_APP_ID, PEM, GITHUB_ORG)"]
+        OctokitAuth["mcp/core/github/src/auth/github-app.auth.ts (Tier-Aware RS256 JWT Exchange)"]
+        ToolHandlers["mcp/servers/github-org/src/tools/* (Repos, Teams, Rulesets, Security Alerts)"]
         MCPConfig --> OctokitAuth
         OctokitAuth --> ToolHandlers
     end
@@ -61,62 +61,48 @@ flowchart TD
     Body -- "Executes against" --> GitHubAPI["GitHub REST/GraphQL API v3/v4"]
 ```
 
-1. **The Brain (`plugin-github-org`)**:
+1. **The Brain (`plugin-github-org` & `plugin-github-flow`)**:
    - Encapsulates domain logic, reasoning heuristics, pre-flight verification gates, and lifecycle hooks.
-   - Declares the MCP server binding in its `mcp.json` manifest.
+   - Declares the scoped MCP server binding (`@tupynambalucas-dev/mcp-github-org` or `@tupynambalucas-dev/mcp-github-flow`) in its `mcp.json` manifest.
    - Does NOT store private keys or hardcoded tokens.
-2. **The Conduit (`mcp-github`)**:
-   - Lives in `agent-mesh/mcp/packages/github`.
+2. **The Conduit (`mcp-core-github`, `mcp-github-org` & `mcp-github-flow`)**:
+   - Shared foundation lives in `agent-mesh/mcp/core/github` (`@tupynambalucas-dev/mcp-core-github`); scoped servers live in `agent-mesh/mcp/servers/github-org` and `agent-mesh/mcp/servers/github-flow`.
    - Implements Model Context Protocol handlers conforming to `@modelcontextprotocol/sdk`.
    - Bridges the agent's natural language tool calls into strongly-typed Octokit API requests.
-3. **The Body (`tupynambalucas-org-manager`)**:
+3. **The Body (`tupynambalucas-org-manager` & `tupynambalucas-developer-tools`)**:
    - Holds the cryptographic permission grant registered in GitHub's authorization database.
    - Signs commits and API requests with the green `Verified` badge.
    - Emits structured events to GitHub's organization audit log.
 
 ---
 
-## 3. The Custom MCP Server Architecture (`@tupynambalucas-dev/mcp-github`)
+## 3. Scoped MCP Server Architecture (`@tupynambalucas-dev/mcp-core-github`, `mcp-github-org`, `mcp-github-flow`)
 
 ### 3.1 Existing Implementation State
 
-The custom MCP server in `agent-mesh/mcp/packages/github` is already implemented with first-class GitHub App support:
+The GitHub MCP ecosystem in `agent-mesh/mcp/` implements a 2-server + 1-core architecture with tier-isolated GitHub App authentication:
 
-- **Authentication Logic ([`src/auth/github-app.auth.ts`](../../../../agent-mesh/mcp/packages/github/src/auth/github-app.auth.ts))**:
+- **Authentication Logic ([`mcp/core/github/src/auth/github-app.auth.ts`](../../../../agent-mesh/mcp/core/github/src/auth/github-app.auth.ts))**:
   ```typescript
-  export async function getOctokitClient(): Promise<Octokit> {
-    const hasAppCreds =
-      config.GITHUB_APP_ID &&
-      config.GITHUB_APP_PRIVATE_KEY &&
-      config.GITHUB_APP_INSTALLATION_ID;
-
-    if (hasAppCreds) {
+  export async function getOctokitClient(tier: GitHubAppTier = 'org-manager'): Promise<Octokit> {
+    const creds = resolveTierCredentials(tier);
+    if (creds.appId && creds.privateKey && creds.installationId) {
       const auth = createAppAuth({
-        appId: config.GITHUB_APP_ID,
-        privateKey: config.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        installationId: parseInt(config.GITHUB_APP_INSTALLATION_ID, 10),
+        appId: creds.appId,
+        privateKey: creds.privateKey,
+        installationId: parseInt(creds.installationId, 10),
       });
-
       const installationAuth = await auth({ type: 'installation' });
       return new Octokit({ auth: installationAuth.token });
     }
-
     const token = config.GITHUB_PERSONAL_ACCESS_TOKEN || config.GITHUB_TOKEN;
-    if (token) {
-      return new Octokit({ auth: token });
-    }
-
-    return new Octokit();
+    return token ? new Octokit({ auth: token }) : new Octokit();
   }
   ```
 - **Graceful Fallback**: If an engineer runs `agent-mesh` locally without GitHub App credentials, the server seamlessly falls back to `GITHUB_TOKEN` or `GITHUB_PERSONAL_ACCESS_TOKEN`, preventing crashes.
-- **Current Inspection Tools**:
-  - `get_repo_info`: Inspects repository metadata, default branch, and visibility.
-  - `list_org_repos`: Lists organization repositories with filter options.
-  - `list_rulesets`: Queries branch and tag protection rulesets.
-  - `get_ruleset`: Retrieves detailed ruleset configurations by ID.
-  - `list_dependabot_alerts`: Ingests open Dependabot vulnerabilities.
-  - `list_secret_scanning_alerts`: Ingests active secret push protection and scanning alerts.
+- **Scoped Tools by Server**:
+  - `@tupynambalucas-dev/mcp-github-org` (`tier = 'org-manager'`, 7 tools): `get_repo_info`, `list_org_repos`, `list_org_teams`, `list_rulesets`, `get_ruleset`, `list_dependabot_alerts`, `list_secret_scanning_alerts`.
+  - `@tupynambalucas-dev/mcp-github-flow` (`tier = 'developer-tools'`, 6 tools): `get_repo_info`, `list_branches`, `list_pull_requests`, `get_pull_request`, `list_workflow_runs`, `get_workflow_run`.
 
 ### 3.2 Roadmap: Governance Mutation Tools
 

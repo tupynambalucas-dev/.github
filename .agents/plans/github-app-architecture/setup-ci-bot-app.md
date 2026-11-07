@@ -137,16 +137,16 @@ Click each dropdown and configure the exact values below:
 
 2. **GitHub Actions Organization Secrets (`settings/secrets/actions`)**:
    Navigate to `https://github.com/organizations/tupynambalucas-dev/settings/secrets/actions` and enroll:
-   - Secret **`GITHUB_CI_BOT_APP_ID`** (or `CI_APP_ID`): Paste the numeric App ID. Set Repository Access to **All repositories**.
-   - Secret **`GITHUB_CI_BOT_APP_PRIVATE_KEY`** (or `CI_APP_PRIVATE_KEY`): Paste the entire raw text content of the `tupynambalucas-ci-bot.*.private-key.pem` file. Set Repository Access to **All repositories**.
+   - Secret **`CI_BOT_APP_ID`**: Paste the numeric App ID. Set Repository Access to **All repositories**.
+   - Secret **`CI_BOT_APP_PRIVATE_KEY`**: Paste the entire raw text content of the `tupynambalucas-ci-bot.*.private-key.pem` file. Set Repository Access to **All repositories**.
 
 3. **Infisical Cloud Vault (`/ci-cd`)**:
    Enroll the credentials for infrastructure automation and staging pipelines:
    ```bash
-   infisical secrets set --env=staging --path=/ci-cd CI_APP_ID="<Numeric App ID>"
-   infisical secrets set --env=staging --path=/ci-cd CI_APP_CLIENT_ID="<Client ID from General tab>"
-   infisical secrets set --env=staging --path=/ci-cd CI_APP_INSTALLATION_ID="<Numeric Installation ID>"
-   infisical secrets set --env=staging --path=/ci-cd CI_APP_PRIVATE_KEY="$(cat tupynambalucas-ci-bot.*.private-key.pem)"
+   infisical secrets set --env=staging --path=/ci-cd CI_BOT_APP_ID="<Numeric App ID>"
+   infisical secrets set --env=staging --path=/ci-cd CI_BOT_APP_CLIENT_ID="<Client ID from General tab>"
+   infisical secrets set --env=staging --path=/ci-cd CI_BOT_APP_INSTALLATION_ID="<Numeric Installation ID>"
+   infisical secrets set --env=staging --path=/ci-cd CI_BOT_APP_PRIVATE_KEY="$(cat tupynambalucas-ci-bot.*.private-key.pem)"
    ```
 
 3. **Cryptographic Hygiene & Cleanup**:
