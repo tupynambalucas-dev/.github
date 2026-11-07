@@ -113,10 +113,10 @@ To make the credentials universally accessible across all workflows in all five 
 
 | Secret Name | Value to Input | Repository Access Policy |
 | :--- | :--- | :--- |
-| **`ORGANIZATION_APP_ID`** | Numeric App ID of `tupynambalucas-org-manager` (Tier 1) | Selected repositories: `agent-mesh`, `platform`, `.github`, `docs`, `gh-tl` |
-| **`ORGANIZATION_APP_PRIVATE_KEY`** | Full text content of the downloaded `org-manager` `.pem` file | Selected repositories: `agent-mesh`, `platform`, `.github`, `docs`, `gh-tl` |
-| **`CI_APP_ID`** | Numeric App ID of `tupynambalucas-ci-bot` (Tier 2) | All repositories |
-| **`CI_APP_PRIVATE_KEY`** | Full text content of the `ci-bot` `.pem` file | All repositories |
+| **`ORG_MANAGER_APP_ID`** | Numeric App ID of `tupynambalucas-org-manager` (Tier 1) | All repositories (or Selected repositories: `agent-mesh`, `platform`, `.github`, `docs`, `gh-tl`) |
+| **`ORG_MANAGER_APP_PRIVATE_KEY`** | Full text content of the downloaded `org-manager` `.pem` file | All repositories (or Selected repositories: `agent-mesh`, `platform`, `.github`, `docs`, `gh-tl`) |
+| **`CI_BOT_APP_ID`** | Numeric App ID of `tupynambalucas-ci-bot` (Tier 2) | All repositories |
+| **`CI_BOT_APP_PRIVATE_KEY`** | Full text content of the `ci-bot` `.pem` file | All repositories |
 | **`DEVELOPER_TOOLS_CLIENT_ID`** | Alphanumeric Client ID of `tupynambalucas-developer-tools` (Tier 3) | All repositories / Publicly accessible configuration |
 
 ### 8.2 Infisical Cloud Vault Enrollment & Path-Based Access Control
@@ -125,16 +125,16 @@ Store all identity parameters in Infisical project `tupynambalucas-dev-platform`
 
 ```bash
 # Tier 1 Vault Enrollment (Restricted Folder: /governance - Lead Architects Only)
-infisical secrets set --env=prod --path=/governance GITHUB_APP_ID="<Numeric App ID of org-manager>"
-infisical secrets set --env=prod --path=/governance GITHUB_APP_CLIENT_ID="<Client ID of org-manager>"
-infisical secrets set --env=prod --path=/governance GITHUB_APP_INSTALLATION_ID="<Installation ID of org-manager>"
-infisical secrets set --env=prod --path=/governance GITHUB_APP_PRIVATE_KEY="<Complete contents of org-manager .pem file>"
+infisical secrets set --env=prod --path=/governance ORG_MANAGER_APP_ID="<Numeric App ID of org-manager>"
+infisical secrets set --env=prod --path=/governance ORG_MANAGER_APP_CLIENT_ID="<Client ID of org-manager>"
+infisical secrets set --env=prod --path=/governance ORG_MANAGER_APP_INSTALLATION_ID="<Installation ID of org-manager>"
+infisical secrets set --env=prod --path=/governance ORG_MANAGER_APP_PRIVATE_KEY="<Complete contents of org-manager .pem file>"
 
 # Tier 2 Vault Enrollment (CI/CD Folder: /ci-cd - Runners & Infra-Ops)
-infisical secrets set --env=staging --path=/ci-cd CI_APP_ID="<Numeric App ID of ci-bot>"
-infisical secrets set --env=staging --path=/ci-cd CI_APP_CLIENT_ID="<Client ID of ci-bot>"
-infisical secrets set --env=staging --path=/ci-cd CI_APP_INSTALLATION_ID="<Installation ID of ci-bot>"
-infisical secrets set --env=staging --path=/ci-cd CI_APP_PRIVATE_KEY="<Complete contents of ci-bot .pem file>"
+infisical secrets set --env=staging --path=/ci-cd CI_BOT_APP_ID="<Numeric App ID of ci-bot>"
+infisical secrets set --env=staging --path=/ci-cd CI_BOT_APP_CLIENT_ID="<Client ID of ci-bot>"
+infisical secrets set --env=staging --path=/ci-cd CI_BOT_APP_INSTALLATION_ID="<Installation ID of ci-bot>"
+infisical secrets set --env=staging --path=/ci-cd CI_BOT_APP_PRIVATE_KEY="<Complete contents of ci-bot .pem file>"
 
 # Tier 3 Vault Enrollment (Developer Tools - Accessible to All Workspace Projects)
 infisical secrets set --env=dev --path=/tooling DEVELOPER_TOOLS_CLIENT_ID="<Client ID of developer-tools>"
@@ -146,60 +146,43 @@ infisical secrets set --env=dev --path=/tooling DEVELOPER_TOOLS_CLIENT_ID="<Clie
 
 ## 9. Workflow Consumption Architecture
 
-Workflows across `agent-mesh`, `platform`, `docs`, and `gh-tl` consume the GitHub App token via the standard, pinned action `actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755`.
+Workflows across `platform`, `docs`, and `gh-tl` consume the GitHub App token via `actions/create-github-app-token`, while `agent-mesh` package workflows (`publish.yml`, `admin-packages.yml`) authenticate against `npm.pkg.github.com` and granular package endpoints using `secrets.GITHUB_TOKEN` (`permissions: packages: write`).
 
 > [!IMPORTANT]
 > **GitHub Actions Parser Rule on Secrets**: The GitHub Actions workflow expression parser strictly prohibits referencing the `secrets.*` context inside `if:` conditionals (which triggers `Unrecognized named-value: 'secrets'`). Secrets MUST be mapped into step-level `env:` before evaluation:
 > ```yaml
 > env:
->   APP_ID: ${{ secrets.CI_APP_ID || secrets.ORGANIZATION_APP_ID || secrets.APP_ID }}
->   APP_PRIVATE_KEY: ${{ secrets.CI_APP_PRIVATE_KEY || secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY }}
+>   APP_ID: ${{ secrets.CI_BOT_APP_ID || secrets.CI_APP_ID || secrets.ORG_MANAGER_APP_ID || secrets.ORGANIZATION_APP_ID }}
+>   APP_PRIVATE_KEY: ${{ secrets.CI_BOT_APP_PRIVATE_KEY || secrets.CI_APP_PRIVATE_KEY || secrets.ORG_MANAGER_APP_PRIVATE_KEY || secrets.ORGANIZATION_APP_PRIVATE_KEY }}
 > if: ${{ env.APP_ID != '' && env.APP_PRIVATE_KEY != '' }}
 > ```
-> For an exhaustive architectural explanation of why workflows consume GitHub Apps instead of `GITHUB_TOKEN` or PATs, see [Document 09: CI/CD Workflow Integration & Runner Architecture](./ci-cd-workflow-integration-and-runner-architecture.md).
+> For an exhaustive architectural explanation of why Git/PR/Release workflows consume GitHub Apps while `npm.pkg.github.com` requires `secrets.GITHUB_TOKEN`, see [Document 09: CI/CD Workflow Integration & Runner Architecture](./ci-cd-workflow-integration-and-runner-architecture.md).
 
 ### 9.1 Package Deletion & Administration (`agent-mesh/.github/workflows/admin-packages.yml`)
-Operated under **Tier 1 (`tupynambalucas-org-manager`)** because organizational package administration requires elevated rights:
+Authenticated using `secrets.GITHUB_TOKEN` (which automatically holds the `admin` role on all granular-permission packages published by `agent-mesh`) or an optional Classic PAT override (`ADMIN_PACKAGES_TOKEN`):
 ```yaml
-      - name: Generate GitHub App Token
-        id: app-token
-        env:
-          APP_ID: ${{ secrets.ORGANIZATION_APP_ID || secrets.APP_ID }}
-          APP_PRIVATE_KEY: ${{ secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY }}
-        if: ${{ env.APP_ID != '' && env.APP_PRIVATE_KEY != '' }}
-        uses: actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755 # v1.11.1
-        with:
-          app-id: ${{ env.APP_ID }}
-          private-key: ${{ env.APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-
       - name: Execute Package Administration Script
         env:
-          ADMIN_TOKEN: ${{ inputs.admin_token || steps.app-token.outputs.token || secrets.ADMIN_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+          ADMIN_TOKEN: ${{ inputs.admin_token || secrets.ADMIN_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
           ADMIN_ACTION: ${{ inputs.action }}
           TARGET_PACKAGE: ${{ inputs.package_name }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: node .github/scripts/manage-packages.js
 ```
 
-### 9.2 Native Package Publishing (`agent-mesh/.github/workflows/publish.yml`)
-Operated under **Tier 2 (`tupynambalucas-ci-bot`)** with fallback to `ORGANIZATION_APP_ID` or `GITHUB_TOKEN`:
+### 9.2 Native Package Reconciliation & Publishing (`agent-mesh/.github/workflows/publish.yml`)
+Automatically purges obsolete packages (`purge-obsolete` on push, or `purge-all` when `force_republish: true` on `workflow_dispatch`) and publishes all 19 workspace packages using `secrets.GITHUB_TOKEN`:
 ```yaml
-      - name: Generate GitHub App Token
-        id: app-token
+      - name: Reconcile Registry & Purge Obsolete Packages
         env:
-          APP_ID: ${{ secrets.CI_APP_ID || secrets.ORGANIZATION_APP_ID || secrets.APP_ID }}
-          APP_PRIVATE_KEY: ${{ secrets.CI_APP_PRIVATE_KEY || secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY }}
-        if: ${{ env.APP_ID != '' && env.APP_PRIVATE_KEY != '' }}
-        uses: actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755 # v1.11.1
-        with:
-          app-id: ${{ env.APP_ID }}
-          private-key: ${{ env.APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+          ADMIN_ACTION: ${{ inputs.force_republish && 'purge-all' || 'purge-obsolete' }}
+          DRY_RUN: "false"
+        run: node .github/scripts/manage-packages.js
 
       - name: Publish Workspace Packages Idempotently (Native pnpm)
         env:
-          NODE_AUTH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm run packages:publish
 ```
 
@@ -220,10 +203,10 @@ jobs:
       - name: Generate GitHub App Token
         id: app-token
         env:
-          APP_ID: ${{ secrets.CI_APP_ID || secrets.ORGANIZATION_APP_ID || secrets.APP_ID }}
-          APP_PRIVATE_KEY: ${{ secrets.CI_APP_PRIVATE_KEY || secrets.ORGANIZATION_APP_PRIVATE_KEY || secrets.APP_PRIVATE_KEY }}
+          APP_ID: ${{ secrets.CI_BOT_APP_ID || secrets.CI_APP_ID || secrets.ORG_MANAGER_APP_ID || secrets.ORGANIZATION_APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.CI_BOT_APP_PRIVATE_KEY || secrets.CI_APP_PRIVATE_KEY || secrets.ORG_MANAGER_APP_PRIVATE_KEY || secrets.ORGANIZATION_APP_PRIVATE_KEY }}
         if: ${{ env.APP_ID != '' && env.APP_PRIVATE_KEY != '' }}
-        uses: actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755 # v1.11.1
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
         with:
           app-id: ${{ env.APP_ID }}
           private-key: ${{ env.APP_PRIVATE_KEY }}
