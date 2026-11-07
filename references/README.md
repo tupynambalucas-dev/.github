@@ -1,54 +1,89 @@
-# GitHub Governance Repositories Reference (`references/`)
+# Organization Technical Documentation Hub (`references/`)
 
-Authoritative technical reference library documenting GitHub's special organization governance repositories (`<org>/.github` and `<org>/.github-private`), extracted and synthesized from upstream GitHub Docs.
+Authoritative technical documentation library for `tupynambalucas-dev`, structured strictly according to the **Diataxis Documentation Framework** across four cognitive quadrants: **Tutorials**, **How-To Guides**, **Reference Specifications**, and **Architectural Explanations**.
 
 ---
 
-## 1. Executive Summary
+## 1. Diataxis Framework Architecture
 
-GitHub reserves two special repository names at the organization (and enterprise) level to centralize public presentation, internal member onboarding, default community health standards, CI/CD starter templates, and AI agent governance without polluting downstream application repositories:
+The documentation in this library is partitioned by intent and audience needs:
 
-| Repository | Required Visibility | Primary Native Platform Capabilities |
+```
+                                  LEARNING ORIENTED
+                                          |
+                                          |
+               Tutorials                  |              How-To Guides
+       (Step-by-step onboarding)          |        (Task-oriented runbooks)
+                                          |
+    --------------------------------------+--------------------------------------
+                                          |
+              Explanation                 |                Reference
+        (Architecture & rationale)        |         (Schemas, specs & catalogs)
+                                          |
+                                          |
+                                 INFORMATION ORIENTED
+```
+
+* **Tutorials (Learning-Oriented)**: Step-by-step guided lessons teaching core concepts and end-to-end setups from scratch.
+* **How-To Guides (Problem-Oriented)**: Practical recipes and task-focused runbooks solving concrete operational challenges.
+* **Reference (Information-Oriented)**: Authoritative catalogs, permissions matrices, environment schemas, and configuration specifications.
+* **Explanation (Understanding-Oriented)**: Deep architectural rationale, threat models, design decisions, and background context.
+
+---
+
+## 2. Documentation Catalog
+
+### A. Tutorials (Learning-Oriented)
+
+| Document | Primary Focus & Target Outcome | Audience |
 | :--- | :--- | :--- |
-| **`<org>/.github`** | **Public** *(required for Profile & Community Health; Internal/Private supported only for restricted Starter Workflows & Custom Agents)* | Public organization profile (`profile/README.md`), organization-wide fallback Community Health files (`SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SUPPORT.md`, `ACCESSIBILITY.md`, `FUNDING.yml`, `VULNERABILITY_REPORT.yml`), default Issue/PR/Discussion templates, GitHub Actions Starter Workflows (`workflow-templates/`), public Reusable Workflows, and organization-level AI Custom Agents (`/agents/`). |
-| **`<org>/.github-private`** | **Private** *(strictly required for Member-Only Profile; Private or Internal supported for Enterprise AI Governance)* | Member-only organization profile (`profile/README.md` rendered exclusively to authenticated organization members), organization and enterprise AI Custom Agents (`/agents/*.md`), staging agents (`.github/agents/*.md`), and server-managed GitHub Copilot governance (`copilot/managed-settings.json`, `copilot/team-mappings.json`, plugin marketplace enforcement). |
+| [tutorials/creating-a-github-app-end-to-end.md](./tutorials/creating-a-github-app-end-to-end.md) | Step-by-step walkthrough creating, configuring scopes, disabling webhooks, installing, delegating App Managers, and registering private keys for an enterprise GitHub App. | Platform Architects, DevOps Engineers |
 
----
+### B. How-To Guides (Problem-Oriented)
 
-## 2. Reference Architecture Catalog
+| Document | Primary Focus & Target Outcome | Audience |
+| :--- | :--- | :--- |
+| [how-to-guides/generating-and-configuring-github-app-keys.md](./how-to-guides/generating-and-configuring-github-app-keys.md) | Generating RSA `.pem` keys, encoding to Base64 for `.env` and Infisical, configuring GitHub Actions Org Secrets, and mounting filesystem Secret volumes in Kubernetes (`platform/k8s`). | DevOps, SecOps, SRE |
+| [how-to-guides/authenticating-with-a-github-app-on-behalf-of-a-user.md](./how-to-guides/authenticating-with-a-github-app-on-behalf-of-a-user.md) | Executing OAuth 2.0 Device Flow (`https://github.com/login/device`) from terminal interfaces without web redirects, minting auto-expiring 8-hour user access tokens. | CLI Developers, Engineers |
+| [how-to-guides/automacao-de-onboarding-no-github.md](./how-to-guides/automacao-de-onboarding-no-github.md) | Automated developer onboarding, conditional Git includes (`hasconfig:remote.*.url`), unified SSH keys for authentication, and cryptographic Ed25519 commit signing. | Team Leads, Maintainers |
 
-| Document | Focus Area & Scope |
-| :--- | :--- |
-| [github-vs-github-private-architecture.md](./github-vs-github-private-architecture.md) | Deep architectural comparison between `.github` and `.github-private`, visibility constraints, dual-view organization profile rendering (`Public` vs `Member`), pinned repository segmentation, and resolution topology. |
-| [default-community-health-and-templates.md](./default-community-health-and-templates.md) | Exhaustive specification of all supported default Community Health files, Issue Forms, Pull Request templates, Discussion Category forms, directory precedence rules, and critical non-inherited files (`LICENSE`, `CODEOWNERS`, `dependabot.yml`). |
-| [actions-workflows-and-ci-governance.md](./actions-workflows-and-ci-governance.md) | Technical reference for Organization Starter Workflows (`workflow-templates/`, `.properties.json`, `$default-branch`), Reusable Workflows (`workflow_call`), runner billing, `GITHUB_TOKEN` permission monotonicity, and concurrency rules. |
-| [ai-agents-and-enterprise-governance.md](./ai-agents-and-enterprise-governance.md) | Reference for Organization and Enterprise Custom Agents (`/agents/`), server-managed Copilot settings (`copilot/managed-settings.json`), plugin marketplace controls, ruleset protection, and strategic domain boundaries within `tupynambalucas-dev`. |
-| [org-ecosystem-architecture-and-portfolio-governance.md](./org-ecosystem-architecture-and-portfolio-governance.md) | Technical blueprint for the dual meta-repository architecture separating Enterprise Foundation (`org-core`) from Portfolio Solutions & Services (`org-ecosystem`), namespace layout (`commercial/`, `internal/`, `oss/`), and Mani tag-based partial synchronization for independent monorepos (`omnichannel`, `tessel`). |
+### C. Reference (Information-Oriented)
+
+| Document | Primary Focus & Target Outcome | Audience |
+| :--- | :--- | :--- |
+| [reference/github-apps-catalog-and-credentials.md](./reference/github-apps-catalog-and-credentials.md) | Master catalog of the organization's three sovereign GitHub Apps (`org-manager`, `ci-bot`, `developer-tools`), App IDs, Client IDs, Installation IDs, and environment variable schema matrix. | All Engineers & Operators |
+| [reference/permissions-required-for-github-apps.md](./reference/permissions-required-for-github-apps.md) | Master reference mapping GitHub App permissions to underlying REST and GraphQL API endpoints, rate limits, and security scope definitions. | Security Engineers, App Owners |
+| [reference/actions-workflows-and-ci-governance.md](./reference/actions-workflows-and-ci-governance.md) | Specification of organization Starter Workflows (`workflow-templates/`), Reusable Workflows (`workflow_call`), billing rules, and concurrency cancellation. | CI/CD Maintainers, DevOps |
+| [reference/default-community-health-and-templates.md](./reference/default-community-health-and-templates.md) | Exhaustive inventory of fallback Community Health files (`SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`), Issue Forms, and PR templates. | Open Source Maintainers |
+
+### D. Explanation (Understanding-Oriented)
+
+| Document | Primary Focus & Target Outcome | Audience |
+| :--- | :--- | :--- |
+| [explanation/github-app-identity-architecture.md](./explanation/github-app-identity-architecture.md) | Deep architectural explanation of the Three-Tier Identity Topology, why we eliminate static PATs, cascading workflow automation, and Base64 vs Kubernetes file mount security analysis. | Enterprise Architects, SecOps |
+| [explanation/github-vs-github-private-architecture.md](./explanation/github-vs-github-private-architecture.md) | Architectural comparison between public `.github` and private `.github-private`, dual-view organization profile rendering (`Public` vs `Member`), and resolution topology. | Organization Owners |
+| [explanation/org-ecosystem-architecture-and-portfolio-governance.md](./explanation/org-ecosystem-architecture-and-portfolio-governance.md) | Dual meta-repository architecture separating Enterprise Foundation (`org-core`) from Portfolio Solutions (`org-ecosystem`), namespace layout, and Mani tag orchestration. | Engineering Leadership |
+| [explanation/ai-agents-and-enterprise-governance.md](./explanation/ai-agents-and-enterprise-governance.md) | Organization-wide and enterprise AI custom agents (`/agents/`), server-managed Copilot settings (`copilot/managed-settings.json`), and marketplace controls. | AI Engineers, Team Leads |
 
 ---
 
 ## 3. Canonical Upstream Sources
 
-All specifications in this directory were retrieved and verified from official GitHub documentation:
+All architectural patterns and technical specifications in this library are aligned with official GitHub documentation:
 
 - [Customizing your organization's profile](https://docs.github.com/en/organizations/collaborating-with-groups-in-organizations/customizing-your-organizations-profile)
 - [Creating a default community health file](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file)
-- [About issue and pull request templates](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/about-issue-and-pull-request-templates)
-- [Creating discussion category forms](https://docs.github.com/en/discussions/managing-discussions-for-your-community/creating-discussion-category-forms)
 - [Creating workflow templates for your organization](https://docs.github.com/en/actions/how-tos/reuse-automations/create-workflow-templates)
 - [Reusing workflow configurations](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations)
-- [Sharing actions and workflows with your organization](https://docs.github.com/en/actions/how-tos/reuse-automations/share-with-your-organization)
-- [Creating a .github-private repository](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/create-github-private-repo)
-- [Preparing to use custom agents in your organization](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-organization/prepare-for-custom-agents)
-- [Preparing to use custom agents in your enterprise](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/prepare-for-custom-agents)
-- [Getting started with enterprise-managed settings](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/use-managed-settings/get-started)
-- [Choosing how to deploy enterprise-managed settings to users](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/use-managed-settings/deploy-managed-settings)
-- [Managing plugin marketplaces and plugins with enterprise-managed settings](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/use-managed-settings/manage-plugin-marketplaces-and-plugins)
-- [Copilot customization cheat sheet](https://docs.github.com/en/copilot/reference/customization-cheat-sheet)
+- [Creating GitHub Apps](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps)
+- [Authenticating with GitHub Apps](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/about-authentication-with-a-github-app)
+- [Managing GitHub App Managers](https://docs.github.com/en/apps/managing-github-apps/modifying-a-github-app/managing-access-to-your-github-app)
+- [Using the OAuth 2.0 Device Flow](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#device-flow)
 
 ---
 
 ## 4. Navigation
 
-- [Repository Root README](../README.md)
-- [Repository Agent Context (`AGENTS.md`)](../AGENTS.md)
+- [Organization Governance Root (`.github/README.md`)](../README.md)
+- [Organization Agent Context (`.github/AGENTS.md`)](../AGENTS.md)
+- [Enterprise Meta-Repository Root (`org-core/README.md`)](../../README.md)
