@@ -239,7 +239,7 @@ When combined, a functional team possesses both:
 
 ## 6. Superpower Specification for `tupynambalucas-org-manager`
 
-To grant `tupynambalucas-org-manager` near-total organizational authority—enabling [`@tupynambalucas-dev/plugin-github-org`](file:///C:/Users/tupyn/projects/organizations/tupynambalucas-dev/org-core/agent-mesh/plugins/packages/github-org) to autonomously manage teams, assign organization roles to teams, configure global rulesets, and administer packages—the app must be provisioned with the following configuration:
+To grant `tupynambalucas-org-manager` near-total organizational authority—enabling [`@tupynambalucas-dev/plugin-github-org`](../../../agent-mesh/plugins/packages/github-org) to autonomously manage teams, assign organization roles to teams, configure global rulesets, and administer packages—the app must be provisioned with the following configuration:
 
 ```mermaid
 classDiagram
