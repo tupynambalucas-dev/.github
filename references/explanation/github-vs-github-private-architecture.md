@@ -107,4 +107,4 @@ Organization owners can curate two independent sets of pinned repositories on th
 - [Customizing your organization's profile - GitHub Docs](https://docs.github.com/en/organizations/collaborating-with-groups-in-organizations/customizing-your-organizations-profile)
 - [Creating a .github-private repository - GitHub Docs](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/create-github-private-repo)
 - [Preparing to use custom agents in your organization - GitHub Docs](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-organization/prepare-for-custom-agents)
-- [Parent Reference Index](./README.md)
+- [Parent Reference Index](../README.md)

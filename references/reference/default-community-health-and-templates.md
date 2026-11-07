@@ -97,4 +97,4 @@ A frequent architectural mistake is placing operational or legal manifests in `<
 - [About issue and pull request templates - GitHub Docs](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/about-issue-and-pull-request-templates)
 - [Creating discussion category forms - GitHub Docs](https://docs.github.com/en/discussions/managing-discussions-for-your-community/creating-discussion-category-forms)
 - [About community profiles for public repositories - GitHub Docs](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/about-community-profiles-for-public-repositories)
-- [Parent Reference Index](./README.md)
+- [Parent Reference Index](../README.md)
