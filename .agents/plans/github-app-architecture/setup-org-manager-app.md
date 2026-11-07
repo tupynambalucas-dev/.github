@@ -146,13 +146,16 @@ Click each dropdown and configure the exact values below:
 - Click the green button: **Create GitHub App**.
 - GitHub creates the application and redirects you to the App's **General** settings dashboard (`https://github.com/organizations/tupynambalucas-dev/settings/apps/tupynambalucas-org-manager`).
 
-#### Step 11: Generate RSA Private Key (.pem)
-1. On the **General** settings tab, scroll down to the **Private keys** section.
-2. Click the green button: **Generate a private key**.
-3. GitHub automatically generates a secure 2048-bit RSA keypair, registers the public key on GitHub servers, and initiates an immediate browser download of the private key file named:
+#### Step 11: Generate RSA Private Key (.pem) via Credentials Tab
+1. In the left navigation sidebar of the App settings, click the **Credentials** tab (located right beneath the **General** tab).
+2. The **Credentials** page displays two sections:
+   - **Client secrets** (Leave empty / 0 secrets: Client secrets are only used for OAuth web application flows).
+   - **Key pairs** (Currently shows `0`: *"You need a private key to sign access token requests"*).
+3. In the **Key pairs** section, click the green button: **Generate a private key** (or **Generate key pair**).
+4. GitHub automatically generates a secure 2048-bit RSA keypair, registers the public key on GitHub servers, increments the **Key pairs** counter to `1`, and initiates an immediate browser download of the private key file named:
    `tupynambalucas-org-manager.<timestamp>.private-key.pem`
-4. Confirm the success banner appears: *"A private key has been generated and downloaded to your computer."*
-5. Keep this file in a secure temporary location for Step 13.
+5. Confirm the success banner appears: *"A private key has been generated and downloaded to your computer."*
+6. Keep this file in a secure temporary location for Step 13.
 
 > [!CAUTION]
 > GitHub never stores or displays the private key again after generation. If the `.pem` file is lost before vaulting, you must click **Delete** next to the lost key and click **Generate a private key** to issue a replacement.

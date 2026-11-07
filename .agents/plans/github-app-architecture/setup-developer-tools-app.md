@@ -124,13 +124,13 @@ Click each dropdown and configure the exact values below:
 
 #### Step 11: Cryptographic Invariant - Zero Private Key Generation (Tier 3 Rule)
 > [!IMPORTANT]
-> **DO NOT GENERATE A PRIVATE KEY FOR THIS APP.**
+> **DO NOT GENERATE A PRIVATE KEY OR CLIENT SECRET FOR THIS APP.**
 >
 > **Technical Rationale**:
 > - `tupynambalucas-developer-tools` operates exclusively as a **Public Client** utilizing the **OAuth 2.0 Device Authorization Flow** (`https://github.com/login/device`).
 > - An RSA private key represents machine-level authorization (the power to act as the App itself without an interactive user session). Distributing private keys to developer workstations violates organizational security policies and zero-trust principles.
 > - With Device Flow, developer CLI tools (such as `gh tl onboard` and local developer tooling) identify themselves strictly using the public **Client ID**. Authentication occurs through interactive web-based browser approval by the human engineer, which issues short-lived, user-scoped OAuth tokens.
-> - Therefore, leave the **Private keys** section completely empty. Never click "Generate a private key" for Tier 3.
+> - In the **Credentials** tab, leave both **Key pairs** (`0`) and **Client secrets** (`0`) completely empty. Never click "Generate a private key" or "New client secret" for Tier 3.
 
 #### Step 12: Record Public Client ID
 1. On the **General** settings tab under the **About** section, locate the **Client ID** (an alphanumeric string such as `Iv23...`).
