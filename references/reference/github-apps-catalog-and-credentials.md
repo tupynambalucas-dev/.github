@@ -27,35 +27,39 @@ The `tupynambalucas-dev` organization enforces a three-tier sovereign identity t
 
 ## 2. Environment Variable Schema Matrix
 
-To enforce zero-ambiguity configuration across developer machines, CI runners, and Kubernetes clusters, credentials use standardized prefixes:
+To maintain cross-platform compatibility across local developer machines, GitHub Actions Organization Secrets, and Kubernetes clusters, credentials use standardized prefix-less names.
+
+> [!NOTE]
+> GitHub Actions strictly forbids secrets starting with the `GITHUB_` prefix. Our codebase and configuration templates standardize on `ORG_MANAGER_APP_*`, `CI_BOT_APP_*`, and `DEVELOPER_TOOLS_APP_*`, with automatic fallback to legacy aliases in `@tupynambalucas-dev/mcp-github`.
 
 ### Tier 1: `tupynambalucas-org-manager` (Administrative Machine Identity)
 
 | Variable Name | Required? | Accepted Format | Default Destination | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
-| `GITHUB_ORG_MANAGER_APP_ID` | Yes | Numeric string (`5648756`) | `.env`, Infisical, K8s ConfigMap | Identifies App to GitHub API |
-| `GITHUB_ORG_MANAGER_APP_CLIENT_ID` | Yes | Alphanumeric (`Iv23lijGKyMy4ZmR8kAa`) | `.env`, Infisical | Public OAuth / App Client ID |
-| `GITHUB_ORG_MANAGER_APP_INSTALLATION_ID` | Yes | Numeric string (`179571234`) | `.env`, Infisical, K8s ConfigMap | Targets org installation context |
-| `GITHUB_ORG_MANAGER_APP_PRIVATE_KEY_BASE64` | Conditional | Base64-encoded PEM string | `.env`, Infisical Vault | In-memory private key resolution |
-| `GITHUB_ORG_MANAGER_APP_PRIVATE_KEY_PATH` | Conditional | Absolute/relative file path | Kubernetes Pod manifests | Mount-point resolution (`/var/run/secrets/`) |
+| `ORG_MANAGER_APP_ID` | Yes | Numeric string (`5648756`) | `.env`, Infisical, GitHub Org Secret | Identifies App to GitHub API |
+| `ORG_MANAGER_APP_CLIENT_ID` | Yes | Alphanumeric (`Iv23lijGKyMy4ZmR8kAa`) | `.env`, Infisical | Public OAuth / App Client ID |
+| `ORG_MANAGER_APP_INSTALLATION_ID` | Yes | Numeric string (`179571234`) | `.env`, Infisical, K8s ConfigMap | Targets org installation context |
+| `ORG_MANAGER_APP_PRIVATE_KEY_BASE64` | Conditional | Base64-encoded PEM string | `.env`, Infisical Vault | In-memory private key resolution |
+| `ORG_MANAGER_APP_PRIVATE_KEY_PATH` | Conditional | Absolute/relative file path | Kubernetes Pod manifests | Mount-point resolution (`/var/run/secrets/`) |
+| `ORG_MANAGER_APP_PRIVATE_KEY` | Conditional | Raw multiline PEM string | GitHub Actions Organization Secret | Passed to `actions/create-github-app-token` |
 
 ### Tier 2: `tupynambalucas-ci-bot` (Autonomous CI/CD Identity)
 
 | Variable Name | Required? | Accepted Format | Default Destination | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
-| `GITHUB_CI_BOT_APP_ID` | Yes | Numeric string (`5650100`) | GitHub Org Secret (`CI_APP_ID`), `.env` | Workflows `create-github-app-token` |
-| `GITHUB_CI_BOT_APP_CLIENT_ID` | Yes | Alphanumeric (`Iv23liVfQ814P54tQusd`) | `.env`, Infisical | Public identifier |
-| `GITHUB_CI_BOT_APP_INSTALLATION_ID` | Yes | Numeric string (`179570999`) | `.env`, Infisical | Org installation target |
-| `GITHUB_CI_BOT_APP_PRIVATE_KEY_BASE64` | Conditional | Base64-encoded PEM string | `.env`, Infisical Vault | Local development & runner injection |
-| `GITHUB_CI_BOT_APP_PRIVATE_KEY_PATH` | Conditional | File path string | Runner disk / K8s volume | Filesystem resolution |
-| `CI_APP_PRIVATE_KEY` *(Actions Secret)* | Yes | Raw multiline PEM text | GitHub Org Secret | Secret passed to `actions/create-github-app-token` |
+| `CI_BOT_APP_ID` | Yes | Numeric string (`5650100`) | GitHub Org Secret, `.env`, Infisical | Workflows `create-github-app-token` |
+| `CI_BOT_APP_CLIENT_ID` | Yes | Alphanumeric (`Iv23liVfQ814P54tQusd`) | `.env`, Infisical | Public identifier |
+| `CI_BOT_APP_INSTALLATION_ID` | Yes | Numeric string (`179570999`) | `.env`, Infisical | Org installation target |
+| `CI_BOT_APP_PRIVATE_KEY_BASE64` | Conditional | Base64-encoded PEM string | `.env`, Infisical Vault | Local development & runner injection |
+| `CI_BOT_APP_PRIVATE_KEY_PATH` | Conditional | File path string | Runner disk / K8s volume | Filesystem resolution |
+| `CI_BOT_APP_PRIVATE_KEY` | Yes | Raw multiline PEM text | GitHub Actions Organization Secret | Secret passed to `actions/create-github-app-token` |
 
 ### Tier 3: `tupynambalucas-developer-tools` (Workstation Self-Service Identity)
 
 | Variable Name | Required? | Accepted Format | Default Destination | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
-| `GITHUB_DEVELOPER_TOOLS_APP_ID` | Optional | Numeric string (`5650238`) | `.env`, Infisical (`/tooling`) | App identifier |
-| `GITHUB_DEVELOPER_TOOLS_APP_CLIENT_ID` | Yes | Alphanumeric (`Iv23li0HsZejytkVkbTl`) | `.env`, Infisical (`/tooling`), CLI | Public client ID for Device Flow |
+| `DEVELOPER_TOOLS_APP_ID` | Optional | Numeric string (`5650238`) | `.env`, Infisical (`/tooling`) | App identifier |
+| `DEVELOPER_TOOLS_APP_CLIENT_ID` | Yes | Alphanumeric (`Iv23li0HsZejytkVkbTl`) | `.env`, Infisical (`/tooling`), CLI | Public client ID for Device Flow |
 
 ---
 
@@ -118,20 +122,22 @@ metadata:
   name: github-app-infisical-sync
   namespace: cortex
 spec:
-  hostAPI: https://app.infisical.com/api
+  resyncInterval: 60
   authentication:
     universalAuth:
       secretsRef:
-        secretName: infisical-auth-credentials
+        secretName: infisical-universal-auth
+        secretNamespace: cortex
   managedSecretReference:
-    secretName: github-org-manager-managed-secret
-    creationPolicy: Owner
+    secretName: github-org-manager-synced-secret
+    secretNamespace: cortex
 ```
 
 ---
 
 ## 5. Navigation
 
-- [Tutorial: Creating a GitHub App End-to-End](../tutorials/creating-a-github-app-end-to-end.md)
+- [Parent Reference Index](../README.md)
 - [How-To: Generating and Configuring GitHub App Keys](../how-to-guides/generating-and-configuring-github-app-keys.md)
+- [Tutorial: Creating a GitHub App End-to-End](../tutorials/creating-a-github-app-end-to-end.md)
 - [Explanation: Three-Tier GitHub App Identity Architecture](../explanation/github-app-identity-architecture.md)
