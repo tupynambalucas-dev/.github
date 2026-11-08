@@ -46,11 +46,11 @@ To conditionally execute a step based on whether a secret exists without trigger
 
 ```yaml
       # CORRECT PATTERN: Map secrets to env, then evaluate env in if:
-      - name: Generate GitHub App Token
+      - name: Generate CI Bot Token
         id: app-token
         env:
-          APP_ID: ${{ secrets.CI_BOT_APP_ID || secrets.CI_APP_ID || secrets.ORG_MANAGER_APP_ID || secrets.ORGANIZATION_APP_ID }}
-          APP_PRIVATE_KEY: ${{ secrets.CI_BOT_APP_PRIVATE_KEY || secrets.CI_APP_PRIVATE_KEY || secrets.ORG_MANAGER_APP_PRIVATE_KEY || secrets.ORGANIZATION_APP_PRIVATE_KEY }}
+          APP_ID: ${{ secrets.CI_BOT_APP_ID || secrets.CI_APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.CI_BOT_APP_PRIVATE_KEY || secrets.CI_APP_PRIVATE_KEY }}
         if: ${{ env.APP_ID != '' && env.APP_PRIVATE_KEY != '' }}
         uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
         with:

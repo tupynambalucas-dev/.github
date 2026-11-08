@@ -152,8 +152,8 @@ Workflows across `platform`, `docs`, and `gh-tl` consume the GitHub App token vi
 > **GitHub Actions Parser Rule on Secrets**: The GitHub Actions workflow expression parser strictly prohibits referencing the `secrets.*` context inside `if:` conditionals (which triggers `Unrecognized named-value: 'secrets'`). Secrets MUST be mapped into step-level `env:` before evaluation:
 > ```yaml
 > env:
->   APP_ID: ${{ secrets.CI_BOT_APP_ID || secrets.CI_APP_ID || secrets.ORG_MANAGER_APP_ID || secrets.ORGANIZATION_APP_ID }}
->   APP_PRIVATE_KEY: ${{ secrets.CI_BOT_APP_PRIVATE_KEY || secrets.CI_APP_PRIVATE_KEY || secrets.ORG_MANAGER_APP_PRIVATE_KEY || secrets.ORGANIZATION_APP_PRIVATE_KEY }}
+>   APP_ID: ${{ secrets.CI_BOT_APP_ID || secrets.CI_APP_ID }}
+>   APP_PRIVATE_KEY: ${{ secrets.CI_BOT_APP_PRIVATE_KEY || secrets.CI_APP_PRIVATE_KEY }}
 > if: ${{ env.APP_ID != '' && env.APP_PRIVATE_KEY != '' }}
 > ```
 > For an exhaustive architectural explanation of why Git/PR/Release workflows consume GitHub Apps while `npm.pkg.github.com` requires `secrets.GITHUB_TOKEN`, see [Document 09: CI/CD Workflow Integration & Runner Architecture](./ci-cd-workflow-integration-and-runner-architecture.md).
@@ -200,11 +200,11 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
 
-      - name: Generate GitHub App Token
+      - name: Generate CI Bot Token
         id: app-token
         env:
-          APP_ID: ${{ secrets.CI_BOT_APP_ID || secrets.CI_APP_ID || secrets.ORG_MANAGER_APP_ID || secrets.ORGANIZATION_APP_ID }}
-          APP_PRIVATE_KEY: ${{ secrets.CI_BOT_APP_PRIVATE_KEY || secrets.CI_APP_PRIVATE_KEY || secrets.ORG_MANAGER_APP_PRIVATE_KEY || secrets.ORGANIZATION_APP_PRIVATE_KEY }}
+          APP_ID: ${{ secrets.CI_BOT_APP_ID || secrets.CI_APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.CI_BOT_APP_PRIVATE_KEY || secrets.CI_APP_PRIVATE_KEY }}
         if: ${{ env.APP_ID != '' && env.APP_PRIVATE_KEY != '' }}
         uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
         with:
