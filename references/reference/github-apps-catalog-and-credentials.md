@@ -21,7 +21,7 @@ The `tupynambalucas-dev` organization enforces a three-tier sovereign identity t
 | **Authentication Flow** | Server-to-Server (JWT signed) | Server-to-Server (JWT signed) | OAuth 2.0 Device Flow (`/login/device`) |
 | **Token Lifetime** | 1 Hour (Installation Access Token) | 1 Hour (Installation Access Token) | 8 Hours (User Access Token + Refresh) |
 | **App Managers (Delegated)** | `lead-architects` | `lead-architects`, `infra-ops` | `lead-architects` |
-| **Primary Runtime Consumers** | `@tupynambalucas-dev/mcp-github-org`, Agent Mesh | GitHub Actions workflows (`publish.yml`) | `@tupynambalucas-dev/mcp-github-flow`, `gh-tl` CLI suite |
+| **Primary Runtime Consumers** | `@tupynambalucas-dev/mcp-github-org` | GitHub Actions (`renovate.yml`, `renderer-generate.yml`, `deploy-docs.yaml`, `release.yml`), `getOctokitClient('ci-bot')` | `@tupynambalucas-dev/mcp-github-flow`, `gh-tl` CLI suite |
 
 ---
 
@@ -135,9 +135,22 @@ spec:
 
 ---
 
-## 5. Navigation
+## 5. Client Resolution & Separation of Duties Matrix (`@tupynambalucas-dev/mcp-core-github`)
+
+`getOctokitClient(tier: GitHubIdentityTier)` enforces strict Separation of Duties (SoD) and the **No-Privilege-Escalation Fallback Invariant**:
+
+| Requested `tier` | Primary Consumer | Priority 1 | Priority 2 (Fallback) | Priority 3 (Fallback) | Tier 1 (`org-manager`) Isolation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `'org-manager'` | `@tupynambalucas-dev/mcp-github-org` | `createOrgManagerOctokit()` (`ORG_MANAGER_APP_*`) | `GITHUB_PERSONAL_ACCESS_TOKEN` / `GITHUB_TOKEN` | Unauthenticated `Octokit` | Explicit opt-in only |
+| `'ci-bot'` | CI/CD & Repository Automation | `createCiBotOctokit()` (`CI_BOT_APP_*`) | `GITHUB_PERSONAL_ACCESS_TOKEN` / `GITHUB_TOKEN` | Unauthenticated `Octokit` | **Never calls `org-manager`** |
+| `'developer-tools'` / `'auto'` | `@tupynambalucas-dev/mcp-github-flow` | `GITHUB_PERSONAL_ACCESS_TOKEN` -> `GITHUB_TOKEN` -> `gh auth token` | `createCiBotOctokit()` (`CI_BOT_APP_*`) | Unauthenticated `Octokit` | **Never calls `org-manager`** |
+
+---
+
+## 6. Navigation
 
 - [Parent Reference Index](../README.md)
 - [How-To: Generating and Configuring GitHub App Keys](../how-to-guides/generating-and-configuring-github-app-keys.md)
 - [Tutorial: Creating a GitHub App End-to-End](../tutorials/creating-a-github-app-end-to-end.md)
 - [Explanation: Three-Tier GitHub App Identity Architecture](../explanation/github-app-identity-architecture.md)
+- [Reference: GitHub Packages and Token Boundary Governance](./github-packages-and-token-boundary-governance.md)
