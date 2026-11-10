@@ -139,7 +139,24 @@ Because workflows inside `<org>/.github/.github/workflows/` do not auto-trigger 
 
 ---
 
-## 4. Canonical Sources
+## 4. Two-Stage Monorepo Package Publishing Pipeline (`packages:publish`)
+
+Enterprise monorepos providing both modular packages and umbrella consumer distributions (such as `agent-mesh`) execute a deterministic two-stage release pipeline orchestrated via `pnpm run packages:publish`:
+
+1. **Stage 1 (Recursive Workspace Packages)**:
+   ```bash
+   pnpm -r publish --access public --no-git-checks --report-summary
+   ```
+   Publishes all sovereign workspace packages (`@tupynambalucas-dev/plugin-*`, `@tupynambalucas-dev/mcp-*`, `@tupynambalucas-dev/mcp-core-*`) directly to GitHub Packages (`npm.pkg.github.com`).
+2. **Stage 2 (Root Umbrella Package)**:
+   ```bash
+   node ./scripts/publish-root.cjs
+   ```
+   Generates a release-isolated directory structure, packages the root umbrella package `@tupynambalucas-dev/agent-mesh` along with all bundled plugins (`plugins/packages/`), presets (`presets/`), and sovereign MCP servers (`mcp/servers/`), and publishes the unified package to `npm.pkg.github.com`.
+
+---
+
+## 5. Canonical Sources
 
 - [Creating workflow templates for your organization - GitHub Docs](https://docs.github.com/en/actions/how-tos/reuse-automations/create-workflow-templates)
 - [Reusing workflow configurations - GitHub Docs](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations)

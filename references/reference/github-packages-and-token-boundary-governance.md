@@ -52,7 +52,32 @@ GitHub does not expose a `PATCH` REST/GraphQL endpoint to toggle existing packag
 When transitioning existing `private` packages (under 5,000 downloads) to `public` in bulk after enabling **Package Creation -> Public**:
 1. Dispatch [`agent-mesh/.github/workflows/publish.yml`](../../../agent-mesh/.github/workflows/publish.yml) with `force_republish: true`.
 2. The workflow executes `node .github/scripts/manage-packages.js` with `ADMIN_ACTION: purge-all`, deleting all existing `private` package records via `DELETE /orgs/tupynambalucas-dev/packages/npm/{shortName}` using `secrets.GITHUB_TOKEN`.
-3. The workflow immediately executes `pnpm run packages:publish` (`pnpm -r publish --access public --no-git-checks --report-summary`), recreating all 19 workspace packages at their current version (`1.0.0`) with **`visibility: public`**.
+3. The workflow immediately executes `pnpm run packages:publish` (`pnpm -r publish --access public --no-git-checks --report-summary` followed by `node ./scripts/publish-root.cjs`), recreating all workspace packages and the root umbrella package at their current versions with **`visibility: public`**.
+
+### 3.3 Read Access Authentication Requirement for Public Packages (`npm.pkg.github.com`)
+Unlike `registry.npmjs.org`, GitHub Packages (`npm.pkg.github.com`) enforces authentication even for `public` packages. Any consumer attempting to fetch `@tupynambalucas-dev/*` packages via npm or pnpm must provide a Personal Access Token (classic with `read:packages` or fine-grained with read access to repository packages) or a valid GitHub Actions `GITHUB_TOKEN`:
+
+```ini
+# ~/.npmrc or project .npmrc
+@tupynambalucas-dev:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
+```
+
+Without an authenticated token, npm and pnpm requests to `npm.pkg.github.com` return `401 Unauthorized` or `404 Not Found`.
+
+### 3.4 Zero-Token Git Package Distribution & Committed MCP Bundles
+To decouple external services and automated agents from external package registry tokens, `@tupynambalucas-dev/agent-mesh` supports direct Git consumption as an enterprise alternative to GitHub Packages:
+
+```yaml
+# pnpm-workspace.yaml
+catalogs:
+  plugins-stack:
+    '@tupynambalucas-dev/agent-mesh': 'github:tupynambalucas-dev/agent-mesh'
+```
+
+Under this model:
+- **No Token Overhead**: Any developer or CI runner with Git access to the public repository can install dependencies without configuring `.npmrc` authentication tokens.
+- **Committed MCP Bundles Invariant**: All 8 MCP servers track their standalone CommonJS bundles (`dist/bin.cjs` and `dist/index.cjs`) in Git via `!mcp/servers/*/dist/`. Downstream consumers (`omnichannel`, `platform`, `docs`) execute MCP tools immediately with zero build steps and zero missing-dependency failures.
 
 ---
 
