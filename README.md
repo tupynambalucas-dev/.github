@@ -1,12 +1,12 @@
-# Tupynamba Lucas Organization Governance (`.github`)
+# Organization Public Governance & Profile (`tupynambalucas-dev/.github`)
 
-Central governance, default community health, public organization profile, and IDE workstation configuration repository (`tupynambalucas-dev/.github`) for the `@tupynambalucas-dev` GitHub organization.
+Central public governance, fallback community health standards, organization landing profile, and shared IDE workstation templates (`tupynambalucas-dev/.github`) for the `@tupynambalucas-dev` GitHub organization.
 
 ---
 
 ## 1. Architecture Overview
 
-GitHub treats the `.github` repository as a specialized administrative repository at the organization root. It renders the public landing profile on `https://github.com/tupynambalucas-dev`, provides fallback community health files inherited by all organization repositories, and preserves cross-repository architectural plans and workstation profiles.
+GitHub treats the `.github` repository as a specialized administrative repository at the organization root. It renders the public landing profile on `https://github.com/tupynambalucas-dev`, provides fallback community health files inherited by all organization repositories lacking local overrides, and preserves cross-repository architectural plans and workstation profiles.
 
 ```text
 .github/
@@ -46,38 +46,38 @@ GitHub treats the `.github` repository as a specialized administrative repositor
 
 ---
 
-## 2. Subsystems and Navigation
+## 2. Subsystems & Navigation
 
-| Subsystem / File | Context Router | Documentation / Entrypoint | Purpose |
+| Subsystem / File | Agent Context | Documentation / Entrypoint | Purpose |
 | :--- | :--- | :--- | :--- |
-| **Organization Profile** | [profile/AGENTS.md](./profile/AGENTS.md) | [profile/README.md](./profile/README.md) | Public landing page rendered on `github.com/tupynambalucas-dev` and brand SVG assets. |
-| **Agent Plans & Hooks** | [.agents/AGENTS.md](./.agents/AGENTS.md) | [.agents/README.md](./.agents/README.md) | Architectural master plans, corporate reference archives, lifecycle hooks, and utility scripts. |
-| **IDE Configuration** | *(inherits root)* | [.vscode/README.md](./.vscode/README.md) | Shared editor formatting rules, YAML/Kubernetes schemas, extensions, and local tasks. |
-| **Governance References** | *(inherits root)* | [references/README.md](./references/README.md) | Technical reference on `.github` vs `.github-private` profiles, community health, Actions templates, and AI governance. |
-| **Workstation Templates** | *(inherits root)* | [templates/README.md](./templates/README.md) | Exportable IDE profile bundle (`tupynambalucas-dev.code-profile`). |
-| **Code of Conduct** | *(inherits root)* | [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) | Contributor Covenant v2.1 behavioral standards and enforcement contacts. |
-| **Contribution Guide** | *(inherits root)* | [CONTRIBUTING.md](./CONTRIBUTING.md) | Branch naming conventions, mandatory SSH commit signing, and pull request gates. |
-| **Security Policy** | *(inherits root)* | [SECURITY.md](./SECURITY.md) | Supported ecosystem versions, private disclosure channels, and remediation SLAs. |
-| **Support Directory** | *(inherits root)* | [SUPPORT.md](./SUPPORT.md) | Official documentation portal links, GitHub Discussions, and commercial inquiries. |
-| **Intake Templates** | *(inherits root)* | [.github/PULL_REQUEST_TEMPLATE.md](./.github/PULL_REQUEST_TEMPLATE.md) | Default Pull Request checklist and structured YAML Issue Forms (`.github/ISSUE_TEMPLATE/`). |
-| **License** | *(inherits root)* | [LICENSE](./LICENSE) | Apache License 2.0 (`Copyright (c) 2026 tupynambalucas.dev`). |
+| **Organization Profile** | [`profile/AGENTS.md`](./profile/AGENTS.md) | [`profile/README.md`](./profile/README.md) | Public landing page rendered on `github.com/tupynambalucas-dev` and brand SVG assets. |
+| **Agent Plans & Hooks** | [`.agents/AGENTS.md`](./.agents/AGENTS.md) | [`.agents/README.md`](./.agents/README.md) | Architectural master plans, corporate reference archives, lifecycle hooks, and utility scripts. |
+| **IDE Configuration** | *(inherits root)* | [`.vscode/README.md`](./.vscode/README.md) | Shared editor formatting rules, YAML/Kubernetes schemas, extensions, and local tasks. |
+| **Governance References** | *(inherits root)* | [`references/README.md`](./references/README.md) | Technical reference on `.github` vs `.github-private` profiles, community health, Actions templates, and AI governance. |
+| **Workstation Templates** | *(inherits root)* | [`templates/README.md`](./templates/README.md) | Exportable IDE profile bundle (`tupynambalucas-dev.code-profile`). |
+| **Code of Conduct** | *(inherits root)* | [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) | Contributor Covenant v2.1 behavioral standards and enforcement contacts. |
+| **Contribution Guide** | *(inherits root)* | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Branch naming conventions, mandatory SSH commit signing, and pull request gates. |
+| **Security Policy** | *(inherits root)* | [`SECURITY.md`](./SECURITY.md) | Supported ecosystem versions, private disclosure channels, and remediation SLAs. |
+| **Support Directory** | *(inherits root)* | [`SUPPORT.md`](./SUPPORT.md) | Official documentation portal links, GitHub Discussions, and commercial inquiries. |
+| **Intake Templates** | *(inherits root)* | [`.github/PULL_REQUEST_TEMPLATE.md`](./.github/PULL_REQUEST_TEMPLATE.md) | Default Pull Request checklist and structured YAML Issue Forms (`.github/ISSUE_TEMPLATE/`). |
+| **License** | *(inherits root)* | [`LICENSE`](./LICENSE) | Apache License 2.0 (`Copyright (c) 2026 tupynambalucas.dev`). |
 
 ---
 
-## 3. Core Capabilities
+## 3. Core Capabilities & Inheritance Model
 
 ### A. Organization Profile (`profile/`)
 
-The [profile/](./profile/README.md) directory defines the public presentation layer for `@tupynambalucas-dev`. GitHub renders [profile/README.md](./profile/README.md) directly on `https://github.com/tupynambalucas-dev`, showcasing cloud-native Kubernetes topologies, autonomous agentic AI infrastructure, engineering disciplines, and official brand marks stored in `profile/assets/`.
+The [`profile/`](./profile/README.md) directory defines the public presentation layer for `@tupynambalucas-dev`. GitHub renders [`profile/README.md`](./profile/README.md) directly on `https://github.com/tupynambalucas-dev` for public visitors, showcasing cloud-native Kubernetes topologies, autonomous agentic AI infrastructure, engineering disciplines, and official brand marks stored in `profile/assets/`.
 
 ### B. Organization Community Health Inheritance
 
-Files placed at the root of this repository act as organization-wide defaults on GitHub. Any repository under `@tupynambalucas-dev` that does not define its own local override automatically inherits [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md), [CONTRIBUTING.md](./CONTRIBUTING.md), [SECURITY.md](./SECURITY.md), and [SUPPORT.md](./SUPPORT.md).
+Files placed at the root of this repository act as organization-wide defaults on GitHub. Any repository under `@tupynambalucas-dev` that does not define its own local override automatically inherits [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md), [`CONTRIBUTING.md`](./CONTRIBUTING.md), [`SECURITY.md`](./SECURITY.md), and [`SUPPORT.md`](./SUPPORT.md).
 
 ### C. Meta-Repository and Agent Mesh Separation of Concerns
 
-- **Multi-Root Workspace Orchestration**: Cross-repository multi-root IDE workspaces and multi-repository task execution are orchestrated via [Mani](https://manicli.com) in [`tupynambalucas-dev/org-core`](https://github.com/tupynambalucas-dev/org-core).
-- **Reusable Agent Capabilities**: Domain plugins (`@tupynambalucas-dev/plugin-*`), dual-transport MCP servers (`@tupynambalucas-dev/mcp-*`), active domain rules, and modular skills are maintained in [`tupynambalucas-dev/agent-mesh`](https://github.com/tupynambalucas-dev/agent-mesh). The local [.agents/](./.agents/README.md) directory in this repository is strictly scoped to architectural decision records, reference guides, and local repository hooks.
+- **Multi-Root Workspace Orchestration**: Cross-repository multi-root IDE workspaces and multi-repository task execution are orchestrated via [Mani](https://manicli.com) in [`tupynambalucas-dev/org-core`](https://github.com/tupynambalucas-dev/org-core) and [`tupynambalucas-dev/org-ecosystem`](https://github.com/tupynambalucas-dev/org-ecosystem).
+- **Reusable Agent Capabilities**: Domain plugins (`@tupynambalucas-dev/plugin-*`), dual-transport MCP servers (`@tupynambalucas-dev/mcp-*`), active domain rules, and modular skills are maintained in [`tupynambalucas-dev/agent-mesh`](https://github.com/tupynambalucas-dev/agent-mesh). The local [`.agents/`](./.agents/README.md) directory in this repository is strictly scoped to architectural decision records, reference guides, and local repository hooks.
 
 ---
 
@@ -85,17 +85,29 @@ Files placed at the root of this repository act as organization-wide defaults on
 
 | Repository / Portal | Location | Role |
 | :--- | :--- | :--- |
-| **Umbrella Meta-Repository** | [tupynambalucas-dev/org-core](https://github.com/tupynambalucas-dev/org-core) | Multi-repository Mani orchestrator and canonical multi-root IDE workspace. |
-| **Enterprise Agent Mesh** | [tupynambalucas-dev/agent-mesh](https://github.com/tupynambalucas-dev/agent-mesh) | Domain plugins, modular AI skills, active rules, and shared MCP servers. |
-| **Core Platform Monorepo** | [tupynambalucas-dev/platform](https://github.com/tupynambalucas-dev/platform) | Corporate web/API services, Cortex AI gateway, internal hub, and Kubernetes GitOps manifests. |
-| **Documentation Hub** | [tupynambalucas-dev/docs](https://github.com/tupynambalucas-dev/docs) | Sovereign Docusaurus v3 documentation portal ([docs.tupynambalucas.dev](https://docs.tupynambalucas.dev)). |
-| **Product Engine** | [tupynambalucas-dev/tessel](https://github.com/tupynambalucas-dev/tessel) | Autonomous TypeScript/WebAssembly web game engine. |
-| **Corporate Website** | [tupynambalucas.dev](https://tupynambalucas.dev) | Public corporate portal and engineering showcase. |
+| **Foundation Meta-Repository** | [`tupynambalucas-dev/org-core`](https://github.com/tupynambalucas-dev/org-core) | Multi-repository Mani orchestrator and canonical foundation IDE workspace. |
+| **Portfolio Meta-Repository** | [`tupynambalucas-dev/org-ecosystem`](https://github.com/tupynambalucas-dev/org-ecosystem) | Product portfolio Mani orchestrator for commercial SaaS and proprietary assets. |
+| **Internal Governance** | [`tupynambalucas-dev/.github-private`](https://github.com/tupynambalucas-dev/.github-private) | Member-only profile, enterprise Copilot custom agents, and managed AI settings. |
+| **Enterprise Agent Mesh** | [`tupynambalucas-dev/agent-mesh`](https://github.com/tupynambalucas-dev/agent-mesh) | Domain plugins, modular AI skills, active rules, and shared MCP servers. |
+| **Core Platform Monorepo** | [`tupynambalucas-dev/platform`](https://github.com/tupynambalucas-dev/platform) | Corporate web/API services, Cortex AI gateway, internal hub, and Kubernetes GitOps manifests. |
+| **Documentation Hub** | [`tupynambalucas-dev/docs`](https://github.com/tupynambalucas-dev/docs) | Sovereign Docusaurus v3 documentation portal ([docs.tupynambalucas.dev](https://docs.tupynambalucas.dev)). |
+| **Developer Workstation** | [`tupynambalucas-dev/workstation`](https://github.com/tupynambalucas-dev/workstation) | WSL2 custom distributions (`distros/`), `tl` / `gh tl` CLI suite, and host governance. |
+| **Omnichannel Platform** | [`tupynambalucas-dev/omnichannel`](https://github.com/tupynambalucas-dev/omnichannel) | Commercial multi-tenant WhatsApp & Instagram messaging gateway and FSM engine. |
+| **Tessel Spatial Engine** | [`tupynambalucas-dev/tessel`](https://github.com/tupynambalucas-dev/tessel) | Hybrid spatial social ecosystem and WebGPU/Three.js interactive simulation engine. |
 
 ---
 
-## 5. Governance Standards
+## 5. Governance & Contributing Standards
 
 1. **Cryptographic Commit Signing**: All Git commits and annotated tags MUST be signed using SSH (`git commit -S -m "..."`).
 2. **Conventional Commits**: All commit messages MUST conform to Conventional Commits v1.0.0 (`<type>(<scope>): <description>`).
-3. **Zero-Emoji Invariant**: Emojis are strictly prohibited across all documentation, code comments, commit messages, and pull requests.
+3. **Single-Branch GitHub Flow**: Short-lived branches (`feat/*`, `fix/*`, `docs/*`, `chore/*`) branch off `main` and merge via reviewed Pull Requests.
+4. **Zero-Emoji Invariant**: Emojis are strictly prohibited across all documentation, code comments, commit messages, and pull requests.
+5. **Secret Hygiene**: Never commit plaintext tokens; all credentials resolve via Infisical or environment variables.
+6. **AI Agent Context**: Autonomous agents operating in this repository MUST read [AGENTS.md](./AGENTS.md) before modifying files.
+
+---
+
+## 6. License
+
+Licensed under the [Apache License 2.0](./LICENSE). Copyright (c) 2026 tupynambalucas.dev.
