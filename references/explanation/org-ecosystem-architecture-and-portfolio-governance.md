@@ -75,7 +75,7 @@ org-ecosystem/
 ├── mani.yaml                              # Declarative multi-repo sync & tag runner
 ├── README.md                              # Primary developer onboarding and orchestration runbook
 ├── AGENTS.md                              # Layer 1 context router for product ecosystem agents
-├── org-ecosystem.code-workspace           # Multi-root VS Code workspace for the portfolio
+├── tupynambalucas-dev-ecosystem.code-workspace # Multi-root VS Code workspace for the portfolio
 ├── .ignore                                # Ripgrep overrides enabling deep child indexing
 ├── .rgignore                              # Ripgrep search configuration
 ├── .gitignore                             # Git ignore rules for managed directories
@@ -193,18 +193,22 @@ mani run status --tags omnichannel
 
 To guarantee clarity across both development environments, workspace files define precise descriptive names:
 
-### In `org-core` (`tupynambalucas-dev.code-workspace`)
+### In `org-core` (`tupynambalucas-dev-core.code-workspace`)
 
 ```json
 {
   "folders": [
     {
-      "name": "org-core (Enterprise Foundation)",
+      "name": "org-core (Core Orchestrator)",
       "path": "."
     },
     {
       "name": ".github (Org Governance)",
       "path": ".github"
+    },
+    {
+      "name": ".github-private (Private Governance & Member Profile)",
+      "path": ".github-private"
     },
     {
       "name": "platform (Core Monorepo)",
@@ -217,12 +221,16 @@ To guarantee clarity across both development environments, workspace files defin
     {
       "name": "agent-mesh (Universal Agent Mesh)",
       "path": "agent-mesh"
+    },
+    {
+      "name": "workstation (Developer Workstation & CLI)",
+      "path": "workstation"
     }
   ]
 }
 ```
 
-### In `org-ecosystem` (`org-ecosystem.code-workspace`)
+### In `org-ecosystem` (`tupynambalucas-dev-ecosystem.code-workspace`)
 
 ```json
 {
