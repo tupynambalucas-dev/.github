@@ -1,0 +1,8 @@
+{
+  "name": "Binary & Distribution Release Pipeline",
+  "description": "Enterprise release pipeline for compiled binaries, system distributions, and cryptographic SHA-256 digest stamping.",
+  "iconName": "package",
+  "categories": [
+    "Deployment"
+  ]
+}

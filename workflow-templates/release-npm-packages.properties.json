@@ -1,0 +1,8 @@
+{
+  "name": "Release Please Package Publishing Pipeline",
+  "description": "Enterprise release automation for multi-package monorepos via Google Release Please, managing SemVer and changelogs automatically.",
+  "iconName": "package",
+  "categories": [
+    "Deployment"
+  ]
+}

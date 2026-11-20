@@ -1,0 +1,32 @@
+# .github/release.yml - Organization-wide Release Notes Categorization
+# Authoritative Symmetrical Taxonomy for tupynambalucas-dev
+
+changelog:
+  categories:
+    - title: "Features & Capabilities"
+      labels:
+        - "feature"
+        - "enhancement"
+        - "feat"
+    - title: "Bug Fixes & Corrections"
+      labels:
+        - "fix"
+        - "bug"
+        - "bugfix"
+    - title: "Performance Optimizations"
+      labels:
+        - "performance"
+        - "perf"
+    - title: "Refactoring & Internal Architecture"
+      labels:
+        - "refactor"
+    - title: "Documentation & Specifications"
+      labels:
+        - "documentation"
+        - "docs"
+    - title: "Security & Vulnerability Patches"
+      labels:
+        - "security"
+    - title: "Reverts & Rollbacks"
+      labels:
+        - "revert"
