@@ -1,0 +1,20 @@
+name: release-npm-packages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Release Please
+        uses: google-github-actions/release-please-action@a02ee1460c573820323d9b4826d7f8ae8660c7df # v4.4.1
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

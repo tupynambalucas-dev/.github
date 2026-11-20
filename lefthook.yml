@@ -1,0 +1,27 @@
+# lefthook.yml - tupynambalucas-dev/.github
+# Authoritative Git Hook Configuration (Evil Martians Lefthook)
+
+pre-commit:
+  parallel: true
+  commands:
+    actionlint:
+      glob: ".github/workflows/*.{yml,yaml}"
+      run: actionlint {staged_files}
+    markdownlint:
+      glob: "*.md"
+      run: npx markdownlint-cli2 {staged_files}
+
+commit-msg:
+  commands:
+    commitlint:
+      run: npx --no -- commitlint --edit {1}
+
+pre-push:
+  commands:
+    prevent-main-push:
+      run: |
+        BRANCH=$(git branch --show-current)
+        if [ "$BRANCH" = "main" ]; then
+          echo "[ERROR] Direct push to main branch is strictly blocked."
+          exit 1
+        fi
