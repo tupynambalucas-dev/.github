@@ -1,0 +1,60 @@
+# cliff.toml - git-cliff configuration for tupynambalucas-dev/.github
+# Authoritative Keep a Changelog + Docusaurus Format Specification
+
+[remote.github]
+owner = "tupynambalucas-dev"
+repo = ".github"
+
+[changelog]
+header = """
+# Changelog - tupynambalucas-dev/.github
+
+All notable changes to the `.github` organization governance repository will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+<!-- changelog-start -->
+"""
+body = """
+{% if version %}\
+    ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+    ## [Unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+    ### {{ group }}
+    {% for commit in commits %}
+        {% if commit.remote.pr_number %}\
+        - [{{ commit.message | split(pat="\n") | first | trim }} #{{ commit.remote.pr_number }}](https://github.com/tupynambalucas-dev/.github/pull/{{ commit.remote.pr_number }})
+        {% else %}\
+        - [{{ commit.message | split(pat="\n") | first | trim }} ({{ commit.id | truncate(length=7, end="") }})](https://github.com/tupynambalucas-dev/.github/commit/{{ commit.id }})
+        {% endif %}\
+    {% endfor %}
+{% endfor %}
+"""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+commit_parsers = [
+    { message = "^feat", group = "Features & Capabilities" },
+    { message = "^fix", group = "Bug Fixes & Corrections" },
+    { message = "^perf", group = "Performance Optimizations" },
+    { message = "^refactor", group = "Refactoring & Internal Architecture" },
+    { message = "^docs", group = "Documentation & Specifications" },
+    { message = "^security", group = "Security & Vulnerability Patches" },
+    { message = "^revert", group = "Reverts & Rollbacks" },
+    { message = "^chore\\(release\\)", skip = true },
+    { message = "^chore", skip = true },
+    { message = "^test", skip = true },
+    { message = "^ci", skip = true },
+    { message = "^style", skip = true },
+]
+protect_breaking_commits = false
+filter_commits = false
+tag_pattern = "v[0-9].*"
+topo_order = false
+sort_commits = "oldest"
