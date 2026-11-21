@@ -25,11 +25,13 @@ body = """
 {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group }}
     {% for commit in commits %}
-        {% if commit.remote.pr_number %}\
-        - [{{ commit.message | split(pat="\n") | first | trim }} #{{ commit.remote.pr_number }}](https://github.com/tupynambalucas-dev/.github/pull/{{ commit.remote.pr_number }}){% if commit.remote.username %} ([@{{ commit.remote.username }}](https://github.com/{{ commit.remote.username }})){% endif %}
-        {% else %}\
-        - [{{ commit.message | split(pat="\n") | first | trim }} ({{ commit.id | truncate(length=7, end="") }})](https://github.com/tupynambalucas-dev/.github/commit/{{ commit.id }}){% if commit.remote.username %} ([@{{ commit.remote.username }}](https://github.com/{{ commit.remote.username }})){% endif %}
-        {% endif %}\
+        {%- set raw_first = commit.raw_message | split(pat="\n") | first | trim -%}
+        {%- if commit.remote.pr_number -%}
+            {%- set clean_msg = raw_first | replace(from=" (#" ~ commit.remote.pr_number ~ ")", to="") -%}
+        - [{{ clean_msg }} #{{ commit.remote.pr_number }}](https://github.com/tupynambalucas-dev/.github/pull/{{ commit.remote.pr_number }}){% if commit.remote.username %} ([@{{ commit.remote.username }}](https://github.com/{{ commit.remote.username }})){% endif %}
+        {%- else -%}
+        - [{{ raw_first }} ({{ commit.id | truncate(length=7, end="") }})](https://github.com/tupynambalucas-dev/.github/commit/{{ commit.id }}){% if commit.remote.username %} ([@{{ commit.remote.username }}](https://github.com/{{ commit.remote.username }})){% endif %}
+        {%- endif %}
     {% endfor %}
 {% endfor %}
 """
@@ -52,6 +54,7 @@ commit_parsers = [
     { message = "^test", skip = true },
     { message = "^ci", skip = true },
     { message = "^style", skip = true },
+    { message = "^build", skip = true },
 ]
 protect_breaking_commits = false
 filter_commits = false
