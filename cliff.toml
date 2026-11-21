@@ -26,9 +26,9 @@ body = """
     ### {{ group }}
     {% for commit in commits %}
         {% if commit.remote.pr_number %}\
-        - [{{ commit.message | split(pat="\n") | first | trim }} #{{ commit.remote.pr_number }}](https://github.com/tupynambalucas-dev/.github/pull/{{ commit.remote.pr_number }})
+        - [{{ commit.message | split(pat="\n") | first | trim }} #{{ commit.remote.pr_number }}](https://github.com/tupynambalucas-dev/.github/pull/{{ commit.remote.pr_number }}){% if commit.remote.username %} ([@{{ commit.remote.username }}](https://github.com/{{ commit.remote.username }})){% endif %}
         {% else %}\
-        - [{{ commit.message | split(pat="\n") | first | trim }} ({{ commit.id | truncate(length=7, end="") }})](https://github.com/tupynambalucas-dev/.github/commit/{{ commit.id }})
+        - [{{ commit.message | split(pat="\n") | first | trim }} ({{ commit.id | truncate(length=7, end="") }})](https://github.com/tupynambalucas-dev/.github/commit/{{ commit.id }}){% if commit.remote.username %} ([@{{ commit.remote.username }}](https://github.com/{{ commit.remote.username }})){% endif %}
         {% endif %}\
     {% endfor %}
 {% endfor %}
