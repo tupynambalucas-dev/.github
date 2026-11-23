@@ -87,7 +87,7 @@ A frequent architectural mistake is placing operational or legal manifests in `<
 | **`CODEOWNERS`** | **No** | Code ownership paths and team review gates are repository-tree specific. Must be committed per repository (`.github/CODEOWNERS`) and enforced via **Organization Repository Rulesets** ("Require review from Code Owners"). |
 | **`dependabot.yml`** | **No** | Ecosystem directories (`directory: "/"`) vary per repository. Manage fleet-wide Dependabot alerts/security updates via **Organization Settings > Code security > Global settings**, or use centralized Renovate presets (`extends: ["github>tupynambalucas-dev/.github//renovate-preset"]`). |
 | **Active `.github/workflows/*.yml`** | **No** | Workflows inside `<org>/.github/.github/workflows/` trigger **only** on events occurring inside `<org>/.github` itself. To enforce organization-wide CI checks, configure **Organization Rulesets > Require workflows to pass before merging** or invoke **Reusable Workflows (`workflow_call`)**. |
-| **`.gitignore` / `.editorconfig` / `.prettierrc`** | **No** | Git and local CLI tools only read files physically present in the cloned workspace or parent meta-repository (`org-core`). Share configs via npm packages (`@tupynambalucas-dev/shared-config`). |
+| **`.gitignore` / `.editorconfig` / `.prettierrc`** | **No** | Git and local CLI tools only read files physically present in the cloned workspace or parent meta-repository (`org`). Share configs via npm packages (`@tupynambalucas-dev/shared-config`). |
 
 ---
 

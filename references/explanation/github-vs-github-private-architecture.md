@@ -81,7 +81,7 @@ GitHub's Organization Overview tab (`https://github.com/<org>`) supports two dis
 Organization owners can curate two independent sets of pinned repositories on the Organization Overview page:
 
 - **Public Pins (up to 6 repositories)**: Displayed to the general public (must be public repositories).
-- **Member Pins (up to 6 repositories)**: Displayed exclusively to authenticated organization members in `Member` view (can combine private, internal, and public repositories such as `org-core`, `platform`, `agent-mesh`, and internal infrastructure repos).
+- **Member Pins (up to 6 repositories)**: Displayed exclusively to authenticated organization members in `Member` view (can combine private, internal, and public repositories such as `org`, `platform`, `agent-mesh`, and internal infrastructure repos).
 
 ### C. Recommended Content Partitioning
 

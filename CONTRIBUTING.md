@@ -77,11 +77,11 @@ Commit messages and Pull Request titles MUST conform strictly to the [Convention
 ### 4. Versioning and Package Releases (Changesets)
 
 - **Published Package Monorepos (`tupynambalucas-dev/agent-mesh`)**: Pull Requests introducing user-facing or API changes to `@tupynambalucas-dev/mcp-*` or `@tupynambalucas-dev/plugin-*` packages MUST include a changeset file generated via `pnpm changeset` (`baseBranch: "main"`).
-- **Application, Infrastructure & Portal Repositories (`platform`, `docs`, `.github`, `org-core`)**: Deploy continuously from `main` without synthetic Changesets files.
+- **Application, Infrastructure & Portal Repositories (`platform`, `docs`, `.github`, `org`)**: Deploy continuously from `main` without synthetic Changesets files.
 
-### 5. Multi-Repository Orchestration (`org-core`)
+### 5. Multi-Repository Orchestration (`org`)
 
-The umbrella meta-repository [`tupynambalucas-dev/org-core`](https://github.com/tupynambalucas-dev/org-core) coordinates sovereign repositories (`.github`, `agent-mesh`, `platform`, `docs`) via [Mani](https://manicli.com) and multi-root IDE workspaces:
+The umbrella meta-repository [`tupynambalucas-dev/org`](https://github.com/tupynambalucas-dev/org) coordinates sovereign repositories (`.github`, `agent-mesh`, `platform`, `docs`) via [Mani](https://manicli.com) and multi-root IDE workspaces:
 
 1. Each repository is a 100% autonomous Git repository with its own native `.git` directory, branches, and remotes. Git submodules and fragile `160000` commit gitlinks have been eliminated.
 2. Developers create feature branches (`feat/<slug>`, `fix/<slug>`) directly inside each target repository, commit with SSH signatures, and open Pull Requests against `main`.

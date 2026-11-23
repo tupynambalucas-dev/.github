@@ -256,7 +256,7 @@ remain robust, testable, maintainable, and horizontally scalable:
 
 ## Organization Ecosystem
 
-- **[org-core](https://github.com/tupynambalucas-dev/org-core)**:
+- **[org](https://github.com/tupynambalucas-dev/org)**:
   Central meta-repository orchestrating all corporate repositories via Mani and multi-root IDE workspaces with unified context.
 - **[agent-mesh](https://github.com/tupynambalucas-dev/agent-mesh)**:
   Universal AI agent governance plugin, security guardrails, shared MCP connectors, and domain routing skills.

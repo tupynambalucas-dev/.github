@@ -10,7 +10,7 @@ Security patches and dependency remediations are actively maintained on the late
 
 | Repository / Package Scope | Supported Version | Status |
 | :--- | :--- | :--- |
-| `tupynambalucas-dev/org-core` | `main` (latest) | Actively Supported |
+| `tupynambalucas-dev/org` | `main` (latest) | Actively Supported |
 | `tupynambalucas-dev/platform` | `main` (latest) | Actively Supported |
 | `tupynambalucas-dev/agent-mesh` (`@tupynambalucas-dev/mcp-*`, `plugin-*`) | `1.x.x` (`main`) | Actively Supported |
 | `tupynambalucas-dev/docs` | `main` (latest) | Actively Supported |

@@ -1,6 +1,6 @@
 # Org-Ecosystem Architecture & Portfolio Workspace Governance
 
-Authoritative technical specification defining the dual meta-repository architecture for `tupynambalucas-dev`: separating **Enterprise Foundation (`org-core`)** from **Portfolio Solutions & Services (`org-ecosystem`)**.
+Authoritative technical specification defining the dual meta-repository architecture for `tupynambalucas-dev`: separating **Enterprise Foundation (`org`)** from **Portfolio Solutions & Services (`ecosystem`)**.
 
 ---
 
@@ -8,7 +8,7 @@ Authoritative technical specification defining the dual meta-repository architec
 
 Modern technology enterprises managing diverse software portfolios—ranging from commercial SaaS products to proprietary intellectual property and open-source tools—require strict boundaries between **organizational governance** and **product delivery**.
 
-Attempting to house product monorepos (`omnichannel`, `tessel`) inside the foundational meta-repository (`org-core`) produces severe architectural debt:
+Attempting to house product monorepos (`omnichannel`, `tessel`) inside the foundational meta-repository (`org`) produces severe architectural debt:
 1. **Permission & IP Bleed**: Open-source contributors, SaaS product teams, and internal core developers become entangled in a single Git permission and notification scope.
 2. **Context Window Contamination**: AI agents operating on core governance or platform infrastructure ingest irrelevant product schemas and business-logic code.
 3. **Workspace Inefficiency**: Developers working on a single product must navigate across unrelated platform and governance repositories.
@@ -17,8 +17,8 @@ To resolve this, `tupynambalucas-dev` establishes a **Dual Meta-Repository Topol
 
 ```mermaid
 flowchart TD
-    subgraph EnterpriseTier["Layer 0: Enterprise Foundation (org-core)"]
-        OrgCore["org-core (Enterprise Orchestrator)"]
+    subgraph EnterpriseTier["Layer 0: Enterprise Foundation (org)"]
+        OrgCore["org (Enterprise Orchestrator)"]
         DotGithub[".github (Org Governance)"]
         AgentMesh["agent-mesh (Universal Agent Mesh)"]
         Platform["platform (Core Monorepo)"]
@@ -29,8 +29,8 @@ flowchart TD
         OrgCore --> Docs
     end
 
-    subgraph ProductTier["Layer 1: Product Portfolio Ecosystem (org-ecosystem)"]
-        OrgEco["org-ecosystem (Ecosystem Orchestrator)"]
+    subgraph ProductTier["Layer 1: Product Portfolio Ecosystem (ecosystem)"]
+        OrgEco["ecosystem (Ecosystem Orchestrator)"]
         Commercial["commercial/ (SaaS / Paid Services)"]
         Internal["internal/ (Proprietary Company Assets)"]
         OSS["oss/ (Open Source Community Tools)"]
@@ -53,9 +53,9 @@ flowchart TD
 
 ---
 
-## 2. Structural Comparison: `org-core` vs. `org-ecosystem`
+## 2. Structural Comparison: `org` vs. `ecosystem`
 
-| Dimension | `org-core` | `org-ecosystem` |
+| Dimension | `org` | `ecosystem` |
 | :--- | :--- | :--- |
 | **Architectural Layer** | **Layer 0: Enterprise Foundation** | **Layer 1: Product & Solutions Portfolio** |
 | **Primary Responsibility** | Corporate governance, public profile, default community health, sovereign documentation, agent mesh plugins/skills, base Kubernetes infrastructure. | Commercial microservices, internal business intelligence/engines, customer-facing applications, open-source libraries. |
@@ -66,12 +66,12 @@ flowchart TD
 
 ---
 
-## 3. `org-ecosystem` Directory Layout & Namespace Taxonomy
+## 3. `ecosystem` Directory Layout & Namespace Taxonomy
 
-In `org-ecosystem`, repositories are partitioned into explicit operational namespaces:
+In `ecosystem`, repositories are partitioned into explicit operational namespaces:
 
 ```text
-org-ecosystem/
+ecosystem/
 ├── mani.yaml                              # Declarative multi-repo sync & tag runner
 ├── README.md                              # Primary developer onboarding and orchestration runbook
 ├── AGENTS.md                              # Layer 1 context router for product ecosystem agents
@@ -91,13 +91,13 @@ org-ecosystem/
 ```
 
 > [!IMPORTANT]
-> Both `omnichannel` and `tessel` are already structured as **independent Monorepos** with their own `pnpm-workspace.yaml`, `turbo.json`, and TypeScript reference architectures. In `org-ecosystem`, they are checked out as whole sovereign repositories into their respective namespace folders (`commercial/omnichannel` and `internal/tessel`), preserving their git histories and monorepo configurations.
+> Both `omnichannel` and `tessel` are already structured as **independent Monorepos** with their own `pnpm-workspace.yaml`, `turbo.json`, and TypeScript reference architectures. In `ecosystem`, they are checked out as whole sovereign repositories into their respective namespace folders (`commercial/omnichannel` and `internal/tessel`), preserving their git histories and monorepo configurations.
 
 ---
 
 ## 4. Declarative Mani Orchestration (`mani.yaml`)
 
-The `org-ecosystem` manifest utilizes Mani tags to enable selective, on-demand synchronization:
+The `ecosystem` manifest utilizes Mani tags to enable selective, on-demand synchronization:
 
 ```yaml
 # Manifest specification: https://manicli.com
@@ -193,13 +193,13 @@ mani run status --tags omnichannel
 
 To guarantee clarity across both development environments, workspace files define precise descriptive names:
 
-### In `org-core` (`tupynambalucas-dev-core.code-workspace`)
+### In `org` (`tupynambalucas-dev.code-workspace`)
 
 ```json
 {
   "folders": [
     {
-      "name": "org-core (Core Orchestrator)",
+      "name": "org (Core Orchestrator)",
       "path": "."
     },
     {
@@ -230,13 +230,13 @@ To guarantee clarity across both development environments, workspace files defin
 }
 ```
 
-### In `org-ecosystem` (`tupynambalucas-dev-ecosystem.code-workspace`)
+### In `ecosystem` (`tupynambalucas-dev-ecosystem.code-workspace`)
 
 ```json
 {
   "folders": [
     {
-      "name": "org-ecosystem (Ecosystem Orchestrator)",
+      "name": "ecosystem (Ecosystem Orchestrator)",
       "path": "."
     },
     {
@@ -271,10 +271,10 @@ To guarantee clarity across both development environments, workspace files defin
 
 ## 6. Ripgrep & Indexer Decoupling
 
-Following the governance standard established in `org-core`, `org-ecosystem` MUST include `.ignore` and `.rgignore` to un-ignore child directories for Antigravity's embedded `ripgrep` search engine:
+Following the governance standard established in `org`, `ecosystem` MUST include `.ignore` and `.rgignore` to un-ignore child directories for Antigravity's embedded `ripgrep` search engine:
 
 ```ignore
-# org-ecosystem/.ignore and org-ecosystem/.rgignore
+# ecosystem/.ignore and ecosystem/.rgignore
 !commercial/
 !internal/
 !oss/

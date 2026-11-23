@@ -63,7 +63,7 @@ The documentation in this library is partitioned by intent and audience needs:
 | :--- | :--- | :--- |
 | [explanation/github-app-identity-architecture.md](./explanation/github-app-identity-architecture.md) | Deep architectural explanation of the Three-Tier Identity Topology, why we eliminate static PATs, cascading workflow automation, and Base64 vs Kubernetes file mount security analysis. | Enterprise Architects, SecOps |
 | [explanation/github-vs-github-private-architecture.md](./explanation/github-vs-github-private-architecture.md) | Architectural comparison between public `.github` and private `.github-private`, dual-view organization profile rendering (`Public` vs `Member`), and resolution topology. | Organization Owners |
-| [explanation/org-ecosystem-architecture-and-portfolio-governance.md](./explanation/org-ecosystem-architecture-and-portfolio-governance.md) | Dual meta-repository architecture separating Enterprise Foundation (`org-core`) from Portfolio Solutions (`org-ecosystem`), namespace layout, and Mani tag orchestration. | Engineering Leadership |
+| [explanation/ecosystem-architecture-and-portfolio-governance.md](./explanation/ecosystem-architecture-and-portfolio-governance.md) | Dual meta-repository architecture separating Enterprise Foundation (`org`) from Portfolio Solutions (`ecosystem`), namespace layout, and Mani tag orchestration. | Engineering Leadership |
 | [explanation/ai-agents-and-enterprise-governance.md](./explanation/ai-agents-and-enterprise-governance.md) | Organization-wide and enterprise AI custom agents (`/agents/`), server-managed Copilot settings (`copilot/managed-settings.json`), and marketplace controls. | AI Engineers, Team Leads |
 
 ---
@@ -87,4 +87,4 @@ All architectural patterns and technical specifications in this library are alig
 
 - [Organization Governance Root (`.github/README.md`)](../README.md)
 - [Organization Agent Context (`.github/AGENTS.md`)](../AGENTS.md)
-- [Enterprise Meta-Repository Root (`org-core/README.md`)](../../README.md)
+- [Enterprise Meta-Repository Root (`org/README.md`)](../../README.md)
