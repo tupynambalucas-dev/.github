@@ -68,7 +68,7 @@ echo "$base64Key" | pbcopy
 
 ## 4. Configuring Local Environment Files (`.env` and `.env.example`)
 
-In your local configuration files (`org-core/.env`, `agent-mesh/.env`, and `platform/k8s/.env`), define the variables using the standardized prefix-less taxonomy:
+In your local configuration files (`org/.env`, `agent-mesh/.env`, and `platform/k8s/.env`), define the variables using the standardized prefix-less taxonomy:
 
 ```dotenv
 # ============================================================================== #

@@ -6,7 +6,7 @@ Shared Visual Studio Code and Antigravity IDE configurations, workspace extensio
 
 ## 1. Overview
 
-When opening `.github` as a standalone workspace, these configurations enforce consistent formatting, linting, schema validation, and CLI task execution. For cross-repository development across the full organization ecosystem, open the multi-root workspace provided by [`tupynambalucas-dev/org-core`](https://github.com/tupynambalucas-dev/org-core).
+When opening `.github` as a standalone workspace, these configurations enforce consistent formatting, linting, schema validation, and CLI task execution. For cross-repository development across the full organization ecosystem, open the multi-root workspace provided by [`tupynambalucas-dev/org`](https://github.com/tupynambalucas-dev/org).
 
 ---
 
