@@ -1,0 +1,53 @@
+name: Reusable Release Cliff (Single-Changelog Repositories)
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: Path to cliff.toml configuration file
+        type: string
+        required: false
+        default: cliff.toml
+      tag-name:
+        description: Release tag name (defaults to github.ref_name)
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-cliff-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-cliff:
+    name: Generate Changelog & Publish GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Full Git History
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Generate Release Notes via git-cliff
+        id: cliff
+        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
+        with:
+          config: ${{ inputs.config-file }}
+          args: --latest --strip header --output release-notes.md
+
+      - name: Publish or Update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ inputs.tag-name || github.ref_name }}
+        run: |
+          if gh release view "${TAG_NAME}" >/dev/null 2>&1; then
+            gh release edit "${TAG_NAME}" --title "${TAG_NAME}" --notes-file release-notes.md
+          else
+            gh release create "${TAG_NAME}" --title "${TAG_NAME}" --notes-file release-notes.md
+          fi

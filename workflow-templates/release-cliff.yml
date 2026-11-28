@@ -1,0 +1,14 @@
+name: release-cliff
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release-cliff:
+    uses: tupynambalucas-dev/.github/.github/workflows/reusable-release-cliff.yml@main
+    secrets: inherit

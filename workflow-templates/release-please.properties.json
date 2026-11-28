@@ -1,0 +1,12 @@
+{
+  "name": "Enterprise Release Please (Reusable)",
+  "description": "Multi-workspace monorepo release automation via centralized tupynambalucas-dev/.github reusable workflow with automatic release-notes branch cleanup.",
+  "iconName": "rocket",
+  "categories": [
+    "Continuous integration",
+    "Deployment"
+  ],
+  "filePatterns": [
+    "release-please-config.json$"
+  ]
+}
