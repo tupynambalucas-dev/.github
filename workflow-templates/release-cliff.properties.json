@@ -1,0 +1,12 @@
+{
+  "name": "Enterprise Release Cliff (Reusable)",
+  "description": "Single-changelog repository release automation via centralized tupynambalucas-dev/.github git-cliff reusable workflow.",
+  "iconName": "tag",
+  "categories": [
+    "Continuous integration",
+    "Deployment"
+  ],
+  "filePatterns": [
+    "cliff.toml$"
+  ]
+}
